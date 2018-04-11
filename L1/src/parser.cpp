@@ -150,8 +150,7 @@ namespace L1 {
           seps,
           pegtl::sor<
             reg,
-            number,
-            label
+            number
           >
         >,
         seps,
@@ -315,7 +314,8 @@ namespace L1 {
         label,
         pegtl::string<'p', 'r', 'i', 'n', 't'>,
         pegtl::string<'a', 'l', 'l', 'o', 'c', 'a', 't', 'e'>,
-        pegtl::string<'a', 'r', 'r', 'a', 'y', '-', 'e', 'r', 'r', 'o', 'r'>
+        pegtl::string<'a', 'r', 'r', 'a', 'y', '-', 'e', 'r', 'r', 'o', 'r'>,
+        reg
       >,
       seps,
       number

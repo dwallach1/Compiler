@@ -212,17 +212,213 @@ namespace L1{
 
                     fprintf(stderr, "\t%s %s, %s\n", operation, src, dst);
                     break;
-                    
-                // compare
+
+                // instruction DNE
                 case 4:
+                    break;
+
+                // compare and jump (cjmp)
                 case 5:
+                    operation = "cmpq";
+                    std::string arg1;
+                    std::string arg2;
+                    std::string extra_instruction;
+
+                    std::string operand = result[2];
+                    int r;
+                    if (result[3][0] != 'r') {
+
+                        // both are numbers 
+                        if (result[1][0] != 'r') {
+                
+                            if (operand == "<") {
+                                r = atoi(result[1]) < atoi(result[3]);
+                            }
+                            else if (operand == "<=") {
+                                r = atoi(result[1]) <= atoi(result[3]);
+                            }
+                            else if (operand == "=") {
+                                r = atoi(result[1]) == atoi(result[3]);
+                            }
+
+                            if (r) {
+                                clean_label(result[4]);
+                                fprintf(outputFile, "%s %s\n", "jmp", result[4]);
+                            } else {
+                                clean_label(result[5]);
+                                fprintf(outputFile, "%s %s\n", "jmp", result[5]);
+                            }
+                            break;
+                        }
+
+                        // only last one is a number
+
+                        // negate
+                        if (operand == "<") { operand = ">="; }
+                        if (operand == "<=") { operand = ">="; }
+
+
+                        // swap
+                        arg1 = result[1];
+                        arg2 = result[3];
+                        result[1] = arg2;
+                        result[3] = arg1;
+                    }
+
+                    std::string inst;
+
+                    if (operand == "<") { inst = "jl"; }
+                    if (operand == "<=") { inst = "jle"; }
+                    if (operand == ">") { inst = "jg"; }
+                    if (operand == ">=") { inst = "jge"; }
+                    if (operand == "=") { inst = "je"; }
+
+                    if (result[1][0] == 'r') {
+                        arg1 = '%' + result[1];
+                    } else {
+                        arg1 = '$' + result[1];
+                    }
+
+                    
+                    arg2 = '%' + result[3];
+                    clean_label(result[4]);
+                    clean_label(result[5]);
+
+                    fprintf(outputFile, "\t%s %s, %s\n
+                                         \t%s %s\n
+                                         \t%s %s\n", operation, arg1, arg2, inst, result[4], "jmp", result[5]);
+
+                    break;
+
+                // goto
                 case 6:
+                    clean_label(result[1])
+                    fprintf(outputFile, "%s %s\n", "jmp", result[1]);
+                    break;
+
+                // return
                 case 7:
+                    uint64_t offset = F->locals * 8;
+                    if (offset) {
+                        fprintf(outputFile, "\t%s $%d, %%%s\n", "addq", offset, "rsp");
+                    }
+                    fprintf(outputFile, "\t%s\n", "retq");
+                    break;
+
+                // call
                 case 8:
+
+                    if (result[1][0] != 'r' || result[1][0] != ':') {
+                        fprintf(outputFile, "\t%s %s %s\n", result[0], result[1], "# runtime system call");
+                        break;
+                    }
+
+                    uint64_t offset = ((atoi(result[2]) - 6 ) * 8) + 8;
+                    if (offset < 8) { offset = 8; }
+
+                    fprintf(outputFile, "\t%s $%d, %%%s\n", "subq", offset, "rsp");
+
+                    if (result[1][0] == 'r') {
+                        fprintf(outputFile, "\t%s *%%%s\n", "jmp", "rdi");
+                    } else {
+                        clean_label(result[1])
+                        fprintf(outputFile, "\t%s %s\n", "jmp", result[1]);
+                    }   
+
+                    break;
+
+                // lea 
                 case 9:
+                    fprintf(outputFile, "\t%s (%%%s, %%%s, %s), %%%s\n", "lea", result[2], result[3], result[4], result[0]);
+
+                // compare assign
                 case 10:
+
+                    operation = "cmpq";
+                    std::string arg1;
+                    std::string arg2;
+                    std::string extra_instruction;
+
+                    std::string operand = result[3];
+                    int r;
+                    if (result[4][0] != 'r') {
+
+                        // both are numbers 
+                        if (result[2][0] != 'r') {
+                
+                            if (operand == "<") {
+                                r = atoi(result[2]) < atoi(result[4]);
+                            }
+                            else if (operand == "<=") {
+                                r = atoi(result[2]) <= atoi(result[4]);
+                            }
+                            else if (operand == "=") {
+                                r = atoi(result[2]) == atoi(result[4]);
+                            }
+
+                            if (r) {
+                                fprintf(outputFile, "\t%s %s, %%%s\n", "movq", "$1", result[0]);
+                            } else {
+                                fprintf(outputFile, "\t%s %s, %%%s\n", "movq", "$0", result[0]);
+                            }
+                            break;
+                        }
+
+                        // only last one is a number
+
+                        // negate operands
+                        if (operand == "<") { operand = ">="; }
+                        if (operand == "<=") { operand = ">="; }
+
+
+                        // swap results
+                        arg1 = result[2];
+                        arg2 = result[4];
+                        result[2] = arg2;
+                        result[4] = arg1;
+                    }
+
+                    std::string inst;
+
+                    if (operand == "<") { inst = "setl"; }
+                    if (operand == "<=") { inst = "setle"; }
+                    if (operand == ">") { inst = "setg"; }
+                    if (operand == ">=") { inst = "setge"; }
+                    if (operand == "=") { inst = "sete"; }
+
+                    if (result[2][0] == 'r') {
+                        arg1 = '%' + result[2];
+                    } else {
+                        arg1 = '$' + result[2];
+                    }
+
+                    
+                    arg2 = '%' + result[4];
+
+            
+                    fprintf(outputFile, "\t%s %s, %s\n
+                                         \t%s %%%s\n
+                                         \t%s %%%s, %%%s\n", operation, arg1, arg2, inst, register_map(result[0]), "movzbq", register_map(result[0]), result[0]);
+
+                    break;
+
+                // label inst
                 case 11:
+                    clean_label(result[0]);
+                    fprintf(outputFile, "%s:\n", result[0]);
+                    break;
+
+                // increment / decrement
                 case 12:
+
+                    if (result[0][3] == '+') {
+                        fprintf(outputFile, "\t%s %%%c%c%c\n", "inc", result[0][0], result[0][1], result[0][2]);
+                    } else {
+                        fprintf(outputFile, "\t%s %%%c%c%c\n", "dec", result[0][0], result[0][1], result[0][2]);
+                    }
+                    break;
+
+
 
             }
         }
