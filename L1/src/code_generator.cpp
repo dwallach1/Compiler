@@ -152,7 +152,11 @@ namespace L1{
 
                     break;
 
-                // assignment 
+                // store (run assignment code)
+                case 3:
+                // load (run assignment code)
+                case 2: 
+                // assignment
                 case 1:
                     // constant for all assignments 
                     operation = "movq";
@@ -208,8 +212,8 @@ namespace L1{
 
                     fprintf(stderr, "\t%s %s, %s\n", operation, src, dst);
                     break;
-                case 2:
-                case 3:
+                    
+                // compare
                 case 4:
                 case 5:
                 case 6:

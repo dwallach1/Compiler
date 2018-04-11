@@ -464,9 +464,10 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
-        L1::Instruction instruction;
-        instruction.instruction = in.string();
-        instruction.type = 0;
+        L1::Instruction *instruction = new L1::Instruction();
+        instruction->instruction = in.string();
+        instruction->type = 0;
+        currentF->instructions.push_back(instruction);
         std::cout << "returning from arithmetic " <<  in.string() << std::endl;
     }
   };
@@ -475,9 +476,10 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
-        L1::Instruction instruction;
-        instruction.instruction = in.string();
-        instruction.type = 1;
+        L1::Instruction *instruction = new L1::Instruction();
+        instruction->instruction = in.string();
+        instruction->type = 1;
+        currentF->instructions.push_back(instruction);
         std::cout << "returning from assignment " <<  in.string() << std::endl;
     }
   };
@@ -486,9 +488,10 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
-        L1::Instruction instruction;
-        instruction.instruction = in.string();
-        instruction.type = 2;
+        L1::Instruction *instruction = new L1::Instruction();
+        instruction->instruction = in.string();
+        instruction->type = 2;
+        currentF->instructions.push_back(instruction);
         std::cout << "returning from load " <<  in.string() << std::endl;
     }
   };
@@ -497,9 +500,10 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
-        L1::Instruction instruction;
-        instruction.instruction = in.string();
-        instruction.type = 3;
+        L1::Instruction *instruction = new L1::Instruction();
+        instruction->instruction = in.string();
+        instruction->type = 3;
+        currentF->instructions.push_back(instruction);
         std::cout << "returning from store " <<  in.string() << std::endl;
     }
   };
@@ -508,9 +512,10 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
-        L1::Instruction instruction;
-        instruction.instruction = in.string();
-        instruction.type = 4;
+        L1::Instruction *instruction = new L1::Instruction();
+        instruction->instruction = in.string();
+        instruction->type = 4;
+        printf("This instruction doesn't actually exist\n");
     }
   };
 
@@ -518,10 +523,11 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
-        L1::Instruction instruction;
-        instruction.instruction = in.string();
-        instruction.type = 10;
+        L1::Instruction *instruction = new L1::Instruction();
+        instruction->instruction = in.string();
+        instruction->type = 10;
         std::cout << "returning from compare_assign " <<  in.string() << std::endl;
+        currentF->instructions.push_back(instruction);
     }
   };
 
@@ -530,10 +536,11 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
-        L1::Instruction instruction;
-        instruction.instruction = in.string();
-        instruction.type = 11;
+        L1::Instruction *instruction = new L1::Instruction();
+        instruction->instruction = in.string();
+        instruction->type = 11;
         std::cout << "returning from label_inst " <<  in.string() << std::endl;
+        currentF->instructions.push_back(instruction);
     }
   };
 
@@ -541,9 +548,10 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
-        L1::Instruction instruction;
-        instruction.instruction = in.string();
-        instruction.type = 12;
+        L1::Instruction *instruction = new L1::Instruction();
+        instruction->instruction = in.string();
+        instruction->type = 12;
+        currentF->instructions.push_back(instruction);
         std::cout << "returning from inc_dec " <<  in.string() << std::endl;
     }
   };
@@ -552,9 +560,10 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
-        L1::Instruction instruction;
-        instruction.instruction = in.string();
-        instruction.type = 5;
+        L1::Instruction *instruction = new L1::Instruction();
+        instruction->instruction = in.string();
+        instruction->type = 5;
+        currentF->instructions.push_back(instruction);
     }
   };
 
@@ -563,9 +572,10 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
-        L1::Instruction instruction;
-        instruction.instruction = in.string();
-        instruction.type = 6;
+        L1::Instruction *instruction = new L1::Instruction();
+        instruction->instruction = in.string();
+        instruction->type = 6;
+        currentF->instructions.push_back(instruction);
     }
   };
 
@@ -573,9 +583,10 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
-        L1::Instruction instruction;
-        instruction.instruction = in.string();
-        instruction.type = 7;
+        L1::Instruction *instruction = new L1::Instruction();
+        instruction->instruction = in.string();
+        instruction->type = 7;
+        currentF->instructions.push_back(instruction);
         std::cout << "returning from return_inst " <<  in.string() << std::endl;
     }
   };
@@ -584,9 +595,10 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
-        L1::Instruction instruction;
-        instruction.instruction = in.string();
-        instruction.type = 8;
+        L1::Instruction *instruction = new L1::Instruction();
+        instruction->instruction = in.string();
+        instruction->type = 8;
+        currentF->instructions.push_back(instruction);
         std::cout << "returning from call " <<  in.string() << std::endl;
     }
   };
@@ -595,9 +607,10 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
-        L1::Instruction instruction;
-        instruction.instruction = in.string();
-        instruction.type = 9;
+        L1::Instruction *instruction = new L1::Instruction();
+        instruction->instruction = in.string();
+        instruction->type = 9;
+        currentF->instructions.push_back(instruction);
         std::cout << "returning from lea " <<  in.string() << std::endl;
     }
   };
