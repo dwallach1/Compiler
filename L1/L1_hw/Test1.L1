@@ -1,0 +1,62 @@
+// check if it is a prime number
+
+
+(:main
+	(:main
+		0 0
+		rdi <- 50
+		rsi <- 1
+		mem rsp -8 <- :f_ret
+		call :is_not_prime 2
+		:f_ret
+		rdi <- rax
+		call print 1
+		return
+	)
+ 	
+ 	(:is_not_prime
+ 		2 2
+ 		// mod number from 2 - (number - 1) and if any produces 0
+
+	    rdi <- mem rsp 0    
+	    rsi <- mem rsp 8
+
+	    :loop
+	    cjump rsi <= 0 :done :iter 
+	    :iter
+	    rcx <- rsi
+	    rcx <<= 1	// add one to rcx (this is what rdi is being mod-ed by)
+	    rcx += 1
+						// rdi stays the same throughout calls
+		mem rsp -8 <- :f_ret
+		call :mod 2
+		:f_ret
+		rcx <- rax
+		rcx *= 2
+		rcx += 1
+		cjump rcx &= 0 :true :loop  // if the mod returned 0 then not prime
+
+ 		:true
+ 		rax <- 3 	
+ 		return
+
+ 		:done
+ 		rax <- 1 	// false case
+ 		return
+
+ 	)
+
+ 	(:mod
+ 		2 0
+		:loop
+		cjump rdi < rsi :finish :cont
+
+		:cont
+		rdi -= rsi
+		goto :loop
+  
+  		:finish
+		rax <- rdi
+		return
+	)
+)
