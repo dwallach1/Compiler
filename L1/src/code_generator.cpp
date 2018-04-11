@@ -1,48 +1,73 @@
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <fstream>
+#include <cstdio>
+#include <stdlib.h>
 
 #include <code_generator.h>
 
 using namespace std;
 
 namespace L1{
-  void generate_code(Program p){
 
-    /* 
-     * Open the output file.
-     */ 
-    std::ofstream outputFile;
-    outputFile.open("prog.S");
-   
-    /* 
-     * Generate target code
-     */ 
+    void clean_label(std::string* label) {
+        if (label->at(0) == char(':')) {
+            label[0] = '_';
+        }
+    }
 
-    clean_label(p.entryPointLabel)
+    std::string register_map(std::string r) {
+        if (r == "r10")
+            return "r10b";
+        if (r == "r11") 
+            return "r11b";
+        if (r ==  "r12")
+            return "r12b";
+        if (r == "r13")
+            return "r13b";
+        if (r ==  "r14")
+            return "r14b";
+        if (r == "r15")
+            return "r15b";
+        if (r == "r8")
+            return "r8b";
+        if (r == "r9")
+            return "r9b";
+        if (r == "rax")
+            return "al";
+        if (r == "rbp")
+            return "bpl";
+        if (r == "rbx")
+            return "bl";
+        if ( r == "rcx")
+            return "cl";
+        if ( r == "rdi")
+            return "dil";
+        if (r == "rdx")
+            return "dl";
+        if (r == "rsi")
+            return "sil";
+        return "";
+    }
+  
+
+
+  void generate_code(Program p) {
+
+    // std::ofstream outputFile;
+    FILE *outputFile;
+    outputFile = fopen("prog.S", "w");
+    // outputFile.open("prog.S");
+
+    clean_label(&p.entryPointLabel);
 
     // Hard coded begining 
-    fprintf(outputFile, ".text\n
-                        \t.globl go\n
-                        go:\n
-                        \tpushq %rbx\n
-                        \tpushq %rbp\n
-                        \tpushq %r12\n
-                        \tpushq %r13\n
-                        \tpushq %r14\n
-                        \tpushq %r15\n
-                        \tcall %s \n
-                        \tpopq %r15\n
-                        \tpopq %r14\n
-                        \tpopq %r13\n
-                        \tpopq %r12\n
-                        \tpopq %rbp\n
-                        \tpopq %rbx\n
-                        \tretq\n", p.entryPointLabel);
+    fprintf(outputFile, ".text\n\t.globl go\ngo:\n\tpushq %%rbx\n\tpushq %%rbp\n\tpushq %%r12\n\tpushq %%r13\n\tpushq %%r14\n\tpushq %%r15\n\tcall %s\n\tpopq %%r15\n\tpopq %%r14\n\tpopq %%r13\n\tpopq %%r12\n\tpopq %%rbp\n\tpopq %%rbx\n\tretq\n", p.entryPointLabel.c_str());
 
     for (Function* F: p.functions) {
-        clean_label(F->name);
-        fprintf(outputFile, "%s:\n", F->name);
+        clean_label(&F->name);
+        fprintf(outputFile, "%s:\n", F->name.c_str());
         for (Instruction* I: F->instructions) {
 
             // split instruction by words
@@ -56,12 +81,22 @@ namespace L1{
             std::string src;
             std::string dst;
 
+            std::string arg1;
+            std::string arg2;
+            std::string extra_instruction;
+            std::string inst;
+            std::string operand;
+
+            int offset;
+            int idx;
+            int r;
+
+
             switch (I->type) {
 
                 //arithmetic
                 case 0:
                    
-
                     // register/number to register
                     if (result.size() == 3) {
 
@@ -99,7 +134,7 @@ namespace L1{
                     else if (result.size() == 5) {
 
                         // 2 types of instructions: memory as source or as dest
-                        int idx = result[0] == "mem" ? 3 : 1;
+                        idx = result[0] == "mem" ? 3 : 1;
 
                         if (result[idx] == "+=") {
                             operation = "addq";
@@ -148,7 +183,7 @@ namespace L1{
                         src = register_map(src);
                     } 
                     // write instruction using predefined variables
-                    fprintf(outputFile, "\t%s %s, %s\n", operation, src, dst);
+                    fprintf(outputFile, "\t%s %s, %s\n", operation.c_str(), src.c_str(), dst.c_str());
 
                     break;
 
@@ -168,7 +203,8 @@ namespace L1{
                             src = '%' + result[2];
                         } 
                         else if (result[2][0] == ':'){
-                            src = '$' + clean_label(result[2])
+                            clean_label(&result[2]);
+                            src = '$' + result[2];
                         }
                         else {
                             src = '$' + result[2];
@@ -185,7 +221,8 @@ namespace L1{
                                 src = '%' + result[4];
                             } 
                             else if (result[4][0] == ':'){
-                                src = '$' + clean_label(result[4])
+                                clean_label(&result[4]);
+                                src = '$' + result[4];
                             }
                             else {
                                 src = '$' + result[4];
@@ -210,7 +247,7 @@ namespace L1{
                     }
 
 
-                    fprintf(stderr, "\t%s %s, %s\n", operation, src, dst);
+                    fprintf(stderr, "\t%s %s, %s\n", operation.c_str(), src.c_str(), dst.c_str());
                     break;
 
                 // instruction DNE
@@ -220,33 +257,28 @@ namespace L1{
                 // compare and jump (cjmp)
                 case 5:
                     operation = "cmpq";
-                    std::string arg1;
-                    std::string arg2;
-                    std::string extra_instruction;
-
-                    std::string operand = result[2];
-                    int r;
+                    operand = result[2];
                     if (result[3][0] != 'r') {
 
                         // both are numbers 
                         if (result[1][0] != 'r') {
                 
                             if (operand == "<") {
-                                r = atoi(result[1]) < atoi(result[3]);
+                                r = atoi(result[1].c_str()) < atoi(result[3].c_str());
                             }
                             else if (operand == "<=") {
-                                r = atoi(result[1]) <= atoi(result[3]);
+                                r = atoi(result[1].c_str()) <= atoi(result[3].c_str());
                             }
                             else if (operand == "=") {
-                                r = atoi(result[1]) == atoi(result[3]);
+                                r = atoi(result[1].c_str()) == atoi(result[3].c_str());
                             }
 
                             if (r) {
-                                clean_label(result[4]);
-                                fprintf(outputFile, "%s %s\n", "jmp", result[4]);
+                                clean_label(&result[4]);
+                                fprintf(outputFile, "%s %s\n", "jmp", result[4].c_str());
                             } else {
-                                clean_label(result[5]);
-                                fprintf(outputFile, "%s %s\n", "jmp", result[5]);
+                                clean_label(&result[5]);
+                                fprintf(outputFile, "%s %s\n", "jmp", result[5].c_str());
                             }
                             break;
                         }
@@ -265,7 +297,6 @@ namespace L1{
                         result[3] = arg1;
                     }
 
-                    std::string inst;
 
                     if (operand == "<") { inst = "jl"; }
                     if (operand == "<=") { inst = "jle"; }
@@ -281,24 +312,22 @@ namespace L1{
 
                     
                     arg2 = '%' + result[3];
-                    clean_label(result[4]);
-                    clean_label(result[5]);
+                    clean_label(&result[4]);
+                    clean_label(&result[5]);
 
-                    fprintf(outputFile, "\t%s %s, %s\n
-                                         \t%s %s\n
-                                         \t%s %s\n", operation, arg1, arg2, inst, result[4], "jmp", result[5]);
+                    fprintf(outputFile, "\t%s %s, %s\n\t%s %s\n\tjmp %s\n", operation.c_str(), arg1.c_str(), arg2.c_str(), inst.c_str(), result[4].c_str(), result[5].c_str() );
 
                     break;
 
                 // goto
                 case 6:
-                    clean_label(result[1])
-                    fprintf(outputFile, "%s %s\n", "jmp", result[1]);
+                    clean_label(&result[1]);
+                    fprintf(outputFile, "%s %s\n", "jmp", result[1].c_str());
                     break;
 
                 // return
                 case 7:
-                    uint64_t offset = F->locals * 8;
+                    offset = F->locals * 8;
                     if (offset) {
                         fprintf(outputFile, "\t%s $%d, %%%s\n", "addq", offset, "rsp");
                     }
@@ -309,11 +338,11 @@ namespace L1{
                 case 8:
 
                     if (result[1][0] != 'r' || result[1][0] != ':') {
-                        fprintf(outputFile, "\t%s %s %s\n", result[0], result[1], "# runtime system call");
+                        fprintf(outputFile, "\t%s %s %s\n", result[0].c_str(), result[1].c_str(), "# runtime system call");
                         break;
                     }
 
-                    uint64_t offset = ((atoi(result[2]) - 6 ) * 8) + 8;
+                    offset = ((atoi(result[2].c_str()) - 6 ) * 8) + 8;
                     if (offset < 8) { offset = 8; }
 
                     fprintf(outputFile, "\t%s $%d, %%%s\n", "subq", offset, "rsp");
@@ -321,45 +350,42 @@ namespace L1{
                     if (result[1][0] == 'r') {
                         fprintf(outputFile, "\t%s *%%%s\n", "jmp", "rdi");
                     } else {
-                        clean_label(result[1])
-                        fprintf(outputFile, "\t%s %s\n", "jmp", result[1]);
+                        clean_label(&result[1]);
+                        fprintf(outputFile, "\t%s %s\n", "jmp", result[1].c_str());
                     }   
 
                     break;
 
                 // lea 
                 case 9:
-                    fprintf(outputFile, "\t%s (%%%s, %%%s, %s), %%%s\n", "lea", result[2], result[3], result[4], result[0]);
+
+                    fprintf(outputFile, "\t%s (%%%s, %%%s, %s), %%%s\n", "lea", result[2].c_str(), result[3].c_str(), result[4].c_str(), result[0].c_str());
 
                 // compare assign
                 case 10:
 
                     operation = "cmpq";
-                    std::string arg1;
-                    std::string arg2;
-                    std::string extra_instruction;
 
-                    std::string operand = result[3];
-                    int r;
+                    operand = result[3];
                     if (result[4][0] != 'r') {
 
                         // both are numbers 
                         if (result[2][0] != 'r') {
                 
                             if (operand == "<") {
-                                r = atoi(result[2]) < atoi(result[4]);
+                                r = atoi(result[2].c_str()) < atoi(result[4].c_str());
                             }
                             else if (operand == "<=") {
-                                r = atoi(result[2]) <= atoi(result[4]);
+                                r = atoi(result[2].c_str()) <= atoi(result[4].c_str());
                             }
                             else if (operand == "=") {
-                                r = atoi(result[2]) == atoi(result[4]);
+                                r = atoi(result[2].c_str()) == atoi(result[4].c_str());
                             }
 
                             if (r) {
-                                fprintf(outputFile, "\t%s %s, %%%s\n", "movq", "$1", result[0]);
+                                fprintf(outputFile, "\t%s %s, %%%s\n", "movq", "$1", result[0].c_str());
                             } else {
-                                fprintf(outputFile, "\t%s %s, %%%s\n", "movq", "$0", result[0]);
+                                fprintf(outputFile, "\t%s %s, %%%s\n", "movq", "$0", result[0].c_str());
                             }
                             break;
                         }
@@ -378,7 +404,6 @@ namespace L1{
                         result[4] = arg1;
                     }
 
-                    std::string inst;
 
                     if (operand == "<") { inst = "setl"; }
                     if (operand == "<=") { inst = "setle"; }
@@ -396,16 +421,14 @@ namespace L1{
                     arg2 = '%' + result[4];
 
             
-                    fprintf(outputFile, "\t%s %s, %s\n
-                                         \t%s %%%s\n
-                                         \t%s %%%s, %%%s\n", operation, arg1, arg2, inst, register_map(result[0]), "movzbq", register_map(result[0]), result[0]);
+                    fprintf(outputFile, "\t%s %s, %s\n\t%s %%%s\n\tmovzbq %%%s, %%%s\n", operation.c_str(), arg1.c_str(), arg2.c_str(), inst.c_str(), register_map(result[0]).c_str(), register_map(result[0]).c_str(), result[0].c_str());
 
                     break;
 
                 // label inst
                 case 11:
-                    clean_label(result[0]);
-                    fprintf(outputFile, "%s:\n", result[0]);
+                    clean_label(&result[0]);
+                    fprintf(outputFile, "%s:\n", result[0].c_str());
                     break;
 
                 // increment / decrement
@@ -418,60 +441,18 @@ namespace L1{
                     }
                     break;
 
-
+                default:
+                    printf("%s\n", "error");
 
             }
         }
     }
-
-
-
-    /* 
-     * Close the output file.
-     */ 
-    outputFile.close();
+ 
+    fclose(outputFile);
    
     return ;
   }
-
-  void clean_label(String* label) {
-    if (label[0] == ':') {
-        label[0] = '_';
-    }
-  }
-
-  std::string register_map(std::string r) {
-    switch (r) {
-        case "r10":
-            return "r10b"
-        case "r11":
-            return "r11b"
-        case "r12":
-            return "r12b"
-        case "r13":
-            return "r13b"
-        case "r14":
-            return "r14b"
-        case "r15":
-            return "r15b"
-        case "r8":
-            return "r8b"
-        case "r9":
-            return "r9b"
-        case "rax":
-            return "al"
-        case "rbp":
-            return "bpl"
-        case "rbx":
-            return "bl"
-        case "rcx":
-            return "cl"
-        case "rdi":
-            return "dil"
-        case "rdx":
-            return "dl"
-        case "rsi":
-            return "sil"
-    }
-  }
+        
 }
+
+ 
