@@ -11,10 +11,11 @@ using namespace std;
 
 namespace L1{
 
-    void clean_label(std::string* label) {
-        if (label->at(0) == char(':')) {
+    std::string clean_label(std::string label) {
+        if (label.at(0) == char(':')) {
             label[0] = '_';
         }
+        return label;
     }
 
     std::string register_map(std::string r) {
@@ -57,16 +58,18 @@ namespace L1{
 
     // std::ofstream outputFile;
     FILE *outputFile;
+
+    std::cout << "opening file" << std::endl;
     outputFile = fopen("prog.S", "w");
     // outputFile.open("prog.S");
 
-    clean_label(&p.entryPointLabel);
+    p.entryPointLabel = clean_label(p.entryPointLabel);
 
     // Hard coded begining 
     fprintf(outputFile, ".text\n\t.globl go\ngo:\n\tpushq %%rbx\n\tpushq %%rbp\n\tpushq %%r12\n\tpushq %%r13\n\tpushq %%r14\n\tpushq %%r15\n\tcall %s\n\tpopq %%r15\n\tpopq %%r14\n\tpopq %%r13\n\tpopq %%r12\n\tpopq %%rbp\n\tpopq %%rbx\n\tretq\n", p.entryPointLabel.c_str());
 
     for (Function* F: p.functions) {
-        clean_label(&F->name);
+        F->name = clean_label(F->name);
         fprintf(outputFile, "%s:\n", F->name.c_str());
         for (Instruction* I: F->instructions) {
 
@@ -87,7 +90,7 @@ namespace L1{
             std::string inst;
             std::string operand;
 
-            int offset;
+            long offset;
             int idx;
             int r;
 
@@ -203,7 +206,7 @@ namespace L1{
                             src = '%' + result[2];
                         } 
                         else if (result[2][0] == ':'){
-                            clean_label(&result[2]);
+                            result[2] = clean_label(result[2]);
                             src = '$' + result[2];
                         }
                         else {
@@ -211,7 +214,7 @@ namespace L1{
                         }
 
                         // always a register in this case
-                        dst = '%' + result[2];
+                        dst = '%' + result[0];
                     }
                     // we have size of 5 
                     else if (result.size() == 5) {
@@ -221,7 +224,7 @@ namespace L1{
                                 src = '%' + result[4];
                             } 
                             else if (result[4][0] == ':'){
-                                clean_label(&result[4]);
+                                result[4] = clean_label(result[4]);
                                 src = '$' + result[4];
                             }
                             else {
@@ -247,7 +250,7 @@ namespace L1{
                     }
 
 
-                    fprintf(stderr, "\t%s %s, %s\n", operation.c_str(), src.c_str(), dst.c_str());
+                    fprintf(outputFile, "\t%s %s, %s\n", operation.c_str(), src.c_str(), dst.c_str());
                     break;
 
                 // instruction DNE
@@ -274,10 +277,10 @@ namespace L1{
                             }
 
                             if (r) {
-                                clean_label(&result[4]);
+                                result[4] = clean_label(result[4]);
                                 fprintf(outputFile, "%s %s\n", "jmp", result[4].c_str());
                             } else {
-                                clean_label(&result[5]);
+                                result[5] = clean_label(result[5]);
                                 fprintf(outputFile, "%s %s\n", "jmp", result[5].c_str());
                             }
                             break;
@@ -312,8 +315,8 @@ namespace L1{
 
                     
                     arg2 = '%' + result[3];
-                    clean_label(&result[4]);
-                    clean_label(&result[5]);
+                    result[4] = clean_label(result[4]);
+                    result[5] = clean_label(result[5]);
 
                     fprintf(outputFile, "\t%s %s, %s\n\t%s %s\n\tjmp %s\n", operation.c_str(), arg1.c_str(), arg2.c_str(), inst.c_str(), result[4].c_str(), result[5].c_str() );
 
@@ -321,7 +324,7 @@ namespace L1{
 
                 // goto
                 case 6:
-                    clean_label(&result[1]);
+                    result[1] = clean_label(result[1]);
                     fprintf(outputFile, "%s %s\n", "jmp", result[1].c_str());
                     break;
 
@@ -329,7 +332,7 @@ namespace L1{
                 case 7:
                     offset = F->locals * 8;
                     if (offset) {
-                        fprintf(outputFile, "\t%s $%d, %%%s\n", "addq", offset, "rsp");
+                        fprintf(outputFile, "\t%s $%ld, %%%s\n", "addq", offset, "rsp");
                     }
                     fprintf(outputFile, "\t%s\n", "retq");
                     break;
@@ -337,7 +340,7 @@ namespace L1{
                 // call
                 case 8:
 
-                    if (result[1][0] != 'r' || result[1][0] != ':') {
+                    if (result[1][0] != 'r' && result[1][0] != ':') {
                         fprintf(outputFile, "\t%s %s %s\n", result[0].c_str(), result[1].c_str(), "# runtime system call");
                         break;
                     }
@@ -345,12 +348,12 @@ namespace L1{
                     offset = ((atoi(result[2].c_str()) - 6 ) * 8) + 8;
                     if (offset < 8) { offset = 8; }
 
-                    fprintf(outputFile, "\t%s $%d, %%%s\n", "subq", offset, "rsp");
+                    fprintf(outputFile, "\t%s $%ld, %%%s\n", "subq", offset, "rsp");
 
                     if (result[1][0] == 'r') {
                         fprintf(outputFile, "\t%s *%%%s\n", "jmp", "rdi");
                     } else {
-                        clean_label(&result[1]);
+                        result[1] = clean_label(result[1]);
                         fprintf(outputFile, "\t%s %s\n", "jmp", result[1].c_str());
                     }   
 
@@ -427,7 +430,7 @@ namespace L1{
 
                 // label inst
                 case 11:
-                    clean_label(&result[0]);
+                    result[0] = clean_label(result[0]);
                     fprintf(outputFile, "%s:\n", result[0].c_str());
                     break;
 
@@ -447,7 +450,7 @@ namespace L1{
             }
         }
     }
- 
+    std::cout << "closing file" << std::endl;
     fclose(outputFile);
    
     return ;
