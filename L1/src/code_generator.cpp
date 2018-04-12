@@ -181,8 +181,8 @@ namespace L1{
                             }
                         }
                     } 
-                    // special case to allocate small registers
-                    if (operation == "salq" || operation == "sarq") {
+                    // special case to allocate small registers for shifting
+                    if ((operation == "salq" || operation == "sarq") && (src[0] == 'r')) {
                         src = register_map(src);
                     } 
                     // write instruction using predefined variables
