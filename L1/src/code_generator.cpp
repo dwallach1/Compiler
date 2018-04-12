@@ -59,7 +59,7 @@ namespace L1{
     // std::ofstream outputFile;
     FILE *outputFile;
 
-    std::cout << "opening file" << std::endl;
+    //std::cout << "opening file" << std::endl;
     outputFile = fopen("prog.S", "w");
     // outputFile.open("prog.S");
 
@@ -130,7 +130,7 @@ namespace L1{
                             src = '$' + result[2];
                         }
 
-                        dst = '%' + result[2];
+                        dst = '%' + result[0];
 
                     }
 
@@ -345,8 +345,14 @@ namespace L1{
                         break;
                     }
 
-                    offset = ((atoi(result[2].c_str()) - 6 ) * 8) + 8;
-                    if (offset < 8) { offset = 8; }
+                    printf("The number of arguments is: %s\nThe integer representation of it is: %d\n", result[2].c_str(), atoi(result[2].c_str()));
+                    if(atoi(result[2].c_str()) <= 6){
+                        offset = 8;
+                    }
+                    else{
+                    offset = (( (atoi(result[2].c_str())) - 6 ) * 8) + 8;
+                    }
+                    printf("The offeset is %ld\n", offset);
 
                     fprintf(outputFile, "\t%s $%ld, %%%s\n", "subq", offset, "rsp");
 
@@ -450,7 +456,7 @@ namespace L1{
             }
         }
     }
-    std::cout << "closing file" << std::endl;
+    //std::cout << "closing file" << std::endl;
     fclose(outputFile);
    
     return ;
