@@ -12,7 +12,7 @@
 
 #include <L1.h>
 #include <parser.h>
-
+#define DEBUGGING 1
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
@@ -28,12 +28,29 @@ namespace L1 {
    * Data required to parse
    */ 
   std::vector<L1_item> parsed_registers;
+  int debugging = 0;
 
   /* 
    * Grammar rules from now on.
    */
+
+  struct comment: 
+    pegtl::disable< 
+      TAOCPP_PEGTL_STRING( "//" ), 
+      pegtl::until< pegtl::eolf > 
+    > {};
+
+  struct seps: 
+    pegtl::star< 
+      pegtl::sor< 
+        pegtl::ascii::space, 
+        comment 
+      > 
+    > {};
+
   struct label:
     pegtl::seq<
+      seps,
       pegtl::one<':'>,
       pegtl::plus< 
         pegtl::sor<
@@ -72,21 +89,6 @@ namespace L1 {
   struct local_number:
     number {} ;
 
-
-  struct comment: 
-    pegtl::disable< 
-      TAOCPP_PEGTL_STRING( "//" ), 
-      pegtl::until< pegtl::eolf > 
-    > {};
-
-
-  struct seps: 
-    pegtl::star< 
-      pegtl::sor< 
-        pegtl::ascii::space, 
-        comment 
-      > 
-    > {};
 
 
     /*
@@ -175,11 +177,11 @@ namespace L1 {
         reg,
         number,
         label
-      >,
-      seps,
-      pegtl::not_at<
-        comparison
-      >
+      >//,
+      //seps,
+      //pegtl::not_at<
+        //comparison
+      //>
     >{};
 
   struct arithmetic:
@@ -340,18 +342,7 @@ namespace L1 {
   struct label_inst:
     pegtl::seq<
       seps,
-      pegtl::not_at<
-        pegtl::sor<
-          pegtl::string<'g', 'o', 't', 'o'>,
-          pegtl::string<'<', '-'>
-        >
-      >,
-      seps,
-      label,
-      seps,
-      pegtl::not_at<
-        number
-      >
+      label 
     >{};
 
   struct instruction:
@@ -379,8 +370,8 @@ namespace L1 {
     >{};
 
 
-  struct L1_label_rule:
-    label {};
+  // struct L1_label_rule:
+  //   label {};
  
   struct L1_function_rule:
     pegtl::seq<
@@ -438,7 +429,7 @@ namespace L1 {
         
       }
       else {
-        //std::cout << "returning from label " <<  in.string() << std::endl;
+        if(DEBUGGING) std::cout << "returning from label " <<  in.string() << std::endl;
       }
     }
   };
@@ -449,17 +440,19 @@ namespace L1 {
       L1::Function *newF = new L1::Function();
       newF->name = in.string();
       p.functions.push_back(newF);
+      if(DEBUGGING) std::cout << "returning from new function " <<  in.string() << std::endl;
     }
   };
 
-  template<> struct action < L1_label_rule > {
-    template< typename Input >
-		static void apply( const Input & in, L1::Program & p){
-      L1_item i;
-      i.labelName = in.string();
-      parsed_registers.push_back(i);
-    }
-  };
+  // template<> struct action < L1_label_rule > {
+  //   template< typename Input >
+		// static void apply( const Input & in, L1::Program & p){
+  //     L1_item i;
+  //     i.labelName = in.string();
+  //     parsed_registers.push_back(i);
+  //     if(DEBUGGING) std::cout << "returning from L1 label " <<  in.string() << std::endl;
+  //   }
+  // };
 
   template<> struct action < arithmetic > {
     template< typename Input >
@@ -469,7 +462,7 @@ namespace L1 {
         instruction->instruction = in.string();
         instruction->type = 0;
         currentF->instructions.push_back(instruction);
-        //std::cout << "returning from arithmetic " <<  in.string() << std::endl;
+        if(DEBUGGING) std::cout << "returning from arithmetic " <<  in.string() << std::endl;
     }
   };
 
@@ -482,7 +475,7 @@ namespace L1 {
         instruction->type = 1;
 
         currentF->instructions.push_back(instruction);
-        //std::cout << "returning from assignment " <<  in.string() << std::endl;
+        if(DEBUGGING) std::cout << "returning from assignment " <<  in.string() << std::endl;
     }
   };
 
@@ -494,7 +487,7 @@ namespace L1 {
         instruction->instruction = in.string();
         instruction->type = 2;
         currentF->instructions.push_back(instruction);
-        //std::cout << "returning from load " <<  in.string() << std::endl;
+        if(DEBUGGING) std::cout << "returning from load " <<  in.string() << std::endl;
     }
   };
 
@@ -506,7 +499,7 @@ namespace L1 {
         instruction->instruction = in.string();
         instruction->type = 3;
         currentF->instructions.push_back(instruction);
-        //std::cout << "returning from store " <<  in.string() << std::endl;
+        if(DEBUGGING) std::cout << "returning from store " <<  in.string() << std::endl;
     }
   };
 
@@ -517,7 +510,7 @@ namespace L1 {
         L1::Instruction *instruction = new L1::Instruction();
         instruction->instruction = in.string();
         instruction->type = 4;
-        //printf("This instruction doesn't actually exist\n");
+        if(DEBUGGING) printf("This instruction doesn't actually exist\n");
     }
   };
 
@@ -528,7 +521,7 @@ namespace L1 {
         L1::Instruction *instruction = new L1::Instruction();
         instruction->instruction = in.string();
         instruction->type = 10;
-        //std::cout << "returning from compare_assign " <<  in.string() << std::endl;
+        if(DEBUGGING) std::cout << "returning from compare_assign " <<  in.string() << std::endl;
         currentF->instructions.push_back(instruction);
     }
   };
@@ -541,7 +534,7 @@ namespace L1 {
         L1::Instruction *instruction = new L1::Instruction();
         instruction->instruction = in.string();
         instruction->type = 11;
-        //std::cout << "returning from label_inst " <<  in.string() << std::endl;
+        if(DEBUGGING) std::cout << "returning from label_inst " <<  in.string() << std::endl;
         currentF->instructions.push_back(instruction);
     }
   };
@@ -554,7 +547,7 @@ namespace L1 {
         instruction->instruction = in.string();
         instruction->type = 12;
         currentF->instructions.push_back(instruction);
-        //std::cout << "returning from inc_dec " <<  in.string() << std::endl;
+        if(DEBUGGING) std::cout << "returning from inc_dec " <<  in.string() << std::endl;
     }
   };
 
@@ -566,6 +559,7 @@ namespace L1 {
         instruction->instruction = in.string();
         instruction->type = 5;
         currentF->instructions.push_back(instruction);
+        if(DEBUGGING) std::cout << "returning from cjump " <<  in.string() << std::endl;
     }
   };
 
@@ -578,6 +572,7 @@ namespace L1 {
         instruction->instruction = in.string();
         instruction->type = 6;
         currentF->instructions.push_back(instruction);
+        if(DEBUGGING) std::cout << "returning from goto inst " <<  in.string() << std::endl;
     }
   };
 
@@ -589,7 +584,7 @@ namespace L1 {
         instruction->instruction = in.string();
         instruction->type = 7;
         currentF->instructions.push_back(instruction);
-        //std::cout << "returning from return_inst " <<  in.string() << std::endl;
+        if(DEBUGGING) std::cout << "returning from return_inst " <<  in.string() << std::endl;
     }
   };
 
@@ -601,7 +596,14 @@ namespace L1 {
         instruction->instruction = in.string();
         instruction->type = 8;
         currentF->instructions.push_back(instruction);
-        //std::cout << "returning from call " <<  in.string() << std::endl;
+        if(DEBUGGING) std::cout << "returning from call " <<  in.string() << std::endl;
+    }
+  };
+
+  template<> struct action < comment > {
+    template< typename Input >
+    static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "Found a comment " <<  in.string() << std::endl;
     }
   };
 
@@ -613,7 +615,7 @@ namespace L1 {
         instruction->instruction = in.string();
         instruction->type = 9;
         currentF->instructions.push_back(instruction);
-        //std::cout << "returning from lea " <<  in.string() << std::endl;
+        if(DEBUGGING) std::cout << "returning from lea " <<  in.string() << std::endl;
     }
   };
 
@@ -622,6 +624,7 @@ namespace L1 {
     static void apply( const Input & in, L1::Program & p){
       L1::Function *currentF = p.functions.back();
       currentF->arguments = std::stoll(in.string());
+      if(DEBUGGING) std::cout << "returning from argument number " <<  in.string() << std::endl;
     }
   };
 
@@ -630,6 +633,7 @@ namespace L1 {
     static void apply( const Input & in, L1::Program & p){
       L1::Function *currentF = p.functions.back();
       currentF->locals = std::stoll(in.string());
+      if(DEBUGGING) std::cout << "returning from local number " <<  in.string() << std::endl;
     }
   };
 
