@@ -19,36 +19,36 @@ namespace L1{
     }
 
     std::string register_map(std::string r) {
-        if (r == "r10")
-            return "r10b";
-        if (r == "r11") 
-            return "r11b";
-        if (r ==  "r12")
-            return "r12b";
-        if (r == "r13")
-            return "r13b";
-        if (r ==  "r14")
-            return "r14b";
-        if (r == "r15")
-            return "r15b";
-        if (r == "r8")
-            return "r8b";
-        if (r == "r9")
-            return "r9b";
-        if (r == "rax")
-            return "al";
-        if (r == "rbp")
-            return "bpl";
-        if (r == "rbx")
-            return "bl";
-        if ( r == "rcx")
-            return "cl";
-        if ( r == "rdi")
-            return "dil";
-        if (r == "rdx")
-            return "dl";
-        if (r == "rsi")
-            return "sil";
+        if (r == "%r10")
+            return "%r10b";
+        if (r == "%r11") 
+            return "%r11b";
+        if (r ==  "%r12")
+            return "%r12b";
+        if (r == "%r13")
+            return "%r13b";
+        if (r ==  "%r14")
+            return "%r14b";
+        if (r == "%r15")
+            return "%r15b";
+        if (r == "%r8")
+            return "%r8b";
+        if (r == "%r9")
+            return "%r9b";
+        if (r == "%rax")
+            return "%al";
+        if (r == "%rbp")
+            return "%bpl";
+        if (r == "%rbx")
+            return "%bl";
+        if ( r == "%rcx")
+            return "%cl";
+        if ( r == "%rdi")
+            return "%dil";
+        if (r == "%rdx")
+            return "%dl";
+        if (r == "%rsi")
+            return "%sil";
         return "";
     }
   
@@ -182,8 +182,10 @@ namespace L1{
                         }
                     } 
                     // special case to allocate small registers for shifting
-                    if ((operation == "salq" || operation == "sarq") && (src[0] == 'r')) {
+                    // printf("Originally: %s\n", src.c_str());
+                    if ((operation == "salq" || operation == "sarq") && (src[1] == 'r')) {
                         src = register_map(src);
+                        //printf("Now: %s\n", src.c_str());
                     } 
                     // write instruction using predefined variables
                     fprintf(outputFile, "\t%s %s, %s\n", operation.c_str(), src.c_str(), dst.c_str());
@@ -197,6 +199,7 @@ namespace L1{
                 // assignment
                 case 1:
                     // constant for all assignments 
+                    //printf("%s\n", I->instruction.c_str());
                     operation = "movq";
 
                     if (result.size() == 3) {
@@ -298,6 +301,9 @@ namespace L1{
                         arg2 = result[3];
                         result[1] = arg2;
                         result[3] = arg1;
+                        extra_instruction = result[4];
+                        result[4] = result[5];
+                        result[5] = extra_instruction;
                     }
 
 
@@ -317,8 +323,13 @@ namespace L1{
                     arg2 = '%' + result[3];
                     result[4] = clean_label(result[4]);
                     result[5] = clean_label(result[5]);
+                    if(arg1[0] == '%' && arg2[0] == '%'){
+                        fprintf(outputFile, "\t%s %s, %s\n\t%s %s\n\tjmp %s\n", operation.c_str(), arg2.c_str(), arg1.c_str(), inst.c_str(), result[4].c_str(), result[5].c_str() );
+                    }
+                    else{
+                        fprintf(outputFile, "\t%s $%s, %%%s\n\t%s %s\n\tjmp %s\n", operation.c_str(), result[1].c_str(), result[3].c_str() , inst.c_str(), result[5].c_str(), result[4].c_str());
+                    }
 
-                    fprintf(outputFile, "\t%s %s, %s\n\t%s %s\n\tjmp %s\n", operation.c_str(), arg1.c_str(), arg2.c_str(), inst.c_str(), result[4].c_str(), result[5].c_str() );
 
                     break;
 
@@ -345,19 +356,19 @@ namespace L1{
                         break;
                     }
 
-                    printf("The number of arguments is: %s\nThe integer representation of it is: %d\n", result[2].c_str(), atoi(result[2].c_str()));
+                    //printf("The number of arguments is: %s\nThe integer representation of it is: %d\n", result[2].c_str(), atoi(result[2].c_str()));
                     if(atoi(result[2].c_str()) <= 6){
                         offset = 8;
                     }
                     else{
                     offset = (( (atoi(result[2].c_str())) - 6 ) * 8) + 8;
                     }
-                    printf("The offeset is %ld\n", offset);
+                    //printf("The offeset is %ld\n", offset);
 
                     fprintf(outputFile, "\t%s $%ld, %%%s\n", "subq", offset, "rsp");
 
                     if (result[1][0] == 'r') {
-                        fprintf(outputFile, "\t%s *%%%s\n", "jmp", "rdi");
+                        fprintf(outputFile, "\t%s *%%%s\n", "jmp", result[1].c_str());
                     } else {
                         result[1] = clean_label(result[1]);
                         fprintf(outputFile, "\t%s %s\n", "jmp", result[1].c_str());
@@ -429,9 +440,12 @@ namespace L1{
                     
                     arg2 = '%' + result[4];
 
-            
-                    fprintf(outputFile, "\t%s %s, %s\n\t%s %%%s\n\tmovzbq %%%s, %%%s\n", operation.c_str(), arg1.c_str(), arg2.c_str(), inst.c_str(), register_map(result[0]).c_str(), register_map(result[0]).c_str(), result[0].c_str());
-
+                    if(arg1[0] == '%' && arg2[0] == '%'){
+                        fprintf(outputFile, "\t%s %s, %s\n\t%s %s\n\tmovzbq %s, %%%s\n", operation.c_str(), arg2.c_str(), arg1.c_str(), inst.c_str(), register_map('%' + result[0]).c_str(), register_map('%' + result[0]).c_str(), result[0].c_str());
+                    }
+                    else{
+                        fprintf(outputFile, "\t%s %s, %s\n\t%s %s\n\tmovzbq %s, %%%s\n", operation.c_str(), arg1.c_str(), arg2.c_str(), inst.c_str(), register_map('%' + result[0]).c_str(), register_map('%' + result[0]).c_str(), result[0].c_str());
+                    }
                     break;
 
                 // label inst

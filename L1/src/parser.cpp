@@ -79,6 +79,7 @@ namespace L1 {
       pegtl::until< pegtl::eolf > 
     > {};
 
+
   struct seps: 
     pegtl::star< 
       pegtl::sor< 
@@ -131,8 +132,8 @@ namespace L1 {
     struct comparison:
     pegtl::seq<
       pegtl::sor<
-        pegtl::one< '<' >,
         pegtl::string< '<', '=' >,
+        pegtl::one< '<' >,
         pegtl::one< '=' >
       >
     >{};
@@ -479,6 +480,7 @@ namespace L1 {
         L1::Instruction *instruction = new L1::Instruction();
         instruction->instruction = in.string();
         instruction->type = 1;
+
         currentF->instructions.push_back(instruction);
         //std::cout << "returning from assignment " <<  in.string() << std::endl;
     }
