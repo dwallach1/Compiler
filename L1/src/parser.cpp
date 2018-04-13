@@ -27,7 +27,9 @@ namespace L1 {
   /* 
    * Data required to parse
    */ 
-  std::vector<L1_item> parsed_registers;
+  std::vector<std::string> parsed_registers;
+  std::vector<std::string> assignmentVec;
+  std::vector<std::string> compareVec;
   int debugging = 0;
 
   /* 
@@ -148,8 +150,7 @@ namespace L1 {
           seps,
           reg,
           seps,
-          pegtl::one< '<' >,
-          pegtl::one< '-' >,
+          assignOp,
           seps,
           pegtl::sor<
             reg,
@@ -170,19 +171,46 @@ namespace L1 {
       seps,
       reg,
       seps,
-      pegtl::one< '<' >,
-      pegtl::one< '-' >,
+      assignOp,
       seps,
       pegtl::sor<
         reg,
         number,
         label
-      >//,
-      //seps,
-      //pegtl::not_at<
-        //comparison
-      //>
+      >,
+      seps,
+      pegtl::not_at<
+        comparison
+      >
     >{};
+
+  struct arithOp:
+    pegtl::seq<
+    seps,
+      pegtl::seq<
+        pegtl::sor<
+            pegtl::one< '-' >,
+            pegtl::one< '+' >,
+            pegtl::one< '*' >,
+            pegtl::string< '>', '>' >,
+            pegtl::string< '<', '<' >,
+            pegtl::one< '&' >
+        >,
+        pegtl::sor<
+          pegtl::one< '=' >,
+          pegtl::one< '+' >,
+          pegtl::one< '-' >
+        >
+      >
+    >
+  {};
+
+  struct assignOp:
+    pegtl::seq<
+      seps,
+      pegtl::string< '<', '-' >
+    >
+  {};
 
   struct arithmetic:
     pegtl::seq<
@@ -193,15 +221,7 @@ namespace L1 {
         memory
       >,
       seps,
-      pegtl::sor<
-        pegtl::one< '-' >,
-        pegtl::one< '+' >,
-        pegtl::one< '*' >,
-        pegtl::string< '>', '>' >,
-        pegtl::string< '<', '<' >,
-        pegtl::one< '&' >
-      >,
-      pegtl::one< '=' >,
+      arithOp,
       seps,
       pegtl::sor<
         number,
@@ -340,10 +360,7 @@ namespace L1 {
 
 
   struct label_inst:
-    pegtl::seq<
-      seps,
-      label 
-    >{};
+    label {};
 
   struct instruction:
     pegtl::sor<
@@ -429,6 +446,7 @@ namespace L1 {
         
       }
       else {
+        parsed_registers.push_back(in.string());
         if(DEBUGGING) std::cout << "returning from label " <<  in.string() << std::endl;
       }
     }
@@ -459,7 +477,15 @@ namespace L1 {
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
-        instruction->instruction = in.string();
+
+        std::string source = parsed_registers.pop_back();
+        std::string dest = parsed_registers.pop_back();
+        std::string oper = assignmentVec.pop_back();
+        instruction->instruction = dest + ' ' + oper + ' ' + source;
+        instruction->registers.push_back(dest);
+        instruction->registers.push_back(source);
+        instruction->operation.push_back(oper);
+
         instruction->type = 0;
         currentF->instructions.push_back(instruction);
         if(DEBUGGING) std::cout << "returning from arithmetic " <<  in.string() << std::endl;
@@ -471,7 +497,15 @@ namespace L1 {
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
-        instruction->instruction = in.string();
+
+        std::string source = parsed_registers.pop_back();
+        std::string dest = parsed_registers.pop_back();
+        std::string oper = assignmentVec.pop_back();
+        instruction->instruction = dest + ' ' + oper + ' ' + source;
+        instruction->registers.push_back(dest);
+        instruction->registers.push_back(source);
+        instruction->operation.push_back(oper);
+        
         instruction->type = 1;
 
         currentF->instructions.push_back(instruction);
@@ -484,7 +518,15 @@ namespace L1 {
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
-        instruction->instruction = in.string();
+
+        std::string source = parsed_registers.pop_back();
+        std::string dest = parsed_registers.pop_back();
+        std::string oper = assignmentVec.pop_back();
+        instruction->instruction = dest + ' ' + oper + ' ' + source;
+        instruction->registers.push_back(dest);
+        instruction->registers.push_back(source);
+        instruction->operation.push_back(oper);
+        
         instruction->type = 2;
         currentF->instructions.push_back(instruction);
         if(DEBUGGING) std::cout << "returning from load " <<  in.string() << std::endl;
@@ -496,10 +538,32 @@ namespace L1 {
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
-        instruction->instruction = in.string();
+        
+        std::string source = parsed_registers.pop_back();
+        std::string dest = parsed_registers.pop_back();
+        std::string oper = assignmentVec.pop_back();
+        instruction->instruction = dest + ' ' + oper + ' ' + source;
+        instruction->registers.push_back(dest);
+        instruction->registers.push_back(source);
+        instruction->operation.push_back(oper);
+        
+
         instruction->type = 3;
         currentF->instructions.push_back(instruction);
         if(DEBUGGING) std::cout << "returning from store " <<  in.string() << std::endl;
+    }
+  };
+
+  template<> struct action < reg > {
+    template< typename Input >
+    static void apply( const Input & in, L1::Program & p){
+        parsed_registers.push_back(in.string());
+    }
+  };
+    template<> struct action < memory > {
+    template< typename Input >
+    static void apply( const Input & in, L1::Program & p){
+        parsed_registers.push_back(in.string());
     }
   };
 
@@ -519,7 +583,22 @@ namespace L1 {
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
-        instruction->instruction = in.string();
+        
+
+        std::string comparitor = parsed_registers.pop_back();
+        std::string source = parsed_registers.pop_back();
+        std::string dest = parsed_registers.pop_back();
+        std::string oper = assignmentVec.pop_back();
+        std::string compareOp = compareVec.pop_back();
+
+        instruction->instruction = dest + ' ' + oper + ' ' + source + ' ' + compareOp + ' ' + comparitor;
+        instruction->registers.push_back(dest);
+        instruction->registers.push_back(source);
+        instruction->registers.push_back(comparitor);
+        instruction->operation.push_back(oper);
+        instruction->operation.push_back(compareOp);
+        
+
         instruction->type = 10;
         if(DEBUGGING) std::cout << "returning from compare_assign " <<  in.string() << std::endl;
         currentF->instructions.push_back(instruction);
@@ -532,7 +611,8 @@ namespace L1 {
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
-        instruction->instruction = in.string();
+        instruction->instruction = parsed_registers.pop_back();
+        instruction->registers.push_back(instruction->instruction);
         instruction->type = 11;
         if(DEBUGGING) std::cout << "returning from label_inst " <<  in.string() << std::endl;
         currentF->instructions.push_back(instruction);
@@ -544,7 +624,13 @@ namespace L1 {
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
-        instruction->instruction = in.string();
+
+        std::string dest = parsed_registers.pop_back();
+        std::string oper = assignmentVec.pop_back();
+        instruction->instruction = "cjump " + dest + ' ' + comparitor + ' ' + source + ' ' label2 + ' ' + label1;
+        instruction->registers.push_back(dest);
+        instruction->operation.push_back(oper);
+
         instruction->type = 12;
         currentF->instructions.push_back(instruction);
         if(DEBUGGING) std::cout << "returning from inc_dec " <<  in.string() << std::endl;
@@ -556,7 +642,19 @@ namespace L1 {
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
-        instruction->instruction = in.string();
+        
+        std::string label1 = parsed_registers.pop_back();
+        std::string label2 = parsed_registers.pop_back();
+        std::string source = parsed_registers.pop_back();
+        std::string dest = parsed_registers.pop_back();
+        std::string comparitor = compareVec.pop_back();
+        instruction->instruction = "cjump " + dest + ' ' + comparitor + ' ' + source + ' ' label2 + ' ' + label1;
+        instruction->registers.push_back(label1);
+        instruction->registers.push_back(label2);
+        instruction->registers.push_back(source);
+        instruction->registers.push_back(dest);
+        instruction->operation.push_back(comparitor);
+
         instruction->type = 5;
         currentF->instructions.push_back(instruction);
         if(DEBUGGING) std::cout << "returning from cjump " <<  in.string() << std::endl;
@@ -569,7 +667,12 @@ namespace L1 {
     static void apply( const Input & in, L1::Program & p){
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
-        instruction->instruction = in.string();
+
+        std::string label = parsed_registers.pop_back();
+        instruction->instruction = "goto " + label;
+        instruction->registers.push_back(label);
+        
+        
         instruction->type = 6;
         currentF->instructions.push_back(instruction);
         if(DEBUGGING) std::cout << "returning from goto inst " <<  in.string() << std::endl;
@@ -628,12 +731,47 @@ namespace L1 {
     }
   };
 
+  template<> struct action < number > {
+    template< typename Input >
+    static void apply( const Input & in, L1::Program & p){
+      parsed_registers.push_back(in.string());
+    }
+  };
+
+
   template<> struct action < local_number > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
       L1::Function *currentF = p.functions.back();
       currentF->locals = std::stoll(in.string());
       if(DEBUGGING) std::cout << "returning from local number " <<  in.string() << std::endl;
+    }
+  };
+
+  template<> struct action < arithOp > {
+    template< typename Input >
+    static void apply( const Input & in, L1::Program & p){
+      assignmentVec.push_back(in.string());
+    }
+  };
+
+  template<> struct action < assignOp > {
+    template< typename Input >
+    static void apply( const Input & in, L1::Program & p){
+      assignmentVec.push_back(in.string());
+    }
+  };
+
+  template<> struct action < comparison > {
+    template< typename Input >
+    static void apply( const Input & in, L1::Program & p){
+      compareVec.push_back(in.string());
+    }
+  };
+  template<> struct action < number > {
+    template< typename Input >
+    static void apply( const Input & in, L1::Program & p){
+      parsed_registers.push_back(in.string());
     }
   };
 

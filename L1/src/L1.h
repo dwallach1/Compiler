@@ -11,6 +11,8 @@ namespace L1 {
   struct Instruction {
     std::string instruction;
     int64_t type;
+    std::vector<std::string> registers;
+    std::vector<std::string> operation;
   };
 
   struct Function{

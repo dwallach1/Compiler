@@ -72,9 +72,52 @@ namespace L1{
         F->name = clean_label(F->name);
         fprintf(outputFile, "%s:\n", F->name.c_str());
         for (Instruction* I: F->instructions) {
+            int tempPos = 0;
+            std:string space = " ";
 
+            for(char temp : I->instruction){
+                if(temp == '+' | (temp == '-' && I->instruction[tempPos+1] == '=') | temp == '*' | temp == '<' | temp == '>' | temp == '=' | temp == '&'){
+                    //check space before
+                    if(I->instruction[tempPos-1] != ' '){
+                        printf("Augmenting string because: %s\n", I->instruction.c_str());
+                        I->instruction.insert(tempPos, space);
+                    }
+
+                    //check after
+                    //two character ops
+                    if(temp == '+' | temp == '-' | temp == '*' | temp == '&' | (temp == '>' && I->instruction[tempPos+1] == '=') | (temp == '<' && I->instruction[tempPos+1] == '=') | (temp == '<' && I->instruction[tempPos+1] == '-')){
+                        if (I->instruction[tempPos+2] != ' ')
+                        {
+                            printf("Augmenting string because: %s\n", I->instruction.c_str());
+                            I->instruction.insert(tempPos+2, space);
+                        }
+                    }
+                    //one char ops
+                    else if (temp == '=' | (temp == '>' && I->instruction[tempPos+1] != '>') | (temp == '<' && I->instruction[tempPos+1] != '<')){
+                        if (I->instruction[tempPos+1] != ' ')
+                        {
+                            printf("Augmenting string because: %s\n", I->instruction.c_str());
+                            I->instruction.insert(tempPos+1, space);
+                        }
+                    }
+                    else{
+                        if (I->instruction[tempPos+3] != ' ')
+                        {
+                            printf("Augmenting string because: %s\n", I->instruction.c_str());
+                            I->instruction.insert(tempPos+3, space);
+                        }
+                    }
+                    break;
+                }
+                else{
+                    tempPos++;
+                }
+            }
             // split instruction by words
             std::vector<std::string> result;
+            
+
+
             std::istringstream iss(I->instruction);
             for(std::string s; iss >> s; )
                 result.push_back(s);
@@ -342,7 +385,7 @@ namespace L1{
                 // return
                 case 7:
                     offset = F->locals * 8;
-                    if (offset) {
+                    if (offset && !(F->name == p.entryPointLabel)) {
                         fprintf(outputFile, "\t%s $%ld, %%%s\n", "addq", offset, "rsp");
                     }
                     fprintf(outputFile, "\t%s\n", "retq");
