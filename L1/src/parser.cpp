@@ -517,6 +517,7 @@ namespace L1 {
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
         instruction->instruction = dest + ' ' + oper + ' ' + source;
+        if(DEBUGGING) std::cout << "For the assignment, we wrote: " << instruction->instruction << std::endl;
         instruction->registers.push_back(dest);
         instruction->registers.push_back(source);
         instruction->operation.push_back(oper);
@@ -860,7 +861,12 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
       if(DEBUGGING) std::cout << "Found a print allocate or array-error " << in.string() << std::endl;
-      parsed_registers.push_back(in.string());
+      if(in.string().find("array-error") != std::string::npos){
+        parsed_registers.push_back("array_error");
+      }
+      else{
+        parsed_registers.push_back(in.string());
+      }
     }
   };
 

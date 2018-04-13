@@ -85,44 +85,44 @@ namespace L1{
             std:string space = " ";
             if(DEBUGGING) std::cout << "Working on instruction: " << I->instruction << std::endl;
 
-            for(char temp : I->instruction){
-                if(temp == '+' | (temp == '-' && I->instruction[tempPos+1] == '=') | temp == '*' | temp == '<' | temp == '>' | temp == '=' | temp == '&'){
-                    //check space before
-                    if(I->instruction[tempPos-1] != ' '){
-                        printf("Augmenting string because: %s\n", I->instruction.c_str());
-                        I->instruction.insert(tempPos, space);
-                    }
+            // for(char temp : I->instruction){
+            //     if(temp == '+' | (temp == '-' && I->instruction[tempPos+1] == '=') | temp == '*' | temp == '<' | temp == '>' | temp == '=' | temp == '&'){
+            //         //check space before
+            //         if(I->instruction[tempPos-1] != ' '){
+            //             printf("Augmenting string because: %s\n", I->instruction.c_str());
+            //             I->instruction.insert(tempPos, space);
+            //         }
 
-                    //check after
-                    //two character ops
-                    if(temp == '+' | temp == '-' | temp == '*' | temp == '&' | (temp == '>' && I->instruction[tempPos+1] == '=') | (temp == '<' && I->instruction[tempPos+1] == '=') | (temp == '<' && I->instruction[tempPos+1] == '-')){
-                        if (I->instruction[tempPos+2] != ' ')
-                        {
-                            printf("Augmenting string because: %s\n", I->instruction.c_str());
-                            I->instruction.insert(tempPos+2, space);
-                        }
-                    }
-                    //one char ops
-                    else if (temp == '=' | (temp == '>' && I->instruction[tempPos+1] != '>') | (temp == '<' && I->instruction[tempPos+1] != '<')){
-                        if (I->instruction[tempPos+1] != ' ')
-                        {
-                            printf("Augmenting string because: %s\n", I->instruction.c_str());
-                            I->instruction.insert(tempPos+1, space);
-                        }
-                    }
-                    else{
-                        if (I->instruction[tempPos+3] != ' ')
-                        {
-                            printf("Augmenting string because: %s\n", I->instruction.c_str());
-                            I->instruction.insert(tempPos+3, space);
-                        }
-                    }
-                    break;
-                }
-                else{
-                    tempPos++;
-                }
-            }
+            //         //check after
+            //         //two character ops
+            //         if(temp == '+' | temp == '-' | temp == '*' | temp == '&' | (temp == '>' && I->instruction[tempPos+1] == '=') | (temp == '<' && I->instruction[tempPos+1] == '=') | (temp == '<' && I->instruction[tempPos+1] == '-')){
+            //             if (I->instruction[tempPos+2] != ' ')
+            //             {
+            //                 printf("Augmenting string because: %s\n", I->instruction.c_str());
+            //                 I->instruction.insert(tempPos+2, space);
+            //             }
+            //         }
+            //         //one char ops
+            //         else if (temp == '=' | (temp == '>' && I->instruction[tempPos+1] != '>') | (temp == '<' && I->instruction[tempPos+1] != '<')){
+            //             if (I->instruction[tempPos+1] != ' ')
+            //             {
+            //                 printf("Augmenting string because: %s\n", I->instruction.c_str());
+            //                 I->instruction.insert(tempPos+1, space);
+            //             }
+            //         }
+            //         else{
+            //             if (I->instruction[tempPos+3] != ' ')
+            //             {
+            //                 printf("Augmenting string because: %s\n", I->instruction.c_str());
+            //                 I->instruction.insert(tempPos+3, space);
+            //             }
+            //         }
+            //         break;
+            //     }
+            //     else{
+            //         tempPos++;
+            //     }
+            // }
             // split instruction by words
             std::vector<std::string> result;
             
@@ -433,7 +433,7 @@ namespace L1{
                 case 9:
 
                     fprintf(outputFile, "\t%s (%%%s, %%%s, %s), %%%s\n", "lea", result[2].c_str(), result[3].c_str(), result[4].c_str(), result[0].c_str());
-
+                    break;
                 // compare assign
                 case 10:
 
@@ -521,7 +521,11 @@ namespace L1{
                     printf("%s\n", "error");
 
             }
+            if(DEBUGGING) std::cout << "Done with instruction" << std::endl;
+
         }
+        if(DEBUGGING) std::cout << "Done with function" << std::endl;
+
     }
     //std::cout << "closing file" << std::endl;
     fclose(outputFile);
