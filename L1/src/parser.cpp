@@ -12,7 +12,7 @@
 
 #include <L1.h>
 #include <parser.h>
-#define DEBUGGING 1
+#define DEBUGGING 0
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
@@ -30,6 +30,7 @@ namespace L1 {
   std::vector<std::string> parsed_registers;
   std::vector<std::string> assignmentVec;
   std::vector<std::string> compareVec;
+  std::vector<std::string> labelInsts;
   int debugging = 0;
 
   /* 
@@ -142,6 +143,33 @@ namespace L1 {
       >
     >{};
 
+    struct arithOp:
+    pegtl::seq<
+    seps,
+      pegtl::seq<
+        pegtl::sor<
+            pegtl::one< '-' >,
+            pegtl::one< '+' >,
+            pegtl::one< '*' >,
+            pegtl::string< '>', '>' >,
+            pegtl::string< '<', '<' >,
+            pegtl::one< '&' >
+        >,
+        pegtl::sor<
+          pegtl::one< '=' >,
+          pegtl::one< '+' >,
+          pegtl::one< '-' >
+        >
+      >
+    >
+  {};
+
+  struct assignOp:
+    pegtl::seq<
+      seps,
+      pegtl::string< '<', '-' >
+    >
+  {};
 
     struct compare_assign:
       pegtl::seq<
@@ -184,33 +212,7 @@ namespace L1 {
       >
     >{};
 
-  struct arithOp:
-    pegtl::seq<
-    seps,
-      pegtl::seq<
-        pegtl::sor<
-            pegtl::one< '-' >,
-            pegtl::one< '+' >,
-            pegtl::one< '*' >,
-            pegtl::string< '>', '>' >,
-            pegtl::string< '<', '<' >,
-            pegtl::one< '&' >
-        >,
-        pegtl::sor<
-          pegtl::one< '=' >,
-          pegtl::one< '+' >,
-          pegtl::one< '-' >
-        >
-      >
-    >
-  {};
 
-  struct assignOp:
-    pegtl::seq<
-      seps,
-      pegtl::string< '<', '-' >
-    >
-  {};
 
   struct arithmetic:
     pegtl::seq<
@@ -247,8 +249,7 @@ namespace L1 {
       seps,
       reg,
       seps,
-      pegtl::one< '<' >,
-      pegtl::one< '-' >,
+      assignOp,
       seps,
       memory
     >{};
@@ -258,8 +259,7 @@ namespace L1 {
       seps,
       memory,
       seps,
-      pegtl::one< '<' >,
-      pegtl::one< '-' >,
+      assignOp,
       seps,
       pegtl::sor<
         number,
@@ -327,6 +327,13 @@ namespace L1 {
       pegtl::string<'r', 'e', 't', 'u', 'r', 'n'>
     >{};
 
+  struct paa_value:
+    pegtl::sor<
+        pegtl::string<'p', 'r', 'i', 'n', 't'>,
+        pegtl::string<'a', 'l', 'l', 'o', 'c', 'a', 't', 'e'>,
+        pegtl::string<'a', 'r', 'r', 'a', 'y', '-', 'e', 'r', 'r', 'o', 'r'>
+      >
+  {};
 
   struct call:
     pegtl::seq<
@@ -335,9 +342,7 @@ namespace L1 {
       seps,
       pegtl::sor<
         label,
-        pegtl::string<'p', 'r', 'i', 'n', 't'>,
-        pegtl::string<'a', 'l', 'l', 'o', 'c', 'a', 't', 'e'>,
-        pegtl::string<'a', 'r', 'r', 'a', 'y', '-', 'e', 'r', 'r', 'o', 'r'>,
+        paa_value,
         reg
       >,
       seps,
@@ -442,12 +447,15 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
       if (p.entryPointLabel.empty()){
+        if(DEBUGGING) std::cout << "found entry point " <<  in.string() << std::endl;
         p.entryPointLabel = in.string();
         
+
       }
       else {
-        parsed_registers.push_back(in.string());
         if(DEBUGGING) std::cout << "returning from label " <<  in.string() << std::endl;
+        parsed_registers.push_back(in.string());
+        labelInsts.push_back(in.string());
       }
     }
   };
@@ -455,10 +463,10 @@ namespace L1 {
   template<> struct action < function_name > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+      if(DEBUGGING) std::cout << "Found a new function " <<  in.string() << std::endl;
       L1::Function *newF = new L1::Function();
       newF->name = in.string();
       p.functions.push_back(newF);
-      if(DEBUGGING) std::cout << "returning from new function " <<  in.string() << std::endl;
     }
   };
 
@@ -475,12 +483,16 @@ namespace L1 {
   template<> struct action < arithmetic > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "Found an arithmetic " <<  in.string() << std::endl;
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
 
-        std::string source = parsed_registers.pop_back();
-        std::string dest = parsed_registers.pop_back();
-        std::string oper = assignmentVec.pop_back();
+        std::string source = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string dest = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string oper = assignmentVec.back();
+        assignmentVec.pop_back();
         instruction->instruction = dest + ' ' + oper + ' ' + source;
         instruction->registers.push_back(dest);
         instruction->registers.push_back(source);
@@ -488,19 +500,22 @@ namespace L1 {
 
         instruction->type = 0;
         currentF->instructions.push_back(instruction);
-        if(DEBUGGING) std::cout << "returning from arithmetic " <<  in.string() << std::endl;
     }
   };
 
   template<> struct action < assignment > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "found an assignment " <<  in.string() << std::endl;
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
 
-        std::string source = parsed_registers.pop_back();
-        std::string dest = parsed_registers.pop_back();
-        std::string oper = assignmentVec.pop_back();
+        std::string source = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string dest = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string oper = assignmentVec.back();
+        assignmentVec.pop_back();
         instruction->instruction = dest + ' ' + oper + ' ' + source;
         instruction->registers.push_back(dest);
         instruction->registers.push_back(source);
@@ -509,19 +524,25 @@ namespace L1 {
         instruction->type = 1;
 
         currentF->instructions.push_back(instruction);
-        if(DEBUGGING) std::cout << "returning from assignment " <<  in.string() << std::endl;
     }
   };
 
   template<> struct action < load > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "found a load " <<  in.string() << std::endl;
+        
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
 
-        std::string source = parsed_registers.pop_back();
-        std::string dest = parsed_registers.pop_back();
-        std::string oper = assignmentVec.pop_back();
+        std::string source = parsed_registers.back();
+        parsed_registers.pop_back();
+        parsed_registers.pop_back();
+        parsed_registers.pop_back();
+        std::string dest = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string oper = assignmentVec.back();
+        assignmentVec.pop_back();
         instruction->instruction = dest + ' ' + oper + ' ' + source;
         instruction->registers.push_back(dest);
         instruction->registers.push_back(source);
@@ -529,19 +550,23 @@ namespace L1 {
         
         instruction->type = 2;
         currentF->instructions.push_back(instruction);
-        if(DEBUGGING) std::cout << "returning from load " <<  in.string() << std::endl;
     }
   };
 
   template<> struct action < store > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "found a store " <<  in.string() << std::endl;
+        
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
         
-        std::string source = parsed_registers.pop_back();
-        std::string dest = parsed_registers.pop_back();
-        std::string oper = assignmentVec.pop_back();
+        std::string source = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string dest = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string oper = assignmentVec.back();
+        assignmentVec.pop_back();
         instruction->instruction = dest + ' ' + oper + ' ' + source;
         instruction->registers.push_back(dest);
         instruction->registers.push_back(source);
@@ -550,19 +575,21 @@ namespace L1 {
 
         instruction->type = 3;
         currentF->instructions.push_back(instruction);
-        if(DEBUGGING) std::cout << "returning from store " <<  in.string() << std::endl;
     }
   };
 
   template<> struct action < reg > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "Found a reg " << in.string() << std::endl;
         parsed_registers.push_back(in.string());
+
     }
   };
     template<> struct action < memory > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "Found a memory " << in.string() << std::endl;
         parsed_registers.push_back(in.string());
     }
   };
@@ -570,26 +597,32 @@ namespace L1 {
   template<> struct action < compare > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) printf("This instruction doesn't actually exist\n");
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
         instruction->instruction = in.string();
         instruction->type = 4;
-        if(DEBUGGING) printf("This instruction doesn't actually exist\n");
     }
   };
 
   template<> struct action < compare_assign > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "Found a compare_assign " <<  in.string() << std::endl;
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
         
 
-        std::string comparitor = parsed_registers.pop_back();
-        std::string source = parsed_registers.pop_back();
-        std::string dest = parsed_registers.pop_back();
-        std::string oper = assignmentVec.pop_back();
-        std::string compareOp = compareVec.pop_back();
+        std::string comparitor = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string source = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string dest = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string oper = assignmentVec.back();
+        assignmentVec.pop_back();
+        std::string compareOp = compareVec.back();
+        compareVec.pop_back();
 
         instruction->instruction = dest + ' ' + oper + ' ' + source + ' ' + compareOp + ' ' + comparitor;
         instruction->registers.push_back(dest);
@@ -600,7 +633,6 @@ namespace L1 {
         
 
         instruction->type = 10;
-        if(DEBUGGING) std::cout << "returning from compare_assign " <<  in.string() << std::endl;
         currentF->instructions.push_back(instruction);
     }
   };
@@ -609,12 +641,34 @@ namespace L1 {
   template<> struct action < label_inst > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "Found a label_inst " <<  in.string() << std::endl;
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
-        instruction->instruction = parsed_registers.pop_back();
+        int found = 0;
+        for(std::string curLabel : labelInsts){
+          //finding the which label I need
+          if(in.string().find(curLabel) != std::string::npos){
+            instruction->instruction = curLabel;
+            labelInsts.push_back(curLabel);
+            found = 1;
+            if(DEBUGGING) std::cout << curLabel << "was found in " << in.string() << std::endl;
+            break;
+          }
+          //The label has not been found yet (most likely a loop)  
+        }
+        if(!found){
+            if(DEBUGGING) std::cout << "The label was not found in the vector of labels " <<  in.string() << std::endl;
+            //Begin the label at the appropriate spot.
+            std::string newLabel = in.string().substr(in.string().find(":"));
+            labelInsts.push_back(newLabel);
+            instruction->instruction = newLabel;
+          }
+        else{
+          if(DEBUGGING) std::cout << "The label WAS found in the vector of labels " <<  in.string() << std::endl;
+        }
+
         instruction->registers.push_back(instruction->instruction);
         instruction->type = 11;
-        if(DEBUGGING) std::cout << "returning from label_inst " <<  in.string() << std::endl;
         currentF->instructions.push_back(instruction);
     }
   };
@@ -622,33 +676,42 @@ namespace L1 {
   template<> struct action < inc_dec > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "Found a inc_dec " <<  in.string() << std::endl;
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
 
-        std::string dest = parsed_registers.pop_back();
-        std::string oper = assignmentVec.pop_back();
-        instruction->instruction = "cjump " + dest + ' ' + comparitor + ' ' + source + ' ' label2 + ' ' + label1;
+        std::string dest = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string oper = assignmentVec.back();
+        assignmentVec.pop_back();
+        instruction->instruction = dest + oper;
         instruction->registers.push_back(dest);
         instruction->operation.push_back(oper);
 
         instruction->type = 12;
         currentF->instructions.push_back(instruction);
-        if(DEBUGGING) std::cout << "returning from inc_dec " <<  in.string() << std::endl;
     }
   };
 
   template<> struct action < cjump > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "Found a cjump " <<  in.string() << std::endl;
+        
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
         
-        std::string label1 = parsed_registers.pop_back();
-        std::string label2 = parsed_registers.pop_back();
-        std::string source = parsed_registers.pop_back();
-        std::string dest = parsed_registers.pop_back();
-        std::string comparitor = compareVec.pop_back();
-        instruction->instruction = "cjump " + dest + ' ' + comparitor + ' ' + source + ' ' label2 + ' ' + label1;
+        std::string label1 = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string label2 = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string source = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string dest = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string comparitor = compareVec.back();
+        compareVec.pop_back();
+        instruction->instruction = "cjump " + dest + ' ' + comparitor + ' ' + source + ' ' + label2 + ' ' + label1;
         instruction->registers.push_back(label1);
         instruction->registers.push_back(label2);
         instruction->registers.push_back(source);
@@ -657,7 +720,6 @@ namespace L1 {
 
         instruction->type = 5;
         currentF->instructions.push_back(instruction);
-        if(DEBUGGING) std::cout << "returning from cjump " <<  in.string() << std::endl;
     }
   };
 
@@ -665,41 +727,50 @@ namespace L1 {
   template<> struct action < goto_inst > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "Found a goto inst " <<  in.string() << std::endl;
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
 
-        std::string label = parsed_registers.pop_back();
+        std::string label = parsed_registers.back();
+        parsed_registers.pop_back();
         instruction->instruction = "goto " + label;
         instruction->registers.push_back(label);
         
         
         instruction->type = 6;
         currentF->instructions.push_back(instruction);
-        if(DEBUGGING) std::cout << "returning from goto inst " <<  in.string() << std::endl;
     }
   };
 
   template<> struct action < return_inst > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "Found a return_inst " <<  in.string() << std::endl;
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
-        instruction->instruction = in.string();
+        instruction->instruction = "return";
         instruction->type = 7;
         currentF->instructions.push_back(instruction);
-        if(DEBUGGING) std::cout << "returning from return_inst " <<  in.string() << std::endl;
     }
   };
 
   template<> struct action < call > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "Found a call " <<  in.string() << std::endl;
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
-        instruction->instruction = in.string();
+        
+        std::string args = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string callee = parsed_registers.back();
+        parsed_registers.pop_back();
+        instruction->instruction = "call " + callee + ' ' + args;
+        instruction->registers.push_back(callee);
+        instruction->registers.push_back(args);
+
         instruction->type = 8;
         currentF->instructions.push_back(instruction);
-        if(DEBUGGING) std::cout << "returning from call " <<  in.string() << std::endl;
     }
   };
 
@@ -713,28 +784,47 @@ namespace L1 {
   template<> struct action < lea > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+        if(DEBUGGING) std::cout << "found a lea " <<  in.string() << std::endl;
+        
         L1::Function *currentF = p.functions.back();
         L1::Instruction *instruction = new L1::Instruction();
-        instruction->instruction = in.string();
+        
+        std::string num = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string multer = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string adder = parsed_registers.back();
+        parsed_registers.pop_back();
+        std::string dest = parsed_registers.back();
+        parsed_registers.pop_back();
+        instruction->instruction = dest + " @ " + adder + ' ' + multer + ' ' + num;
+        instruction->registers.push_back(dest);
+        instruction->registers.push_back(adder);
+        instruction->registers.push_back(multer);
+        instruction->registers.push_back(num);
+        instruction->operation.push_back("@");
+
         instruction->type = 9;
         currentF->instructions.push_back(instruction);
-        if(DEBUGGING) std::cout << "returning from lea " <<  in.string() << std::endl;
     }
   };
 
   template<> struct action < argument_number > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+      if(DEBUGGING) std::cout << "found an argument number " <<  in.string() << std::endl;
+      
       L1::Function *currentF = p.functions.back();
       currentF->arguments = std::stoll(in.string());
-      if(DEBUGGING) std::cout << "returning from argument number " <<  in.string() << std::endl;
     }
   };
 
   template<> struct action < number > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+      if(DEBUGGING) std::cout << "Found a number " << in.string() << std::endl;
       parsed_registers.push_back(in.string());
+
     }
   };
 
@@ -742,38 +832,48 @@ namespace L1 {
   template<> struct action < local_number > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+      if(DEBUGGING) std::cout << "Found a local number " <<  in.string() << std::endl;
       L1::Function *currentF = p.functions.back();
       currentF->locals = std::stoll(in.string());
-      if(DEBUGGING) std::cout << "returning from local number " <<  in.string() << std::endl;
     }
   };
 
   template<> struct action < arithOp > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+      if(DEBUGGING) std::cout << "Found an arithmetic operation " << in.string() << std::endl;
       assignmentVec.push_back(in.string());
+
     }
   };
 
   template<> struct action < assignOp > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+      if(DEBUGGING) std::cout << "Found an assignment operation " << in.string() << std::endl;
       assignmentVec.push_back(in.string());
+
+    }
+  };
+
+  template<> struct action < paa_value > {
+    template< typename Input >
+    static void apply( const Input & in, L1::Program & p){
+      if(DEBUGGING) std::cout << "Found a print allocate or array-error " << in.string() << std::endl;
+      parsed_registers.push_back(in.string());
     }
   };
 
   template<> struct action < comparison > {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
+      if(DEBUGGING) std::cout << "Found a comparison " << in.string() << std::endl;
       compareVec.push_back(in.string());
+
     }
   };
-  template<> struct action < number > {
-    template< typename Input >
-    static void apply( const Input & in, L1::Program & p){
-      parsed_registers.push_back(in.string());
-    }
-  };
+  
+
 
   
 
@@ -782,15 +882,21 @@ namespace L1 {
     /* 
      * Check the grammar for some possible issues.
      */
+    if(DEBUGGING) std::cout << "Checking the grammar" << std::endl;
     pegtl::analyze< L1::grammar >();
+
+    if(DEBUGGING) std::cout << "Finished checking grammar" << std::endl;
+
 
     /*
      * Parse.
      */   
     file_input< > fileInput(fileName);
     L1::Program p;
+    if(DEBUGGING) std::cout << "Begin Parsing" << std::endl;
     parse< L1::grammar, L1::action >(fileInput, p);
+    if(DEBUGGING) std::cout << "Done Parsing" << std::endl;
     return p;
   }
 
-} // L1
+};// L1

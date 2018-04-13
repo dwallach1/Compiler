@@ -4,7 +4,7 @@
 #include <fstream>
 #include <cstdio>
 #include <stdlib.h>
-
+#define DEBUGGING 0
 #include <code_generator.h>
 
 using namespace std;
@@ -55,6 +55,7 @@ namespace L1{
 
 
   void generate_code(Program p) {
+    if(DEBUGGING) std::cout << "Beginning Code Generation" << std::endl;
 
     // std::ofstream outputFile;
     FILE *outputFile;
@@ -63,17 +64,26 @@ namespace L1{
     outputFile = fopen("prog.S", "w");
     // outputFile.open("prog.S");
 
+    if(DEBUGGING) std::cout << "Opened prog.S" << std::endl;
     p.entryPointLabel = clean_label(p.entryPointLabel);
+    if(DEBUGGING) std::cout << "Retrieved entryPointLabel" << std::endl;
 
     // Hard coded begining 
     fprintf(outputFile, ".text\n\t.globl go\ngo:\n\tpushq %%rbx\n\tpushq %%rbp\n\tpushq %%r12\n\tpushq %%r13\n\tpushq %%r14\n\tpushq %%r15\n\tcall %s\n\tpopq %%r15\n\tpopq %%r14\n\tpopq %%r13\n\tpopq %%r12\n\tpopq %%rbp\n\tpopq %%rbx\n\tretq\n", p.entryPointLabel.c_str());
+    
+    if(DEBUGGING) std::cout << "Beginning to iterate through functions" << std::endl;
 
     for (Function* F: p.functions) {
         F->name = clean_label(F->name);
+        if(DEBUGGING) std::cout << "Working on function " << F->name << std::endl;
+
         fprintf(outputFile, "%s:\n", F->name.c_str());
+        if(DEBUGGING) std::cout << "Beginning to iterate through the instructions" << std::endl;
+
         for (Instruction* I: F->instructions) {
             int tempPos = 0;
             std:string space = " ";
+            if(DEBUGGING) std::cout << "Working on instruction: " << I->instruction << std::endl;
 
             for(char temp : I->instruction){
                 if(temp == '+' | (temp == '-' && I->instruction[tempPos+1] == '=') | temp == '*' | temp == '<' | temp == '>' | temp == '=' | temp == '&'){
