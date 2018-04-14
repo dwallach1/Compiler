@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <stdlib.h>
 #define DEBUGGING 0
+#define DEBUG_S 1
 #include <code_generator.h>
 
 using namespace std;
@@ -149,7 +150,9 @@ namespace L1{
 
             std::string arg1;
             std::string arg2;
-            std::string extra_instruction;
+            std::string label1;
+	    std::string label2;
+	    std::string extra_instruction;
             std::string inst;
             std::string operand;
 
@@ -329,8 +332,13 @@ namespace L1{
 
                 // compare and jump (cjmp)
                 case 5:
-                    operation = "cmpq";
+                   
                     operand = result[2];
+		    arg1 = result[1];
+		    arg2 = result[3];
+		    label1 = result[4];
+		    label2 = result[5];	    
+	
                     if (result[3][0] != 'r') {
 
                         // both are numbers 
@@ -359,19 +367,37 @@ namespace L1{
                         // only last one is a number
 
                         // negate
-                        if (operand == "<") { operand = ">="; }
+                        if (operand == "<") { operand = ">"; }
                         if (operand == "<=") { operand = ">="; }
 
 
-                        // swap
-                        arg1 = result[1];
-                        arg2 = result[3];
-                        result[1] = arg2;
-                        result[3] = arg1;
-                        extra_instruction = result[4];
-                        result[4] = result[5];
-                        result[5] = extra_instruction;
-                    }
+                        // swap args so that reg is last (necessary)
+                        extra_instruction = arg1;
+		 	arg1 = arg2;
+			arg2 = extra_instruction;
+		 
+			// swap true false labels
+		        //extra_instruction = label1;
+			//label1 = label2;
+			//label2 = extra_instruction;
+			       
+                    } 
+		    
+		    else if (arg1[0] != 'r' && arg2[0] == 'r') {
+		    	
+			// negate
+			if (operand == "<") { operand = ">"; }
+			if (operand == "<=") { operand = ">=";  }
+
+		    }
+
+
+		    // both are registers -- need to swap
+	            if (arg1[0] == 'r' && arg2[0] == 'r') {
+			extra_instruction = arg1;
+			arg1 = arg2;
+			arg2 = extra_instruction;
+		     }
 
 
                     if (operand == "<") { inst = "jl"; }
@@ -380,23 +406,22 @@ namespace L1{
                     if (operand == ">=") { inst = "jge"; }
                     if (operand == "=") { inst = "je"; }
 
-                    if (result[1][0] == 'r') {
-                        arg1 = '%' + result[1];
+                    if (arg1[0] == 'r') {
+                        arg1.insert(0, 1, '%');
                     } else {
-                        arg1 = '$' + result[1];
+                        arg1.insert(0, 1, '$');
                     }
 
                     
-                    arg2 = '%' + result[3];
-                    result[4] = clean_label(result[4]);
-                    result[5] = clean_label(result[5]);
-                    if(arg1[0] == '%' && arg2[0] == '%'){
-                        fprintf(outputFile, "\t%s %s, %s\n\t%s %s\n\tjmp %s\n", operation.c_str(), arg2.c_str(), arg1.c_str(), inst.c_str(), result[4].c_str(), result[5].c_str() );
-                    }
-                    else{
-                        fprintf(outputFile, "\t%s $%s, %%%s\n\t%s %s\n\tjmp %s\n", operation.c_str(), result[1].c_str(), result[3].c_str() , inst.c_str(), result[5].c_str(), result[4].c_str());
-                    }
-
+                    arg2.insert(0, 1, '%');
+                    label1 = clean_label(label1);
+		    label2 = clean_label(label2);
+ 
+		    fprintf(outputFile, "\tcmpq %s, %s\n",  arg1.c_str(), arg2.c_str());
+		    fprintf(outputFile, "\t%s %s\n", inst.c_str(), label1.c_str());
+		    fprintf(outputFile, "\tjmp %s\n", label2.c_str());
+		     
+		    if (DEBUG_S) printf("arg1: %s, arg2: %s, label1: %s, label2: %s, inst: %s\n", arg1.c_str(), arg2.c_str(), label1.c_str(), label2.c_str(), inst.c_str());
 
                     break;
 

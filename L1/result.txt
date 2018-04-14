@@ -236,13 +236,11 @@ tests/24.L1.out.tmp tests/24.L1.out differ: byte 9, line 5
 ~/322_framework/Compiler/L1/tests
 54.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/54.L1.out.tmp tests/54.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 55.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/55.L1.out.tmp tests/55.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 56.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -598,7 +596,8 @@ tests/cjump2.L1.out.tmp tests/cjump2.L1.out differ: byte 1, line 1
 ~/322_framework/Compiler/L1/tests
 cjump3.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-  Passed
+tests/cjump3.L1.out.tmp tests/cjump3.L1.out differ: byte 1, line 1
+  Failed
 ~/322_framework/Compiler/L1/tests
 cjump4.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -784,7 +783,8 @@ h4.L1
 ~/322_framework/Compiler/L1/tests
 inc_arr.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-  Passed
+tests/inc_arr.L1.out.tmp tests/inc_arr.L1.out differ: byte 75, line 2
+  Failed
 ~/322_framework/Compiler/L1/tests
 index.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests

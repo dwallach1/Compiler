@@ -1,0 +1,3 @@
+arg1: $0, arg2: %rcx, label1: _done, label2: _more, inst: je
+arg1: $0, arg2: %rcx, label1: _max_done, label2: _max_more, inst: je
+arg1: %rax, arg2: %rdx, label1: _replace, label2: _max_loop, inst: jl
