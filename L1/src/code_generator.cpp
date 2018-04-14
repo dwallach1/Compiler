@@ -367,8 +367,8 @@ namespace L1{
                         // only last one is a number
 
                         // negate
-                        if (operand == "<") { operand = ">"; }
-                        if (operand == "<=") { operand = ">="; }
+                        //if (operand == "<") { operand = ">"; }
+                        //if (operand == "<=") { operand = ">="; }
 
 
                         // swap args so that reg is last (necessary)
