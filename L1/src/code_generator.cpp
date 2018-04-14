@@ -4,7 +4,7 @@
 #include <fstream>
 #include <cstdio>
 #include <stdlib.h>
-#define DEBUGGING 1
+#define DEBUGGING 0
 #include <code_generator.h>
 
 using namespace std;

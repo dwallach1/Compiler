@@ -12,7 +12,7 @@
 
 #include <L1.h>
 #include <parser.h>
-#define DEBUGGING 1
+#define DEBUGGING 0
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
@@ -655,11 +655,11 @@ namespace L1 {
         int found = 0;
         for(std::string curLabel : labelInsts){
           //finding the which label I need
-          if(in.string().find(curLabel) != std::string::npos){
+          if(curLabel.find(in.string()) != std::string::npos){
             instruction->instruction = curLabel;
             labelInsts.push_back(curLabel);
             found = 1;
-            if(DEBUGGING) std::cout << curLabel << "was found in " << in.string() << std::endl;
+            if(DEBUGGING) std::cout << curLabel << " was found in " << in.string() << std::endl;
             break;
           }
           //The label has not been found yet (most likely a loop)  
