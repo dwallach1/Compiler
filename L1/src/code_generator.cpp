@@ -4,7 +4,7 @@
 #include <fstream>
 #include <cstdio>
 #include <stdlib.h>
-#define DEBUGGING 0
+#define DEBUGGING 1
 #include <code_generator.h>
 
 using namespace std;
@@ -192,6 +192,10 @@ namespace L1{
                         // 2 types of instructions: memory as source or as dest
                         idx = result[0] == "mem" ? 3 : 1;
 
+                        if(DEBUGGING && idx == 3) printf("Found a memory arith operation where mem is source\n");
+                        if(DEBUGGING && idx == 1) printf("Found a memory arith operation where mem is dest\n");
+
+
                         if (result[idx] == "+=") {
                             operation = "addq";
                         }
@@ -227,10 +231,10 @@ namespace L1{
                             src = result[4] + '(' + '%' + result[3] + ')'; 
 
                             // check if destination is number/register
-                            if (result[4][0] == 'r') {
-                                dst = '%' + result[4];
+                            if (result[0][0] == 'r') {
+                                dst = '%' + result[0];
                             } else {
-                                dst = '$' + result[4];
+                                dst = '$' + result[0];
                             }
                         }
                     } 

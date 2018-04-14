@@ -12,7 +12,7 @@
 
 #include <L1.h>
 #include <parser.h>
-#define DEBUGGING 0
+#define DEBUGGING 1
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
@@ -156,10 +156,17 @@ namespace L1 {
             pegtl::one< '&' >
         >,
         pegtl::sor<
-          pegtl::one< '=' >,
-          pegtl::one< '+' >,
-          pegtl::one< '-' >
+          pegtl::one< '=' >
         >
+      >
+    >
+  {};
+
+  struct incOrDec:
+    pegtl::seq<
+      pegtl::sor<
+        pegtl::string<'+', '+'>,
+        pegtl::string<'-', '-'>
       >
     >
   {};
@@ -227,7 +234,8 @@ namespace L1 {
       seps,
       pegtl::sor<
         number,
-        reg
+        reg,
+        memory
       >
     >{};
 
@@ -237,11 +245,7 @@ namespace L1 {
       seps,
       reg,
       seps,
-      pegtl::sor<
-        pegtl::string< '+', '+' >,
-        pegtl::string< '-','-' >
-      >
-
+      incOrDec
     >{}; 
 
   struct load:
@@ -498,6 +502,8 @@ namespace L1 {
         instruction->registers.push_back(source);
         instruction->operation.push_back(oper);
 
+        if(DEBUGGING) printf("Pushing back the instruction: %s\n", instruction->instruction.c_str());
+
         instruction->type = 0;
         currentF->instructions.push_back(instruction);
     }
@@ -537,8 +543,6 @@ namespace L1 {
         L1::Instruction *instruction = new L1::Instruction();
 
         std::string source = parsed_registers.back();
-        parsed_registers.pop_back();
-        parsed_registers.pop_back();
         parsed_registers.pop_back();
         std::string dest = parsed_registers.back();
         parsed_registers.pop_back();
@@ -591,6 +595,9 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
         if(DEBUGGING) std::cout << "Found a memory " << in.string() << std::endl;
+        //getting rid of number in parsed registers and the memory register
+        parsed_registers.pop_back();
+        parsed_registers.pop_back();
         parsed_registers.push_back(in.string());
     }
   };
@@ -843,6 +850,15 @@ namespace L1 {
     template< typename Input >
     static void apply( const Input & in, L1::Program & p){
       if(DEBUGGING) std::cout << "Found an arithmetic operation " << in.string() << std::endl;
+      assignmentVec.push_back(in.string());
+
+    }
+  };
+
+  template<> struct action < incOrDec > {
+    template< typename Input >
+    static void apply( const Input & in, L1::Program & p){
+      if(DEBUGGING) std::cout << "Found an inc/dec operation " << in.string() << std::endl;
       assignmentVec.push_back(in.string());
 
     }
