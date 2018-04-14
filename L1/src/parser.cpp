@@ -692,7 +692,7 @@ namespace L1 {
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
-        instruction->instruction = dest + oper;
+        instruction->instruction = dest + ' ' + oper;
         instruction->registers.push_back(dest);
         instruction->operation.push_back(oper);
 

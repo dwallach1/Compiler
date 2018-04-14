@@ -81,14 +81,14 @@ namespace L1{
 
         fprintf(outputFile, "%s:\n", F->name.c_str());
 
-        //Need to manually do some stack stuff in the main function if needed
-        //if(F->name == p.entryPointLabel){
-           // if(DEBUGGING) printf("This is the main function\n");
+      
+      
+     
             if(F->locals > 0){
                 if(DEBUGGING) printf("There are locals in this function so I am adding some stack space for it\n");
-                fprintf(outputFile, "subq $%ld, %%rsp\n", F->locals*8);
+                fprintf(outputFile, "\tsubq $%ld, %%rsp\n", F->locals*8);
             }
-        //}
+    
         if(DEBUGGING) std::cout << "Beginning to iterate through the instructions" << std::endl;
 
         for (Instruction* I: F->instructions) {
@@ -576,11 +576,12 @@ namespace L1{
 
                 // increment / decrement
                 case 12:
-
-                    if (result[0][3] == '+') {
-                        fprintf(outputFile, "\t%s %%%c%c%c\n", "inc", result[0][0], result[0][1], result[0][2]);
+	            
+		    arg1 = '%' + result[0]; 
+                    if (result[1][0] == '+') {
+                        fprintf(outputFile, "\tinc %s\n", arg1.c_str());
                     } else {
-                        fprintf(outputFile, "\t%s %%%c%c%c\n", "dec", result[0][0], result[0][1], result[0][2]);
+                        fprintf(outputFile, "\tdec %s\n", arg1.c_str());
                     }
                     break;
 

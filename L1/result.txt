@@ -990,7 +990,7 @@ power44.L1
 ~/322_framework/Compiler/L1/tests
 printArray-2.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 print_array.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -1485,4 +1485,4 @@ timesequal.L1
   Passed
 ~/322_framework/Compiler/L1/tests
 ########## SUMMARY
-Test passed: 370 out of 371
+Test passed: 371 out of 371
