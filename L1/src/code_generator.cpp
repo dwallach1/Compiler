@@ -75,9 +75,19 @@ namespace L1{
 
     for (Function* F: p.functions) {
         F->name = clean_label(F->name);
+
         if(DEBUGGING) std::cout << "Working on function " << F->name << std::endl;
 
         fprintf(outputFile, "%s:\n", F->name.c_str());
+
+        //Need to manually do some stack stuff in the main function if needed
+        if(F->name == p.entryPointLabel){
+            if(DEBUGGING) printf("This is the main function\n");
+            if(F->locals > 0){
+                if(DEBUGGING) printf("There are locals in this function so I am adding some stack space for it\n");
+                fprintf(outputFile, "subq $%ld, %%rsp\n", F->locals*8);
+            }
+        }
         if(DEBUGGING) std::cout << "Beginning to iterate through the instructions" << std::endl;
 
         for (Instruction* I: F->instructions) {
@@ -399,7 +409,13 @@ namespace L1{
                 // return
                 case 7:
                     offset = F->locals * 8;
-                    if (offset && !(F->name == p.entryPointLabel)) {
+                    //potentially pop off stack variables as well
+                    if(F->arguments > 6){
+                        offset += (F->arguments - 6) * 8;
+                    }
+
+                    if (offset) {
+                        if(DEBUGGING) printf("\t%s $%ld, %%%s\n", "addq", offset, "rsp");
                         fprintf(outputFile, "\t%s $%ld, %%%s\n", "addq", offset, "rsp");
                     }
                     fprintf(outputFile, "\t%s\n", "retq");
