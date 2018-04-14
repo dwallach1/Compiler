@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <stdlib.h>
 #define DEBUGGING 0
-#define DEBUG_S 1
+#define DEBUG_S 0
 #include <code_generator.h>
 
 using namespace std;
@@ -421,7 +421,7 @@ namespace L1{
 		    fprintf(outputFile, "\t%s %s\n", inst.c_str(), label1.c_str());
 		    fprintf(outputFile, "\tjmp %s\n", label2.c_str());
 		     
-		    if (DEBUG_S) printf("arg1: %s, arg2: %s, label1: %s, label2: %s, inst: %s\n", arg1.c_str(), arg2.c_str(), label1.c_str(), label2.c_str(), inst.c_str());
+		   // if (DEBUG_S) printf("arg1: %s, arg2: %s, label1: %s, label2: %s, inst: %s\n", arg1.c_str(), arg2.c_str(), label1.c_str(), label2.c_str(), inst.c_str());
 
                     break;
 
@@ -489,9 +489,10 @@ namespace L1{
                 // compare assign
                 case 10:
 
-                    operation = "cmpq";
-
+               	    arg1 = result[2];
+		    arg2 = result[4]; 
                     operand = result[3];
+
                     if (result[4][0] != 'r') {
 
                         // both are numbers 
@@ -518,17 +519,32 @@ namespace L1{
                         // only last one is a number
 
                         // negate operands
-                        if (operand == "<") { operand = ">="; }
-                        if (operand == "<=") { operand = ">="; }
+                        //if (operand == "<") { operand = ">="; }
+                        //if (operand == "<=") { operand = ">="; }
 
 
                         // swap results
-                        arg1 = result[2];
-                        arg2 = result[4];
-                        result[2] = arg2;
-                        result[4] = arg1;
+                        extra_instruction = arg1;
+			arg1 = arg2;
+			arg2 = extra_instruction;
                     }
 
+		    else if (arg1[0] != 'r') {
+		    
+			//negate operands
+			if (operand == "<") { operand = ">=";  }
+			if (operand == "<=") { operand = ">="; }
+
+		    }
+		    
+		    if (arg1[0] == 'r' && arg2[0] == 'r') {
+			// swap args
+			extra_instruction = arg1;
+			arg1 = arg2;
+			arg2 = extra_instruction;	
+			
+			
+		    }
 
                     if (operand == "<") { inst = "setl"; }
                     if (operand == "<=") { inst = "setle"; }
@@ -536,21 +552,20 @@ namespace L1{
                     if (operand == ">=") { inst = "setge"; }
                     if (operand == "=") { inst = "sete"; }
 
-                    if (result[2][0] == 'r') {
-                        arg1 = '%' + result[2];
+                    if (arg1[0] == 'r') {
+                        arg1.insert(0, 1, '%');
                     } else {
-                        arg1 = '$' + result[2];
+                        arg1.insert(0, 1, '$');
                     }
 
                     
-                    arg2 = '%' + result[4];
+                    arg2.insert(0, 1, '%');
 
-                    if(arg1[0] == '%' && arg2[0] == '%'){
-                        fprintf(outputFile, "\t%s %s, %s\n\t%s %s\n\tmovzbq %s, %%%s\n", operation.c_str(), arg2.c_str(), arg1.c_str(), inst.c_str(), register_map('%' + result[0]).c_str(), register_map('%' + result[0]).c_str(), result[0].c_str());
-                    }
-                    else{
-                        fprintf(outputFile, "\t%s %s, %s\n\t%s %s\n\tmovzbq %s, %%%s\n", operation.c_str(), arg1.c_str(), arg2.c_str(), inst.c_str(), register_map('%' + result[0]).c_str(), register_map('%' + result[0]).c_str(), result[0].c_str());
-                    }
+                    fprintf(outputFile, "\tcmpq %s, %s\n", arg1.c_str(), arg2.c_str());
+		    fprintf(outputFile, "\t%s %s\n", inst.c_str(), register_map('%' + result[0]).c_str());
+		    fprintf(outputFile, "\tmovzbq %s, %%%s\n", register_map('%' + result[0]).c_str(), result[0].c_str());
+                 
+                
                     break;
 
                 // label inst

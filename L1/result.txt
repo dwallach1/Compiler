@@ -42,8 +42,7 @@ g++  -o ./bin/L1 obj/compiler.o obj/parser.o obj/code_generator.o
 ~/322_framework/Compiler/L1/tests
 10.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/10.L1.out.tmp tests/10.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 11.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -103,8 +102,7 @@ tests/10.L1.out.tmp tests/10.L1.out differ: byte 1, line 1
 ~/322_framework/Compiler/L1/tests
 24.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/24.L1.out.tmp tests/24.L1.out differ: byte 9, line 5
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 27.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -380,8 +378,7 @@ tests/24.L1.out.tmp tests/24.L1.out differ: byte 9, line 5
 ~/322_framework/Compiler/L1/tests
 abs.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/abs.L1.out.tmp tests/abs.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 add-1.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -525,13 +522,11 @@ basic_compare_lit_lit.L1
 ~/322_framework/Compiler/L1/tests
 basic_compare_lit_reg.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/basic_compare_lit_reg.L1.out.tmp tests/basic_compare_lit_reg.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 basic_compare_reg_lit.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/basic_compare_reg_lit.L1.out.tmp tests/basic_compare_reg_lit.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 basic_compare_reg_reg.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -591,13 +586,11 @@ cjump-2.L1
 ~/322_framework/Compiler/L1/tests
 cjump2.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/cjump2.L1.out.tmp tests/cjump2.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 cjump3.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/cjump3.L1.out.tmp tests/cjump3.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 cjump4.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -609,8 +602,7 @@ cjump.L1
 ~/322_framework/Compiler/L1/tests
 classify_number.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/classify_number.L1.out.tmp tests/classify_number.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 cmpe1.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -738,8 +730,7 @@ func4.L1
 ~/322_framework/Compiler/L1/tests
 func5.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/func5.L1.out.tmp tests/func5.L1.out differ: byte 7, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 func_8args.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -783,8 +774,7 @@ h4.L1
 ~/322_framework/Compiler/L1/tests
 inc_arr.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/inc_arr.L1.out.tmp tests/inc_arr.L1.out differ: byte 75, line 2
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 index.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -808,8 +798,7 @@ is_code_8_number.L1
 ~/322_framework/Compiler/L1/tests
 is_empty.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/is_empty.L1.out.tmp tests/is_empty.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 is_odd.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -817,8 +806,7 @@ is_odd.L1
 ~/322_framework/Compiler/L1/tests
 is_positive.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/is_positive.L1.out.tmp tests/is_positive.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 istriangle.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -858,8 +846,7 @@ large_spill_4K.L1
 ~/322_framework/Compiler/L1/tests
 less_eq.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/less_eq.L1.out.tmp tests/less_eq.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 less.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -867,13 +854,11 @@ less.L1
 ~/322_framework/Compiler/L1/tests
 less-than-equal.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/less-than-equal.L1.out.tmp tests/less-than-equal.L1.out differ: byte 5, line 3
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 less-than.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/less-than.L1.out.tmp tests/less-than.L1.out differ: byte 3, line 2
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 lshift-1.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -1037,8 +1022,7 @@ print-num.L1
 ~/322_framework/Compiler/L1/tests
 range.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/range.L1.out.tmp tests/range.L1.out differ: byte 8, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 rectangle_area.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -1162,8 +1146,7 @@ sum_array_12345.L1
 ~/322_framework/Compiler/L1/tests
 sum.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/sum.L1.out.tmp tests/sum.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 temp.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -1219,8 +1202,7 @@ test20.L1
 ~/322_framework/Compiler/L1/tests
 test26.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/test26.L1.out.tmp tests/test26.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 test27.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -1384,7 +1366,7 @@ test7.L1
 ~/322_framework/Compiler/L1/tests
 test8.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 test9.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -1412,18 +1394,15 @@ tests12.L1
 ~/322_framework/Compiler/L1/tests
 tests13.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/tests13.L1.out.tmp tests/tests13.L1.out differ: byte 1, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 tests14.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/tests14.L1.out.tmp tests/tests14.L1.out differ: byte 7, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 tests15.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
-tests/tests15.L1.out.tmp tests/tests15.L1.out differ: byte 13, line 1
-  Failed
+  Passed
 ~/322_framework/Compiler/L1/tests
 tests16.L1
 ~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
@@ -1506,4 +1485,4 @@ timesequal.L1
   Passed
 ~/322_framework/Compiler/L1/tests
 ########## SUMMARY
-Test passed: 348 out of 371
+Test passed: 370 out of 371
