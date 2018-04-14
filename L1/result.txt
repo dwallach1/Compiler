@@ -1,0 +1,1509 @@
+g++  -o ./bin/L1 obj/compiler.o obj/parser.o obj/code_generator.o
+../scripts/test.sh L1 L1c
+00.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+01.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+02.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+03.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+04.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+05.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+06.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+07.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+08.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+09.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+10.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/10.L1.out.tmp tests/10.L1.out differ: byte 1, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+11.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+12.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+13.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+14.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+15.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+16.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+17.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+18.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+19.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+1d_arr.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+20.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+22.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+23.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+24.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/24.L1.out.tmp tests/24.L1.out differ: byte 9, line 5
+  Failed
+~/322_framework/Compiler/L1/tests
+27.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+28.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+29.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+2d_arr.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+30.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+31.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+32.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+33.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+34.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+35.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+36.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+37.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+38.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+39.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+3d_arr.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+3.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+40.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+41.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+42.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+43.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+44.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+45.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+46.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+47.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+48.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+49.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+4.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+50.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+51.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+52.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+53.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+54.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/54.L1.out.tmp tests/54.L1.out differ: byte 1, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+55.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/55.L1.out.tmp tests/55.L1.out differ: byte 1, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+56.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+57.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+58.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+59.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+5.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+60.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+61.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+62.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+63.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+64.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+65.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+66.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+67.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+68.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+69.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+6.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+70.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+71.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+72.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+73.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+74.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+75.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+76.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+77.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+78.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+79.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+7.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+80.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+81.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+84.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+85.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+86.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+8.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+9.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+abs.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/abs.L1.out.tmp tests/abs.L1.out differ: byte 1, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+add-1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+add-2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+add_4_nums.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+add_9_nums.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+add-all-regs.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+add_args.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+add.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+algorithm.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+allocatederef.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+allocate.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+alloc.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+and-1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+and-2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+andequal.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+aop_and.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+arithmethic0.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+arithmethic.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+around.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+array12345.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+array12345_setzero.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+array2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+array_init.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+array.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+arraySize.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+arraytest2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+arraytest.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+arr_err_func.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+arr_err.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+assign3.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+basic_arithmetic_literal.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+basic_arithmetic_register.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+basic_bitwise_literal.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+basic_bitwise_register.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+basiccall.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+basic_compare_lit_lit.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+basic_compare_lit_reg.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/basic_compare_lit_reg.L1.out.tmp tests/basic_compare_lit_reg.L1.out differ: byte 1, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+basic_compare_reg_lit.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/basic_compare_reg_lit.L1.out.tmp tests/basic_compare_reg_lit.L1.out differ: byte 1, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+basic_compare_reg_reg.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+basicjmp.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+basic_shift_literal.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+basic_shift_register.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+bit_and.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+call-1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+call-2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+call-3.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+call-4.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+callee.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+calleespace.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+cjmp.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+cjump-1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+cjump-2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+cjump2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/cjump2.L1.out.tmp tests/cjump2.L1.out differ: byte 1, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+cjump3.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+cjump4.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+cjump.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+classify_number.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/classify_number.L1.out.tmp tests/classify_number.L1.out differ: byte 1, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+cmpe1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+cmpe2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+cmpg1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+cmpge1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+cmpge.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+cmpg.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+cmpgn.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+comp_add.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+compEq2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+compEq.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+comp.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+comp_pred.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+cond_return.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+const-cmp.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+cube.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+data_encode.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+divide8.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+divide_by_2n.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+edit.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+empty.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+encode_decode.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+equal.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+error.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+even_number.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+extra_labels.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+fact.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+factorial.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+func_2arg.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+func2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+func3.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+func4.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+func5.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/func5.L1.out.tmp tests/func5.L1.out differ: byte 7, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+func_8args.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+func_arg.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+func_argmath.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+func_basic.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+func.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+func_nest.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+goto.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+goto_maze.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+greater_one.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+h4.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+inc_arr.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+index.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+is_0_positive_number.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+is_9_positive_number.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+is_code_7_number.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+is_code_8_number.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+is_empty.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/is_empty.L1.out.tmp tests/is_empty.L1.out differ: byte 1, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+is_odd.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+is_positive.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/is_positive.L1.out.tmp tests/is_positive.L1.out differ: byte 1, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+istriangle.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+join.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+jumping.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+jump.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+L1_v4.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+L1vL2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+L2_tests.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+large.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+large_spill_4K.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+less_eq.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/less_eq.L1.out.tmp tests/less_eq.L1.out differ: byte 1, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+less.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+less-than-equal.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/less-than-equal.L1.out.tmp tests/less-than-equal.L1.out differ: byte 5, line 3
+  Failed
+~/322_framework/Compiler/L1/tests
+less-than.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/less-than.L1.out.tmp tests/less-than.L1.out differ: byte 3, line 2
+  Failed
+~/322_framework/Compiler/L1/tests
+lshift-1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+lshift-2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+lShift.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+main-1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+math.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+memassign3.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+mem_muck.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+mem-refs.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+mem_swap.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+minusequal.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+mix.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+mod.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+mul_by_2n.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+mult-1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+mult-2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+mult.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+mutate.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+negprint.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+nest_join.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+n_natural_number_sum_array.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+n_natural_number_sum_loop.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+n_natural_number_sum_recur.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+odd_number.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+overflow.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+oversixargs.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+oversixargs_spill.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+P1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+plusequal.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+plusequalr.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+power2_10.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+power33.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+power44.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+printArray-2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Failed
+~/322_framework/Compiler/L1/tests
+print_array.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+print-array.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+printArray.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+print.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+printlocal2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+printlocal.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+print-num.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+range.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/range.L1.out.tmp tests/range.L1.out differ: byte 8, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+rectangle_area.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+recur_list.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+right_shift.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+rshift-1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+rshift-2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+rShift.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+samenum.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+scan_stack.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+shared_array.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+shift_by_n.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+shift.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+shiftleft.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+shiftright.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+simpAdd.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+simpAnd2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+simpAnd.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+simple_alloc.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+simpMult.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+simpSub.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+smaller_one.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+sop.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+sop_reg.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+spillsTest.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+square.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+stack.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+stackTest.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+sub-1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+sub-2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+subtract_one.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+sum_array_12345.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+sum.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/sum.L1.out.tmp tests/sum.L1.out differ: byte 1, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+temp.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test10.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test11.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test12.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test13.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test14.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test15.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test16.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test17.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test18.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test19.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test20.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test26.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/test26.L1.out.tmp tests/test26.L1.out differ: byte 1, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+test27.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test28.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test29.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test30.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test31.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test32.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test33.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test34.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test35.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test36.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test37.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test38.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test39.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test3.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test40.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test41.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test42.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test43.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test44.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test45.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test46.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test47.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test48.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test49.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test4.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test50.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test51.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test52.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test53.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test54.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test55.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test56.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test57.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test58.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test59.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test5.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test60.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test6.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test7.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+test8.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Failed
+~/322_framework/Compiler/L1/tests
+test9.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+testAllocate.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+testProgram1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests10.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests11.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests12.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests13.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/tests13.L1.out.tmp tests/tests13.L1.out differ: byte 1, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+tests14.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/tests14.L1.out.tmp tests/tests14.L1.out differ: byte 7, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+tests15.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+tests/tests15.L1.out.tmp tests/tests15.L1.out differ: byte 13, line 1
+  Failed
+~/322_framework/Compiler/L1/tests
+tests16.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests17.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests18.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests19.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests1.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests20.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests21.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests22.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests23.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests24.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests25.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests2.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests3.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests4.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests5.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests6.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests7.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests8.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+tests9.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+timesequal.L1
+~/322_framework/Compiler/L1/tests ~/322_framework/Compiler/L1/tests
+  Passed
+~/322_framework/Compiler/L1/tests
+########## SUMMARY
+Test passed: 348 out of 371

@@ -81,13 +81,13 @@ namespace L1{
         fprintf(outputFile, "%s:\n", F->name.c_str());
 
         //Need to manually do some stack stuff in the main function if needed
-        if(F->name == p.entryPointLabel){
-            if(DEBUGGING) printf("This is the main function\n");
+        //if(F->name == p.entryPointLabel){
+           // if(DEBUGGING) printf("This is the main function\n");
             if(F->locals > 0){
                 if(DEBUGGING) printf("There are locals in this function so I am adding some stack space for it\n");
                 fprintf(outputFile, "subq $%ld, %%rsp\n", F->locals*8);
             }
-        }
+        //}
         if(DEBUGGING) std::cout << "Beginning to iterate through the instructions" << std::endl;
 
         for (Instruction* I: F->instructions) {
@@ -406,14 +406,15 @@ namespace L1{
                     fprintf(outputFile, "%s %s\n", "jmp", result[1].c_str());
                     break;
 
-                // return
+                // returns
                 case 7:
                     offset = F->locals * 8;
                     //potentially pop off stack variables as well
                     if(F->arguments > 6){
                         offset += (F->arguments - 6) * 8;
                     }
-
+		    
+		    if (DEBUGGING) printf("return adding to the stack: %ld\n", offset);
                     if (offset) {
                         if(DEBUGGING) printf("\t%s $%ld, %%%s\n", "addq", offset, "rsp");
                         fprintf(outputFile, "\t%s $%ld, %%%s\n", "addq", offset, "rsp");
@@ -421,7 +422,7 @@ namespace L1{
                     fprintf(outputFile, "\t%s\n", "retq");
                     break;
 
-                // call
+                // calls
                 case 8:
 
                     if (result[1][0] != 'r' && result[1][0] != ':') {
@@ -429,20 +430,26 @@ namespace L1{
                         break;
                     }
 
-                    //printf("The number of arguments is: %s\nThe integer representation of it is: %d\n", result[2].c_str(), atoi(result[2].c_str()));
+                  
                     if(atoi(result[2].c_str()) <= 6){
                         offset = 8;
+
                     }
                     else{
-                    offset = (( (atoi(result[2].c_str())) - 6 ) * 8) + 8;
-                    }
-                    //printf("The offeset is %ld\n", offset);
+                    	offset = (( (atoi(result[2].c_str())) - 6 ) * 8) + 8;
+                   //	offset += 8; 
+		   }
+		   
+
+		  if (DEBUGGING) printf("The offeset is %ld -- subtracting this from stack\n", offset);
 
                     fprintf(outputFile, "\t%s $%ld, %%%s\n", "subq", offset, "rsp");
 
-                    if (result[1][0] == 'r') {
+                    // special register jump instruction
+		    if (result[1][0] == 'r') {
                         fprintf(outputFile, "\t%s *%%%s\n", "jmp", result[1].c_str());
                     } else {
+			// otherwise jmp to function
                         result[1] = clean_label(result[1]);
                         fprintf(outputFile, "\t%s %s\n", "jmp", result[1].c_str());
                     }   
@@ -524,7 +531,7 @@ namespace L1{
                 // label inst
                 case 11:
                     result[0] = clean_label(result[0]);
-                    fprintf(outputFile, "%s:\n", result[0].c_str());
+                    fprintf(outputFile, "\t%s:\n", result[0].c_str());
                     break;
 
                 // increment / decrement
