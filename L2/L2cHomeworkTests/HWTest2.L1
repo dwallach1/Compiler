@@ -26,34 +26,34 @@
     mem rsp 40 <- myvar5
     mem rsp 48 <- myvar6
     call print 1
-    rdi <- stack-arg 5
+    rdi <- myvar1
     call print 1
-    rdi <- stack-arg 4
+    rdi <- myvar2
     call print 1
-    rdi <- stack-arg 3
+    rdi <- myvar3
     call print 1
-    rdi <- stack-arg 2
+    rdi <- myvar4
     call print 1
-    rdi <- stack-arg 1
+    rdi <- myvar5
     call print 1
-    rdi <- stack-arg 0
+    rdi <- myvar6
     call print 1
     mem rsp -8 <- :GimmeACall
     call :IGotIt 7
     :GimmeACall
-    rdi <- stack-arg 6
+    rdi <- myvar0
     call print 1
-    rdi <- stack-arg 5
+    rdi <- myvar1
     call print 1
-    rdi <- stack-arg 4
+    rdi <- myvar2
     call print 1
-    rdi <- stack-arg 3
+    rdi <- myvar3
     call print 1
-    rdi <- stack-arg 2
+    rdi <- myvar4
     call print 1
-    rdi <- stack-arg 1
+    rdi <- myvar5
     call print 1
-    rdi <- stack-arg 0
+    rdi <- myvar6
     call print 1
     return
   )
