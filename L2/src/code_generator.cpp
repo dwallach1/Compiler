@@ -162,12 +162,20 @@ namespace L2{
         }
 
         int changed = 1;
+        //this will be used to set the next outset for an instruction
+        std::vec<std::string> prevINSet = {};
         while (changed) {
+            //This will determine if we are dealing with the very first instruction in order to correctly make the IN set {}
+            int firstInst = 1;
             changed = 0;
             for (Instruction* I: f.instructions) {
+                //Declare the vectors that will be used for intermediate steps in IN computation
+                //outKill is the  result of OUT[i] - KILL[i]
                 std::vec<std::string> outKill = {};
+                //genUoutKill is the Union of outKill and the GEN set. Begins by taking the current gen set
                 std::vec<std::string> genUoutKill = I->gen;
 
+                //This will look at the out set and kill set and only add entrys to the outKill that are unique to the OUT set
                 for (std::string o : I->out) {
                     bool match = false;
                     for (std::string k : I->kill) {
@@ -180,17 +188,45 @@ namespace L2{
                     }
                 }
 
+                //This will take the union of the outkill and genUoutKill set. The loop is so there are no duplicates, but isn't 100% necessary I suppose
                 for (std::string oK : outKill) {
                     bool found = false;
                     for (std::string g : genUoutKill) {
+                        //Is the entry in outKill currently in the gen set
                         if (oK == g) {
                             found = true;
                         }
                     }
+                    //If it isn't in the current gen set then let us add it to the gen set.
                     if (!found) {
                         genUoutKill.push_back(oK);
                     }
                 }
+
+                //Now we will make a comparison of the newly generated set of genUoutKill to the current IN set, if they match then we won't set changed, otherwise we will.
+                for(std::string curVal : genUoutKill){
+                    bool found = false;
+                    for(std::string compVal : I->in){
+                        if(curVal == compVal){
+                            found = true;
+                        }
+                    }
+                    //There is a new entry, in should never really become smaller over time per each unique instruction. 
+                    //This means the new IN set is going to be different. 
+                    if(!found){
+                        changed = true;
+                        //Add the new variable to the IN set
+                        I->in.push_back(curVal);
+                    }
+                }
+
+                //The outset is going to be a little tricky,
+                //it is normal if the instruction is anything but a label instruction
+                //because we just look at the instruction above it
+                //Label insts will have to iterate through the instructions to see what calls it
+                //and then Union their IN sets, won't be hard to do, but may be fun to explain
+
+
             }   
         }
     }
