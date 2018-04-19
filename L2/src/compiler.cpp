@@ -15,6 +15,8 @@
 #include <parser.h>
 #include <code_generator.h>
 
+#define DEBUGGING 1
+
 using namespace std;
 
 void print_help (char *progName){
@@ -33,7 +35,7 @@ int main(
 
   /* Check the input.
    */
-  Utils::verbose = false;
+  //Utils::verbose = false;
   if( argc < 2 ) {
     print_help(argv[0]);
     return 1;
@@ -43,18 +45,25 @@ int main(
     switch (opt){
       case 'l':
         liveness_only = strtoul(optarg, NULL, 0);
+        if(DEBUGGING) printf("Setting liveness_only to be %d\n", liveness_only);
+
         break ;
 
       case 's':
         spill_only = true;
+        if(DEBUGGING) printf("Spill_only set to true\n");
         break ;
 
       case 'O':
         optLevel = strtoul(optarg, NULL, 0);
+        if(DEBUGGING) printf("Setting optLevel to be %d\n", optLevel);
+
         break ;
 
       case 'g':
         enable_code_generator = (strtoul(optarg, NULL, 0) == 0) ? false : true ;
+        if(DEBUGGING) printf("Enabling code generator");
+
         break ;
 
       case 'v':
@@ -84,6 +93,8 @@ int main(
      * Parse an L2 function.
      */
     p = L2::parse_function_file(argv[optind]);
+    if(DEBUGGING) printf("We are running liveness only and just parsed a function\n");
+
 
   } else {
 
@@ -105,12 +116,15 @@ int main(
   }
 
   if (liveness_only){
+    if(DEBUGGING) printf("We are running liveness only and are starting to iterate through p.functions\n");
+
     for (auto f : p.functions){
 
       /*
        * Compute the liveness analysis.
        */
       L2::DataFlowResult *liveness = L2::computeLivenessAnalysis(p, *f);
+      if(DEBUGGING) printf("We are running liveness only and iterating through all functions of p\n");
 
       /*
        * Print the liveness.

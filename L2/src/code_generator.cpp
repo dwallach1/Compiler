@@ -4,7 +4,7 @@
 #include <fstream>
 #include <cstdio>
 #include <stdlib.h>
-#define DEBUGGING 0
+#define DEBUGGING 1
 #define DEBUG_S 0
 #include <code_generator.h>
 
@@ -12,36 +12,45 @@ using namespace std;
 
 namespace L2{
 
-    void generatePrevInstPointers(L2::function f){
+    void generatePrevInstPointers(L2::Function f){
         int size = f.instructions.size();
         if(size == 1){
-            f.instructions[0].prevInst = NULL;
-            f.instructions[0].nextInst = NULL;
+            f.instructions[0]->prevInst = NULL;
+            f.instructions[0]->nextInst = NULL;
             return;
         }
         for (int i = 0; i < size; ++i)
         {   
             //first inst can't have a prev inst.
             if(i == 0){
+                //if(DEBUGGING) printf("First instruction is: %s", f.instructions[i]->instruction.c_str());
                 f.instructions[i]->nextInst = f.instructions[i+1];
                 f.instructions[i]->prevInst = NULL;
             }
             else if(i != (size -1)){
                 //set previous instruction to be above it
+                //if(DEBUGGING) printf("Next instruction is: %s", f.instructions[i]->instruction.c_str());
                 f.instructions[i]->prevInst = f.instructions[i-1];
                 f.instructions[i]->nextInst = f.instructions[i+1];
+                //if(DEBUGGING) printf("The next instruction should be: %s", f.instructions[i+1]->instruction.c_str());
+
             }
             //Last instruction doesn't have a next inst
             else{
+                //if(DEBUGGING) printf("Last instruction is: %s", f.instructions[i]->instruction.c_str());
                 f.instructions[i]->prevInst = f.instructions[i-1];
                 f.instructions[i]->nextInst = NULL;
             }
         }
     }
 
-    L2::DataFlowResult computeLivenessAnalysis(L2::Program p, L2::Function f) {
+    L2::DataFlowResult* computeLivenessAnalysis(L2::Program p, L2::Function f) {
+        generatePrevInstPointers(f);
         //Iterate through each instruction and generate the instructions gen and kill sets
         for(Instruction* I : f.instructions) {
+            std::istringstream iss(I->instruction);
+            std::vector<std::string> result;
+
             switch(I->type){
                 //arithmetic
                 case 0:
@@ -55,8 +64,6 @@ namespace L2{
                     }
 
                     if(I->registers[1].substr(0, 4) == "mem ") {
-                        std::vector<std::string> result;
-
                         std::istringstream iss(I->registers[1]);
                         for(std::string s; iss >> s; )
                             result.push_back(s);
@@ -65,8 +72,6 @@ namespace L2{
                     }
 
                     if(I->registers[0].substr(0, 4) == "mem ") {
-                        std::vector<std::string> result;
-
                         std::istringstream iss(I->registers[0]);
                         for(std::string s; iss >> s; )
                             result.push_back(s);
@@ -79,18 +84,18 @@ namespace L2{
 
                 //assignment
                 case 1:
-                    if(I->registers[1][0] != ':') {
-                        I->gen.push_back(I->registers[1]);
+                    if(I->registers[1][0] != ':' && !(std::isdigit(I->registers[1][0]))) {
+                        I->gen.push_back(I->registers[1] );
+                        if(DEBUGGING) printf("I->reg[1] = %s is going to gen\n", I->registers[1].c_str());
                     }
                     I->kill.push_back(I->registers[0]);
+                    if(DEBUGGING) printf("I->Reg[0] = %s is goign to kill\n", I->registers[0].c_str());
+                    
                     break;
 
 
                 // load
                 case 2:
-                    std::vector<std::string> result;
-
-                    std::istringstream iss(I->instruction[1]);
                     for(std::string s; iss >> s; )
                         result.push_back(s);
 
@@ -101,13 +106,11 @@ namespace L2{
 
                 //store
                 case 3:
-                    if (I->registers[1][0] != ':' && !(std::isdigit(I->registers[1][0])) {
+                    if (I->registers[1][0] != ':' && !(std::isdigit(I->registers[1][0]))) {
                         I->gen.push_back(I->registers[1]);
                     }
 
-                    std::vector<std::string> result;
 
-                    std::istringstream iss(I->instruction[1]);
                     for(std::string s; iss >> s; )
                         result.push_back(s);
 
@@ -119,12 +122,12 @@ namespace L2{
                 case 5:
 
                     // dest
-                    if (!(std::isdigit(I->registers[3][0])) {
+                    if (!(std::isdigit(I->registers[3][0]))) {
                         I->gen.push_back(I->registers[3]);
                     }
 
                     // source
-                    if (!(std::isdigit(I->registers[2][0])) {
+                    if (!(std::isdigit(I->registers[2][0]))) {
                         I->gen.push_back(I->registers[2]);
                     }
 
@@ -188,20 +191,36 @@ namespace L2{
         }
 
         bool changed = true;
+        int debugIters = 1;
         //this will be used to set the next outset for an instruction
-        std::vec<std::string> prevINSet = {};
+        std::vector<std::string> prevINSet = {};//{"r12", "r13", "r14", "r15", "rax", "rbp", "rbx"};
         while (changed) {
             //This will determine if we are dealing with the very first instruction in order to correctly make the IN set {}
             int firstInst = 1;
+            if(DEBUGGING){
+                printf("Running Iteration %d\n", debugIters);
+                debugIters++;
+            }
             changed = false;
             for (Instruction* I: f.instructions) {
-
-                //Declare the vectors that will be used for intermediate steps in IN computation
+                if(DEBUGGING) printf("\n-------NEW INST--------\n");
+                //Declare the vectortors that will be used for intermediate steps in IN computation
                 //outKill is the  result of OUT[i] - KILL[i]
-                std::vec<std::string> outKill = {};
+                std::vector<std::string> outKill = {};
                 //genUoutKill is the Union of outKill and the GEN set. Begins by taking the current gen set
-                std::vec<std::string> genUoutKill = I->gen;
-
+                std::vector<std::string> genUoutKill = I->gen;
+                if(DEBUGGING){
+                    printf("The out set is:\n");
+                    for(std::string val : I->out){
+                        printf("%s ", val.c_str());
+                    }
+                    printf("\n");
+                    printf("The kill set is:\n");
+                    for(std::string val : I->kill){
+                        printf("%s ", val.c_str());
+                    }
+                    printf("\n");
+                }
                 //This will look at the out set and kill set and only add entrys to the outKill that are unique to the OUT set
                 for (std::string o : I->out) {
                     bool match = false;
@@ -213,6 +232,13 @@ namespace L2{
                     if (!match) {
                         outKill.push_back(o);
                     }
+                }
+                if(DEBUGGING){
+                    printf("The out set - kill set is:\n");
+                    for(std::string val : outKill){
+                        printf("%s ", val.c_str());
+                    }
+                    printf("\n");
                 }
 
                 //This will take the union of the outkill and genUoutKill set. The loop is so there are no duplicates, but isn't 100% necessary I suppose
@@ -246,13 +272,25 @@ namespace L2{
                         I->in.push_back(curVal);
                     }
                 }
+                if(DEBUGGING){
+                    printf("The gen set is:\n");
+                    for(std::string val : I->gen){
+                        printf("%s ", val.c_str());
+                    }
+                    printf("\n");
+                    printf("The gen set unioned with the outKill set (aka the IN set) is:\n");
+                    for(std::string val : genUoutKill){
+                        printf("%s ", val.c_str());
+                    }
+                    printf("\n");
+                }
 
                 //The outset is going to be a little tricky,
                 //it is normal if the instruction is anything but a label instruction
                 //because we just look at the instruction above it
                 //Label insts will have to iterate through the instructions to see what calls it
                 //and then Union their IN sets, won't be hard to do, but may be fun to explain
-                std::vec<std::string> newOut = {};
+                std::vector<std::string> newOut = {};
 
                 //if it is a label instruction, we need to do some shifty stuff
                 if(I->type == 11){
@@ -278,7 +316,7 @@ namespace L2{
                         }
                     }
                     if(I->prevInst != NULL){
-                      for(std::string curVal : I->prevInst->in){
+                      for(std::string curVal : prevINSet){
                             bool found = false;
                             for(std::string compVal : newOut){
                                 if(curVal == compVal){
@@ -291,6 +329,21 @@ namespace L2{
                             }
                         }  
                     }
+                    //Is the first instruction
+                    else{
+                        for(std::string curVal : I->prevInst->in){
+                            bool found = false;
+                            for(std::string compVal : newOut){
+                                if(curVal == compVal){
+                                    found = true;
+                                }
+                            }
+                            if(!found){
+                                //Add the new variable to the newOut set
+                                newOut.push_back(curVal);
+                            }
+                        }
+                    }
                 }
                 //Otherwise we just need to take the prev IN set and pretend everything is ok. Also for correctness
                 //, a non label_inst will never be preceded by a goto or a cjump, or else it will be dead code.
@@ -298,7 +351,36 @@ namespace L2{
                     if(I->prevInst != NULL){
                         newOut = I->prevInst->in;                        
                     }
+                    else{
+                        newOut = prevINSet;
+                    }
                 }
+
+                
+
+                //Attempting to strap the kill set into the out set
+
+                for(std::string curVal : I->kill){
+                    bool found = false;
+                    for(std::string compVal : newOut){
+                        if(curVal == compVal){
+                            found = true;
+                        }
+                    }
+                    if(!found){
+                        //Add the new variable to the IN set
+                        newOut.push_back(curVal);
+                    }
+                }
+
+                if(DEBUGGING){
+                    printf("The new OUT set is:\n");
+                    for(std::string val : newOut){
+                        printf("%s ", val.c_str());
+                    }
+                    printf("\n");
+                }
+
                 for(std::string curVal : newOut){
                     bool found = false;
                     for(std::string compVal : I->out){
@@ -312,7 +394,6 @@ namespace L2{
                         I->out.push_back(curVal);
                     }
                 }
-
             }   
         }
 
@@ -320,30 +401,55 @@ namespace L2{
         std::string inGlobal;
         std::string outGlobal;
 
-        inGlobal << "(\n(in\n";
-        outGlobal << "(\n(out\n";
+        inGlobal.append("(\n(in\n");
+        outGlobal.append("(\n(out\n");
 
         for(Instruction* I : f.instructions){
-            inGlobal << '(';
-            outGlobal << '(';
+
+            //Time to handle the return staement
+            if(I->nextInst == NULL){
+               I->out = {};
+            }
+
+            inGlobal.append("(");
+            outGlobal.append("(");
             //In set first
+            int inLen = 0;
+            int outLen = 0;
             for(std::string cur : I->in){
-                inGlobal << cur << ' ';
+                inGlobal.append(cur);
+                inGlobal.append(" ");
+                inLen++;
             }
             for(std::string cur : I->out){
-                outGlobal << cur << ' ';
+                outGlobal.append(cur);
+                outGlobal.append(" ");
+                outLen++;
             }
-            inGlobal.replace(inGlobal.length()-1, 1, ")");
-            inGlobal << '\n';
-            outGlobal.replace(outGlobal.length()-1, 1, ")");
-            outGlobal << '\n';
-        }
-        inGlobal << ")\n\n";
-        outGlobal <<")\n\n)";
-        inGlobal << outGlobal;
 
-        DataFlowResult newDF;
-        newDF.result = inGlobal;
+            if(inLen){ 
+                inGlobal.replace(inGlobal.length()-1, 1, ")");
+            }
+            else{
+                inGlobal.append(")");
+            }
+
+            if(outLen){ 
+                outGlobal.replace(outGlobal.length()-1, 1, ")");
+            }
+            else{
+                outGlobal.append(")");
+            }
+            inGlobal.append("\n");
+            outGlobal.append("\n");
+        }
+        inGlobal.append(")\n\n");
+        outGlobal.append(")\n\n)");
+        inGlobal.append(outGlobal);
+
+        DataFlowResult* newDF = new L2::DataFlowResult();
+        newDF->result = inGlobal;
+        //if(DEBUGGING) printf("%s\n", newDF->result.c_str());
         return newDF;
 
     }

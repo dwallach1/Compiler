@@ -12,7 +12,7 @@
 
 #include <L2.h>
 #include <parser.h>
-#define DEBUGGING 0
+#define DEBUGGING 1
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
@@ -56,7 +56,6 @@ namespace L2 {
   struct var:
     pegtl::seq<
       seps,
-      pegtl::not_at< reg >,
       pegtl::plus< 
         pegtl::sor<
           pegtl::alpha,
@@ -357,7 +356,6 @@ namespace L2 {
       arithmetic,
       load,
       store,
-      compare,
       cjump,
       goto_inst,
       return_inst,
@@ -578,7 +576,7 @@ namespace L2 {
         instruction->instruction = in.string();
 
         int bytes = 8 * currentF->locals;
-        int arg = parsed_registers.back();
+        int arg = atoi(parsed_registers.back().c_str());
         parsed_registers.pop_back();
         bytes += arg * 8;
 
@@ -681,9 +679,6 @@ namespace L2 {
     template< typename Input >
     static void apply( const Input & in, L2::Program & p){
         if(DEBUGGING) std::cout << "Found a var " <<  in.string() << std::endl;
-        L2::Function *currentF = p.functions.back();
-        L2::Instruction *instruction = new L2::Instruction();
-
         parsed_registers.push_back(in.string());
     }
   };
@@ -925,10 +920,10 @@ namespace L2 {
      * Parse.
      */   
     file_input< > fileInput(fileName);
-    L2::Function f;
-    if(DEBUGGING) std::cout << "Begin Parsing" << std::endl;
-    parse<L2::L2_function_rule, L2::action>(fileInput, f);
-    if(DEBUGGING) std::cout << "Done Parsing" << std::endl;
+    L2::Program p;
+    if(DEBUGGING) std::cout << "Begin Parsing Function File" << std::endl;
+    parse<L2::function_grammar, L2::action>(fileInput, p);
+    if(DEBUGGING) std::cout << "Done Parsing Function File" << std::endl;
     return p;
   }
 
