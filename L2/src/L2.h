@@ -38,6 +38,6 @@ namespace L2 {
 
   struct DataFlowResult {
       std::string result; 
-  }
+  };
 
 } // L2

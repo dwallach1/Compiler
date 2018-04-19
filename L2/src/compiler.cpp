@@ -115,7 +115,8 @@ int main(
       /*
        * Print the liveness.
        */
-      cout << liveness->toString(f, liveness_only > 1) << endl;
+      cout << liveness->result << endl;
+      //cout << liveness->toString(f, liveness_only > 1) << endl;
 
       /*
        * Free the memory.
