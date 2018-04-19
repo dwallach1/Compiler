@@ -4,7 +4,7 @@
 
 namespace L2{
 
-  void generate_code(Program p);
+  void L2_generate_code(Program p);
   L2::DataFlowResult computeLivenessAnalysis(Program p, Function f);
 
 

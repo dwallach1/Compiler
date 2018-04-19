@@ -76,7 +76,7 @@ int main(
     /* 
      * Parse an L2 function and the spill arguments.
      */
-    p = L2::parse_spill_file(argv[optind]);
+    //p = L2::parse_spill_file(argv[optind]);
  
   } else if (liveness_only){
 
@@ -101,7 +101,7 @@ int main(
     /*
      * Spill.
      */
-    L2::REG_spill(p, p.functions[0], p.spill.varToSpill, p.spill.prefixSpilledVars);
+    //L2::REG_spill(p, p.functions[0], p.spill.varToSpill, p.spill.prefixSpilledVars);
   }
 
   if (liveness_only){
@@ -110,7 +110,7 @@ int main(
       /*
        * Compute the liveness analysis.
        */
-      L2::DataFlowResult *liveness = L2::computeLivenessAnalysis(p, f);
+      L2::DataFlowResult *liveness = L2::computeLivenessAnalysis(p, *f);
 
       /*
        * Print the liveness.
