@@ -416,6 +416,10 @@ namespace L2 {
       entry_point_rule
     > {};
 
+  struct function_grammar :
+    pegtl::must<
+      L2_function_rule
+    >{};
 
 
   /* 
@@ -901,8 +905,29 @@ namespace L2 {
     file_input< > fileInput(fileName);
     L2::Program p;
     if(DEBUGGING) std::cout << "Begin Parsing" << std::endl;
+    parse< L2::grammar, L2::action >(fileInput, p);
+    if(DEBUGGING) std::cout << "Done Parsing" << std::endl;
+    return p;
+  }
+
+  Program parse_function_file (char *fileName){
+
+    /* 
+     * Check the grammar for some possible issues.
+     */
+    if(DEBUGGING) std::cout << "Checking the grammar" << std::endl;
+    pegtl::analyze< L2::function_grammar >();
+
+    if(DEBUGGING) std::cout << "Finished checking grammar" << std::endl;
+
+
+    /*
+     * Parse.
+     */   
+    file_input< > fileInput(fileName);
+    L2::Function f;
+    if(DEBUGGING) std::cout << "Begin Parsing" << std::endl;
     parse<L2::L2_function_rule, L2::action>(fileInput, f);
-    //parse< L2::grammar, L2::action >(fileInput, p);
     if(DEBUGGING) std::cout << "Done Parsing" << std::endl;
     return p;
   }
