@@ -12,6 +12,33 @@ using namespace std;
 
 namespace L2{
 
+    void generatePrevInstPointers(L2::function f){
+        int size = f.instructions.size();
+        if(size == 1){
+            f.instructions[0].prevInst = NULL;
+            f.instructions[0].nextInst = NULL;
+            return;
+        }
+        for (int i = 0; i < size; ++i)
+        {   
+            //first inst can't have a prev inst.
+            if(i == 0){
+                f.instructions[i]->nextInst = f.instructions[i+1];
+                f.instructions[i]->prevInst = NULL;
+            }
+            else if(i != (size -1)){
+                //set previous instruction to be above it
+                f.instructions[i]->prevInst = f.instructions[i-1];
+                f.instructions[i]->nextInst = f.instructions[i+1];
+            }
+            //Last instruction doesn't have a next inst
+            else{
+                f.instructions[i]->prevInst = f.instructions[i-1];
+                f.instructions[i]->nextInst = NULL;
+            }
+        }
+    }
+
     L2::DataFlowResult computeLivenessAnalysis(L2::Program p, L2::Function f) {
         //Iterate through each instruction and generate the instructions gen and kill sets
         for(Instruction* I : f.instructions) {
@@ -34,7 +61,7 @@ namespace L2{
                         for(std::string s; iss >> s; )
                             result.push_back(s);
 
-                        I->gen.push_back(result[1])
+                        I->gen.push_back(result[1]);
                     }
 
                     if(I->registers[0].substr(0, 4) == "mem ") {
@@ -44,7 +71,7 @@ namespace L2{
                         for(std::string s; iss >> s; )
                             result.push_back(s);
 
-                        I->gen.push_back(result[1])
+                        I->gen.push_back(result[1]);
                     }
 
                     break;
@@ -110,18 +137,18 @@ namespace L2{
 
                 // return 
                 case 7:
-                    I->gen.push_back("rsp");
+                    //I->gen.push_back("rsp");
                     break;
 
                 // call    
                 case 8:
 
-                    I->gen.push_back("rsp");
+                    //I->gen.push_back("rsp");
 
                     if (I->registers[0] != "print" && 
                         I->registers[0] != "allocate" && 
                         I->registers[0] != "array_error" && I->registers[0][0] != ':') {
-                        I->gen.push_back(I->registers[0])
+                        I->gen.push_back(I->registers[0]);
                     }
 
                     break;
@@ -156,19 +183,19 @@ namespace L2{
 
 
                 default:
-
                     break;
             }
         }
 
-        int changed = 1;
+        bool changed = true;
         //this will be used to set the next outset for an instruction
         std::vec<std::string> prevINSet = {};
         while (changed) {
             //This will determine if we are dealing with the very first instruction in order to correctly make the IN set {}
             int firstInst = 1;
-            changed = 0;
+            changed = false;
             for (Instruction* I: f.instructions) {
+
                 //Declare the vectors that will be used for intermediate steps in IN computation
                 //outKill is the  result of OUT[i] - KILL[i]
                 std::vec<std::string> outKill = {};
@@ -225,10 +252,100 @@ namespace L2{
                 //because we just look at the instruction above it
                 //Label insts will have to iterate through the instructions to see what calls it
                 //and then Union their IN sets, won't be hard to do, but may be fun to explain
+                std::vec<std::string> newOut = {};
 
+                //if it is a label instruction, we need to do some shifty stuff
+                if(I->type == 11){
+                    for(Instruction* ITemp : f.instructions){
+
+                        //cjump or a goto instruction
+                        if(ITemp->type == 5 || ITemp->type == 6){
+                            //if the label is present in the cjump instruction
+                            if (ITemp->registers[0] == I->registers[0] || ITemp->registers[1] == I->registers[0]){
+                                for(std::string curVal : ITemp->in){
+                                    bool found = false;
+                                    for(std::string compVal : newOut){
+                                        if(curVal == compVal){
+                                            found = true;
+                                        }
+                                    }
+                                    if(!found){
+                                        //Add the new variable to the newOut set
+                                        newOut.push_back(curVal);
+                                    }
+                                }
+                            }  
+                        }
+                    }
+                    if(I->prevInst != NULL){
+                      for(std::string curVal : I->prevInst->in){
+                            bool found = false;
+                            for(std::string compVal : newOut){
+                                if(curVal == compVal){
+                                    found = true;
+                                }
+                            }
+                            if(!found){
+                                //Add the new variable to the newOut set
+                                newOut.push_back(curVal);
+                            }
+                        }  
+                    }
+                }
+                //Otherwise we just need to take the prev IN set and pretend everything is ok. Also for correctness
+                //, a non label_inst will never be preceded by a goto or a cjump, or else it will be dead code.
+                else{
+                    if(I->prevInst != NULL){
+                        newOut = I->prevInst->in;                        
+                    }
+                }
+                for(std::string curVal : newOut){
+                    bool found = false;
+                    for(std::string compVal : I->out){
+                        if(curVal == compVal){
+                            found = true;
+                        }
+                    }
+                    if(!found){
+                        changed = true;
+                        //Add the new variable to the IN set
+                        I->out.push_back(curVal);
+                    }
+                }
 
             }   
         }
+
+        //Time to print to the string
+        std::string inGlobal;
+        std::string outGlobal;
+
+        inGlobal << "(\n(in\n";
+        outGlobal << "(\n(out\n";
+
+        for(Instruction* I : f.instructions){
+            inGlobal << '(';
+            outGlobal << '(';
+            //In set first
+            for(std::string cur : I->in){
+                inGlobal << cur << ' ';
+            }
+            for(std::string cur : I->out){
+                outGlobal << cur << ' ';
+            }
+            inGlobal.replace(inGlobal.length()-1, 1, ")");
+            inGlobal << '\n';
+            outGlobal.replace(outGlobal.length()-1, 1, ")");
+            outGlobal << '\n';
+        }
+        inGlobal << ")\n\n";
+        outGlobal <<")\n\n)";
+        inGlobal << outGlobal;
+
+        DataFlowResult newDF;
+        newDF.result = inGlobal;
+        return newDF;
+
     }
 
 

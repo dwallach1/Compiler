@@ -627,6 +627,7 @@ namespace L2 {
           //finding the which label I need
           if(curLabel.find(in.string()) != std::string::npos){
             instruction->instruction = curLabel;
+            instruction->registers.push_back(curLabel);
             labelInsts.push_back(curLabel);
             found = 1;
             if(DEBUGGING) std::cout << curLabel << " was found in " << in.string() << std::endl;
@@ -725,6 +726,7 @@ namespace L2 {
         std::string label = parsed_registers.back();
         parsed_registers.pop_back();
         instruction->instruction = "goto " + label;
+        instruction->registers.push_back(label);
         instruction->registers.push_back(label);
         
         
@@ -899,7 +901,8 @@ namespace L2 {
     file_input< > fileInput(fileName);
     L2::Program p;
     if(DEBUGGING) std::cout << "Begin Parsing" << std::endl;
-    parse< L2::grammar, L2::action >(fileInput, p);
+    parse<L2::L2_function_rule, L2::action>(fileInput, f);
+    //parse< L2::grammar, L2::action >(fileInput, p);
     if(DEBUGGING) std::cout << "Done Parsing" << std::endl;
     return p;
   }

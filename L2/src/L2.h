@@ -11,6 +11,9 @@ namespace L2 {
   struct Instruction {
     std::string instruction;
     int64_t type;
+
+    Instruction* prevInst;
+    Instruction* nextInst;
     std::vector<std::string> registers;
     std::vector<std::string> operation;
 
