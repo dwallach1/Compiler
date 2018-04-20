@@ -308,13 +308,14 @@ namespace L2{
 
                 //if it is a special cjump or goto instruction, we need to do some shifty stuff
                 if(I->type == 5 || I->type == 6){
-                    if(DEBUGGING) printf("Found a cjump or goto instruction, now finding its labels\n");
+                    if(DEBUG_S) printf("Found a cjump or goto instruction, now finding its labels\nThe inst: %s\nThe label(s): %s\n%s\n", I->instruction.c_str(), I->registers[0].c_str(), I->registers[1].c_str());
                     for(Instruction* ITemp : f.instructions){
                         //label instruction
                         if(ITemp->type == 11){
                             //if the label is present in the cjump/goto instruction
-                            if (ITemp->registers[0] == I->registers[0] || ITemp->registers[0] == I->registers[1]){
-                                if(DEBUGGING) printf("Found one of its labels: %s\n", ITemp->registers[0].c_str());
+                            if(DEBUG_S) printf("Found a label inst: %s\n", ITemp->instruction.c_str());
+                            if (ITemp->registers[0].find(I->registers[0]) != std::string::npos || ITemp->registers[0].find(I->registers[1]) != std::string::npos){
+                                if(DEBUG_S) printf("Found one of its labels: %s\n", ITemp->registers[0].c_str());
                                 for(std::string curVal : ITemp->in){
                                     bool found = false;
                                     for(std::string compVal : newOut){

@@ -57,7 +57,10 @@ namespace L2 {
     pegtl::seq<
       seps,
       pegtl::not_at<
-        pegtl::string<'m', 'e', 'm'>
+        pegtl::sor<
+          pegtl::string<'m', 'e', 'm'>,
+          pegtl::string<'s', 't', 'a', 'c', 'k','-','a', 'r', 'g'>
+        >
       >,
       pegtl::plus< 
         pegtl::sor<
