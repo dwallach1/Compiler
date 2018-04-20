@@ -25,6 +25,8 @@ void linkInstructionPointers(L2::Function* f);
 L2::Variable* findCorrespondingVar(std::string name, L2::InterferenceGraph* iG);
 void spillVar(L2::Function* f);
 void generateUsesAndVars(L2::Function* f);
+void insertLoad(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc);
+void insertStore(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc);
 
     void colorRegisters(Function* f){
         for(std::string curReg : allRegs){
@@ -147,44 +149,12 @@ void generateUsesAndVars(L2::Function* f);
             offset += 8;
             
             std::vector<Instruction*>::iterator iter;
-            Instruction* newInst = new Instruction();
-            //Store inst
-            newInst->instruction = "mem rsp " + std::to_string(offset) + " <- "+ str;
-            newInst->type = STORE;
-    
-            L2::Arg* arg = new L2::Arg();
-            arg->name = "mem rsp " + std::to_string(offset);
-            arg->type = MEM;
-    
-            L2::Arg* arg2 = new L2::Arg();
-            arg2->name = str;
-            arg2->type = MEM;
-    
-            newInst->arguments.push_back(arg);
-            newInst->arguments.push_back(arg2);
-            newInst->operation.push_back("<-");
+
             iter = f->instructions.begin();
-            f->instructions.insert(iter, newInst);
+            insertStore(f, str, iter, offset);
 
-
-            Instruction* newInst1 = new Instruction();
-            //Load inst
-            newInst1->type = LOAD;
-            newInst1->instruction = str + " <- "+ "mem rsp " + std::to_string(offset);
-    
-            L2::Arg* arg11 = new L2::Arg();
-            arg11->name = str;
-            arg11->type = MEM;
-    
-            L2::Arg* arg22 = new L2::Arg();
-            arg22->name = "mem rsp " + std::to_string(offset);
-            arg22->type = MEM;
-    
-            newInst1->arguments.push_back(arg11);
-            newInst1->arguments.push_back(arg22);
-            newInst1->operation.push_back("<-");
-    
-            f->instructions.push_back(newInst1);
+            iter = f->instructions.end();
+            insertLoad(f, str, iter, offset);
 
             linkInstructionPointers(f);
 
