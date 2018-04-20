@@ -102,7 +102,11 @@ namespace L2{
                         result.push_back(s);
 
                     I->kill.push_back(I->registers[0]);
-                    I->gen.push_back(result[1]);
+
+                    if(result[3] != "rsp"){
+                        I->gen.push_back(result[3]);
+                    }
+                    
                     break;
 
 
@@ -116,7 +120,9 @@ namespace L2{
                     for(std::string s; iss >> s; )
                         result.push_back(s);
 
-                    I->gen.push_back(result[1]);
+                    if(result[1] != "rsp"){
+                        I->gen.push_back(result[1]);
+                    }
 
                     break;
 
@@ -302,12 +308,13 @@ namespace L2{
 
                 //if it is a special cjump or goto instruction, we need to do some shifty stuff
                 if(I->type == 5 || I->type == 6){
+                    if(DEBUGGING) printf("Found a cjump or goto instruction, now finding its labels\n");
                     for(Instruction* ITemp : f.instructions){
-
                         //label instruction
                         if(ITemp->type == 11){
                             //if the label is present in the cjump/goto instruction
                             if (ITemp->registers[0] == I->registers[0] || ITemp->registers[0] == I->registers[1]){
+                                if(DEBUGGING) printf("Found one of its labels: %s\n", ITemp->registers[0].c_str());
                                 for(std::string curVal : ITemp->in){
                                     bool found = false;
                                     for(std::string compVal : newOut){

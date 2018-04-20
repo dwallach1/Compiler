@@ -56,6 +56,9 @@ namespace L2 {
   struct var:
     pegtl::seq<
       seps,
+      pegtl::not_at<
+        pegtl::string<'m', 'e', 'm'>
+      >,
       pegtl::plus< 
         pegtl::sor<
           pegtl::alpha,
@@ -494,6 +497,16 @@ namespace L2 {
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
+
+        size_t loc = in.string().find(source);
+        if(loc != std::string::npos){
+          //Checking to see if the callee is actually a label
+          if (in.string()[loc-1] == ':'){
+            //Found a label
+            source.insert(0,1,':');
+          }
+        }
+
         instruction->instruction = dest + ' ' + oper + ' ' + source;
         if(DEBUGGING) std::cout << "For the assignment, we wrote: " << instruction->instruction << std::endl;
         instruction->registers.push_back(dest);
@@ -527,6 +540,7 @@ namespace L2 {
         
         instruction->type = 2;
         currentF->instructions.push_back(instruction);
+        if(DEBUGGING) printf("Writing load as: %s\n", instruction->instruction.c_str());
     }
   };
 
@@ -544,6 +558,17 @@ namespace L2 {
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
+
+        size_t loc = in.string().find(source);
+        if(loc != std::string::npos){
+          //Checking to see if the callee is actually a label
+          if (in.string()[loc-1] == ':'){
+            //Found a label
+            source.insert(0,1,':');
+          }
+        }
+
+
         instruction->instruction = dest + ' ' + oper + ' ' + source;
         instruction->registers.push_back(dest);
         instruction->registers.push_back(source);
@@ -625,11 +650,11 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
         int found = 0;
+        instruction->registers.push_back(in.string());
         for(std::string curLabel : labelInsts){
           //finding the which label I need
           if(curLabel.find(in.string()) != std::string::npos){
             instruction->instruction = curLabel;
-            instruction->registers.push_back(curLabel);
             labelInsts.push_back(curLabel);
             found = 1;
             if(DEBUGGING) std::cout << curLabel << " was found in " << in.string() << std::endl;
@@ -692,7 +717,7 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
         
-        std::string labeL2 = parsed_registers.back();
+        std::string label1 = parsed_registers.back();
         parsed_registers.pop_back();
         std::string label2 = parsed_registers.back();
         parsed_registers.pop_back();
@@ -702,8 +727,16 @@ namespace L2 {
         parsed_registers.pop_back();
         std::string comparitor = compareVec.back();
         compareVec.pop_back();
-        instruction->instruction = "cjump " + dest + ' ' + comparitor + ' ' + source + ' ' + label2 + ' ' + labeL2;
-        instruction->registers.push_back(labeL2);
+
+        if(label1[0] != ':'){
+          label1.insert(0,1,':');
+        }
+        if(label2[0] != ':'){
+          label2.insert(0,1,':');
+        }
+        instruction->instruction = "cjump " + dest + ' ' + comparitor + ' ' + source + ' ' + label2 + ' ' + label1;
+        if(DEBUGGING) printf("Wrote to the inst: %s\n", instruction->instruction.c_str());
+        instruction->registers.push_back(label1);
         instruction->registers.push_back(label2);
         instruction->registers.push_back(source);
         instruction->registers.push_back(dest);
