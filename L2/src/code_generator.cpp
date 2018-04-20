@@ -47,6 +47,7 @@ namespace L2{
     L2::DataFlowResult* computeLivenessAnalysis(L2::Program p, L2::Function f) {
         generatePrevInstPointers(f);
         std::vector<std::string> callInstKill = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi"};
+        std::vector<std::string> callInstGen = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
         //Iterate through each instruction and generate the instructions gen and kill sets
         for(Instruction* I : f.instructions) {
             std::istringstream iss(I->instruction);
@@ -155,6 +156,11 @@ namespace L2{
                         if(DEBUGGING) printf("Pushing the value found in a call inst: %s\n", I->registers[0].c_str());
                         I->gen.push_back(I->registers[0]);
                     }
+                    //This will add the arguments to the gen set. Essentially it is a loop that will add registers in the arguments until it reaches the number in the instruction
+                    for(int q = 0; q < atoi(I->registers[1].c_str()); q++){
+                        I->gen.push_back(callInstGen[q]);
+                    }
+
                     I->kill = callInstKill;
                     break;
 
