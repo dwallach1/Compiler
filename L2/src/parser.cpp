@@ -12,7 +12,7 @@
 
 #include <L2.h>
 #include <parser.h>
-#define DEBUGGING 1
+#define DEBUGGING 0
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>

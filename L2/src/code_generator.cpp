@@ -4,7 +4,7 @@
 #include <fstream>
 #include <cstdio>
 #include <stdlib.h>
-#define DEBUGGING 1
+#define DEBUGGING 0
 #define DEBUG_S 0
 #include <code_generator.h>
 
@@ -193,7 +193,7 @@ namespace L2{
         bool changed = true;
         int debugIters = 1;
         //this will be used to set the next outset for an instruction
-        std::vector<std::string> prevINSet = {};//{"r12", "r13", "r14", "r15", "rax", "rbp", "rbx"};
+        std::vector<std::string> prevINSet = {"r12", "r13", "r14", "r15", "rax", "rbp", "rbx"};
         while (changed) {
             //This will determine if we are dealing with the very first instruction in order to correctly make the IN set {}
             int firstInst = 1;
@@ -286,20 +286,20 @@ namespace L2{
                 }
 
                 //The outset is going to be a little tricky,
-                //it is normal if the instruction is anything but a label instruction
-                //because we just look at the instruction above it
-                //Label insts will have to iterate through the instructions to see what calls it
+                //it is normal if the instruction is anything but a goto or cjump instruction
+                //because we just look at the instruction below it
+                //Special insts will have to iterate through the instructions to see what it calls
                 //and then Union their IN sets, won't be hard to do, but may be fun to explain
                 std::vector<std::string> newOut = {};
 
-                //if it is a label instruction, we need to do some shifty stuff
-                if(I->type == 11){
+                //if it is a special cjump or goto instruction, we need to do some shifty stuff
+                if(I->type == 5 || I->type == 6){
                     for(Instruction* ITemp : f.instructions){
 
-                        //cjump or a goto instruction
-                        if(ITemp->type == 5 || ITemp->type == 6){
-                            //if the label is present in the cjump instruction
-                            if (ITemp->registers[0] == I->registers[0] || ITemp->registers[1] == I->registers[0]){
+                        //label instruction
+                        if(ITemp->type == 11){
+                            //if the label is present in the cjump/goto instruction
+                            if (ITemp->registers[0] == I->registers[0] || ITemp->registers[0] == I->registers[1]){
                                 for(std::string curVal : ITemp->in){
                                     bool found = false;
                                     for(std::string compVal : newOut){
@@ -315,41 +315,40 @@ namespace L2{
                             }  
                         }
                     }
-                    if(I->prevInst != NULL){
-                      for(std::string curVal : prevINSet){
-                            bool found = false;
-                            for(std::string compVal : newOut){
-                                if(curVal == compVal){
-                                    found = true;
-                                }
-                            }
-                            if(!found){
-                                //Add the new variable to the newOut set
-                                newOut.push_back(curVal);
-                            }
-                        }  
-                    }
+                    // if(I->prevInst != NULL){
+                    //   for(std::string curVal : prevINSet){
+                    //         bool found = false;
+                    //         for(std::string compVal : newOut){
+                    //             if(curVal == compVal){
+                    //                 found = true;
+                    //             }
+                    //         }
+                    //         if(!found){
+                    //             //Add the new variable to the newOut set
+                    //             newOut.push_back(curVal);
+                    //         }
+                    //     }  
+                    // }
                     //Is the first instruction
-                    else{
-                        for(std::string curVal : I->prevInst->in){
-                            bool found = false;
-                            for(std::string compVal : newOut){
-                                if(curVal == compVal){
-                                    found = true;
-                                }
-                            }
-                            if(!found){
-                                //Add the new variable to the newOut set
-                                newOut.push_back(curVal);
-                            }
-                        }
-                    }
+                    // else{
+                    //     for(std::string curVal : I->prevInst->in){
+                    //         bool found = false;
+                    //         for(std::string compVal : newOut){
+                    //             if(curVal == compVal){
+                    //                 found = true;
+                    //             }
+                    //         }
+                    //         if(!found){
+                    //             //Add the new variable to the newOut set
+                    //             newOut.push_back(curVal);
+                    //         }
+                    //     }
+                    // }
                 }
-                //Otherwise we just need to take the prev IN set and pretend everything is ok. Also for correctness
-                //, a non label_inst will never be preceded by a goto or a cjump, or else it will be dead code.
+                //Otherwise we just need to take the sucessor IN set and pretend everything is ok. Also for correctness
                 else{
-                    if(I->prevInst != NULL){
-                        newOut = I->prevInst->in;                        
+                    if(I->nextInst != NULL){
+                        newOut = I->nextInst->in;                        
                     }
                     else{
                         newOut = prevINSet;
@@ -360,18 +359,18 @@ namespace L2{
 
                 //Attempting to strap the kill set into the out set
 
-                for(std::string curVal : I->kill){
-                    bool found = false;
-                    for(std::string compVal : newOut){
-                        if(curVal == compVal){
-                            found = true;
-                        }
-                    }
-                    if(!found){
-                        //Add the new variable to the IN set
-                        newOut.push_back(curVal);
-                    }
-                }
+                // for(std::string curVal : I->kill){
+                //     bool found = false;
+                //     for(std::string compVal : newOut){
+                //         if(curVal == compVal){
+                //             found = true;
+                //         }
+                //     }
+                //     if(!found){
+                //         //Add the new variable to the IN set
+                //         newOut.push_back(curVal);
+                //     }
+                // }
 
                 if(DEBUGGING){
                     printf("The new OUT set is:\n");
@@ -402,7 +401,7 @@ namespace L2{
         std::string outGlobal;
 
         inGlobal.append("(\n(in\n");
-        outGlobal.append("(\n(out\n");
+        outGlobal.append("(out\n");
 
         for(Instruction* I : f.instructions){
 
