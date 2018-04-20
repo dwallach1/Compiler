@@ -46,6 +46,7 @@ namespace L2{
 
     L2::DataFlowResult* computeLivenessAnalysis(L2::Program p, L2::Function f) {
         generatePrevInstPointers(f);
+        std::vector<std::string> callInstKill = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi"};
         //Iterate through each instruction and generate the instructions gen and kill sets
         for(Instruction* I : f.instructions) {
             std::istringstream iss(I->instruction);
@@ -151,9 +152,10 @@ namespace L2{
                     if (I->registers[0] != "print" && 
                         I->registers[0] != "allocate" && 
                         I->registers[0] != "array_error" && I->registers[0][0] != ':') {
+                        if(DEBUGGING) printf("Pushing the value found in a call inst: %s\n", I->registers[0].c_str());
                         I->gen.push_back(I->registers[0]);
                     }
-
+                    I->kill = callInstKill;
                     break;
 
                 // lea
@@ -203,7 +205,7 @@ namespace L2{
             }
             changed = false;
             for (Instruction* I: f.instructions) {
-                if(DEBUGGING) printf("\n-------NEW INST--------\n");
+                if(DEBUGGING) printf("\n-------NEW INST--------\n%s\n", I->instruction.c_str());
                 //Declare the vectortors that will be used for intermediate steps in IN computation
                 //outKill is the  result of OUT[i] - KILL[i]
                 std::vector<std::string> outKill = {};
@@ -858,23 +860,23 @@ namespace L2{
                     }
                     else{
                     	offset = (( (atoi(result[2].c_str())) - 6 ) * 8) + 8;
-                   //	offset += 8; 
-		   }
-		   
-
-		  if (DEBUGGING) printf("The offeset is %ld -- subtracting this from stack\n", offset);
-
-                    fprintf(outputFile, "\t%s $%ld, %%%s\n", "subq", offset, "rsp");
-
-                    // special register jump instruction
-		    if (result[1][0] == 'r') {
-                        fprintf(outputFile, "\t%s *%%%s\n", "jmp", result[1].c_str());
+                    //	offset += 8; 
+		            } 
+		           
+        
+		            if (DEBUGGING) printf("The offeset is %ld -- subtracting this from stack\n", offset);
+        
+                          fprintf(outputFile, "\t%s $%ld, %%%s\n", "subq", offset, "rsp");
+        
+                          // special register jump instruction
+		            if (result[1][0] == 'r') {
+                              fprintf(outputFile, "\t%s *%%%s\n", "jmp", result[1].c_str());
                     } else {
-			// otherwise jmp to function
+			        // otherwise jmp to function
                         result[1] = clean_label(result[1]);
                         fprintf(outputFile, "\t%s %s\n", "jmp", result[1].c_str());
                     }   
-
+        
                     break;
 
                 // lea 
@@ -886,7 +888,7 @@ namespace L2{
                 case 10:
 
                	    arg1 = result[2];
-		    arg2 = result[4]; 
+		            arg2 = result[4]; 
                     operand = result[3];
 
                     if (result[4][0] != 'r') {

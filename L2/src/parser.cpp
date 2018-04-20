@@ -756,6 +756,16 @@ namespace L2 {
         std::string args = parsed_registers.back();
         parsed_registers.pop_back();
         std::string callee = parsed_registers.back();
+        //Need to add a new support for handling allowing vars, which will trigger the call when it may be calling a label
+        size_t loc = in.string().find(callee);
+        if(loc != std::string::npos){
+          //Checking to see if the callee is actually a label
+          if (in.string()[loc-1] == ':'){
+            //Found a label
+            callee.insert(0,1,':');
+          }
+        }
+
         parsed_registers.pop_back();
         instruction->instruction = "call " + callee + ' ' + args;
         instruction->registers.push_back(callee);
