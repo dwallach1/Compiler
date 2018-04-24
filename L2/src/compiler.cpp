@@ -43,14 +43,18 @@ int main(
     return 1;
   }
   int32_t opt;
-  while ((opt = getopt(argc, argv, "vg:O:sl:")) != -1) {
+  while ((opt = getopt(argc, argv, "vg:O:sli:")) != -1) {
     switch (opt){
       case 'l':
         liveness_only = strtoul(optarg, NULL, 0);
         if(DEBUGGING) printf("Setting liveness_only to be %d\n", liveness_only);
 
         break ;
+      case 'i':
+        liveness_only = true;
+        if(DEBUGGING) printf("Setting liveness_only to be %d\n", liveness_only);
 
+        break;
       case 's':
         spill_only = true;
         if(DEBUGGING) printf("Spill_only set to true\n");
