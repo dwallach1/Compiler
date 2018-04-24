@@ -9,6 +9,7 @@
 //#include <L2.h>
 //#include <code_generator.h>
 std::vector<std::string> allRegs = {"r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rax", "rbx", "rbp", "rcx", "rdi", "rdx", "rsi"};
+//std::vector<std::string> allRegsWoRCX = {"r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rax", "rbx", "rbp", "rdi", "rdx", "rsi"};
 
 using namespace std;
 
@@ -86,6 +87,18 @@ namespace L2{
                             variable->edges.insert(curOut);
                         }
                     }
+                }
+            }
+            //Time to see if we are a shift
+            if(I->type == 0 && (I->operation[0] == "<<=" || I->operation[0] == ">>=")){
+
+                //If not a digit, then add all registers except for rcx to the interence graph
+                if(!(std::isdigit(I->registers[1][0]))){
+                    L2::Variable* var = findCorrespondingVar(I->registers[1], f);
+                    for(std::string value : allRegs){
+                        var->edges.insert(value);
+                    }
+                    var->edges.erase("rcx");
                 }
             }
         }
