@@ -1,11 +1,17 @@
 #pragma once
 
 #include <vector>
+#include <set>
 
 namespace L2 {
 
   struct L2_item {
     std::string labelName;
+  };
+
+  struct Variable {
+    std::string name;
+    std::set<std::string> edges;
   };
 
   struct Instruction {
@@ -29,6 +35,8 @@ namespace L2 {
     int64_t arguments;
     int64_t locals;
     std::vector<L2::Instruction *> instructions;
+    std::set<std::string> vars;
+    std::set<L2::Variable*> variables;
   };
 
   struct Program{

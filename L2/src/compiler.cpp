@@ -13,7 +13,9 @@
 #include <iostream>
 
 #include <parser.h>
+#include <liveness.h>
 #include <code_generator.h>
+
 
 #define DEBUGGING 0
 
@@ -123,13 +125,14 @@ int main(
       /*
        * Compute the liveness analysis.
        */
-      L2::DataFlowResult *liveness = L2::computeLivenessAnalysis(p, *f);
+      L2::DataFlowResult *liveness = L2::computeLivenessAnalysis(&p, f);
       if(DEBUGGING) printf("We are running liveness only and iterating through all functions of p\n");
 
       /*
        * Print the liveness.
        */
-      cout << liveness->result << endl;
+      //cout << liveness->result << endl;
+      generateInterferenceGraph(f);
       //cout << liveness->toString(f, liveness_only > 1) << endl;
 
       /*
