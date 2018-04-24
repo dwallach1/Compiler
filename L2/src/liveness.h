@@ -33,72 +33,64 @@ namespace L2{
             printf("\n");
         }
     }
-
-
-    void generateInterferenceGraph(L2::Function* f){
+    
+    void instatiateVariables(L2::Function* f){
+    
         for(std::string curVar : f->vars){
             L2::Variable* newVar = new L2::Variable();
             newVar->name = curVar;
             newVar->edges = {};
             f->variables.insert(newVar);
         }
-        for(L2::Variable* V : f->variables){ 
-            std::string curVar = V->name;
-            //Dealing with a register
-            if(std::find(allRegs.begin(), allRegs.end(), V->name) != allRegs.end()){
-                for(std::string curVar2 : allRegs){
-                    if(curVar2 != V->name){
-                        V->edges.insert(curVar2);
-                    }
+    }
+    
+    void addToEdgeSet(Variable* V, std::vector<std::string> vec){
+        if (std::find(vec.begin(), vec.end(), V->name) != vec.end()){
+            for (std::string curVal : vec) {
+                if (curVal != V->name) {
+                    V->edges.insert(curVal);
                 }
             }
+        }
+    }
 
+    void generateInterferenceGraph(L2::Function* f){
+    
+        instatiateVariables(f);
 
+        for(L2::Variable* V : f->variables){ 
+            std::string curVar = V->name;
+            
+            //Add all registers to Edge set if it is a reg
+            addToEdgeSet(V, allRegs);
+            
             for(Instruction* I : f->instructions){
-                //see if variable is in the in set of instruction
-                if(std::find(I->in.begin(), I->in.end(), V->name) != I->in.end()){
-                    for(std::string curVar2 : I->in){
-                        if(curVar2 != V->name){
-                            V->edges.insert(curVar2);
-                        }
-                    }
-                }
-
-                //see if variable is in out set
-                if(std::find(I->out.begin(), I->out.end(), V->name) != I->out.end()){
-                    for(std::string curVar2 : I->out){
-                        if(curVar2 != V->name){
-                            V->edges.insert(curVar2);
-                        }
-                    }
-                }
-                //Running kill set variables to outset variables
+                // addToEdgeSet checks to see if the variable is in the given vector
+                // if it is, then it adds its elements to its edge set
+                addToEdgeSet(V, I->in);
+                addToEdgeSet(V, I->out);       
             }
         }
         //Link the kill sets and out sets
         for(Instruction* I : f->instructions){
             if(I->type != 1){
+                // for each variable in the kill sets, link to variables in the out sets
                 for(std::string curVar : I->kill){
                     //Grab the correpsonding variable
-                    L2::Variable* variable = findCorrespondingVar(curVar, f);
-                    for(std::string curOut : I->out){
-                        //Don't add self to set
-                        if(curOut != variable->name){
-                            variable->edges.insert(curOut);
-                        }
-                    }
+                    L2::Variable* V = findCorrespondingVar(curVar, f);
+                    addToEdgeSet(V, I->out);
                 }
             }
+            
             //Time to see if we are a shift
             if(I->type == 0 && (I->operation[0] == "<<=" || I->operation[0] == ">>=")){
 
                 //If not a digit, then add all registers except for rcx to the interence graph
                 if(!(std::isdigit(I->registers[1][0]))){
-                    L2::Variable* var = findCorrespondingVar(I->registers[1], f);
-                    for(std::string value : allRegs){
-                        var->edges.insert(value);
-                    }
-                    var->edges.erase("rcx");
+                    L2::Variable* V = findCorrespondingVar(I->registers[1], f);
+                    addToEdgeSet(V, allRegs);
+                    // need to make sure rcx isn't in edge set
+                    V->edges.erase("rcx");
                 }
             }
         }
