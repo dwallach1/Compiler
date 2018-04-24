@@ -27,11 +27,23 @@ rm_tests_without_oracle:
 oracle_liveness: L2
 	./scripts/generateOutputLiveness.sh
 
+oracle_spill: L2
+	./scripts/generateOutputSpill.sh
+
+oracle_interference: L2
+	./scripts/generateOutputInterference.sh
+
 test: L2
 	../scripts/test.sh L2 L2c
 
 test_liveness: L2
 	./scripts/testLiveness.sh
 
+test_spill: L2
+	./scripts/testSpill.sh
+
+test_interference: L2
+	./scripts/testInterference.sh
+
 clean:
-	rm -fr bin obj *.out *.L1 *.o *.S core.* tests/liveness/*.tmp tests/*.tmp
+	rm -fr bin obj *.out *.L1 *.o *.S core.* tests/*/*.tmp tests/*.tmp
