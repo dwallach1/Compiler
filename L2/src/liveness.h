@@ -4,12 +4,17 @@
 #include <fstream>
 #include <cstdio>
 #include <stdlib.h>
-#define DEBUGGING 0 
+#define DEBUGGING 0
 #define DEBUG_S 0
 //#include <L2.h>
 //#include <code_generator.h>
 std::vector<std::string> allRegs = {"r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rax", "rbx", "rbp", "rcx", "rdi", "rdx", "rsi"};
+std::vector<std::string> callInstKill = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi"};
+std::vector<std::string> callInstGen = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+std::vector<std::string> calleeSaveRegs = {"r12", "r13", "r14", "r15", "rbx", "rbp"};
+
 //std::vector<std::string> allRegsWoRCX = {"r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rax", "rbx", "rbp", "rdi", "rdx", "rsi"};
+
 
 using namespace std;
 
@@ -21,6 +26,7 @@ namespace L2{
                 return var;
             }
         }
+
         return NULL;
     }
 
@@ -45,9 +51,21 @@ namespace L2{
         //Loop to add any new variables to the set of variables for interference graph
         for(Instruction* I : f->instructions){
             //In set
+            if(DEBUG_S) printf("Instruction %s\nPrinting IN Set:\n", I->instruction.c_str());
             for(std::string curIn : I->in){
                 vars.insert(curIn);
+                if(DEBUG_S){
+                    printf("%s ", curIn.c_str());
+                }
             }
+            if(DEBUG_S) printf("\nPrinting OUT set:\n");
+            for(std::string curOut : I->out){
+                vars.insert(curOut);
+                if(DEBUG_S){
+                    printf("%s ", curOut.c_str());
+                }
+            }
+            if(DEBUG_S) printf("\n");
         }
         
 
@@ -56,6 +74,7 @@ namespace L2{
             newVar->name = curVar;
             newVar->edges = {};
             iG->variables.insert(newVar);
+            if(DEBUG_S) printf("Added new variable: %s\n", curVar.c_str());
         }
     }
     
@@ -69,9 +88,61 @@ namespace L2{
         }
     }
 
+    void getCallInstructionIntersection(int instNum, L2::Function* f, std::set<L2::Variable*>* result){
+        std::set<L2::Variable*> beforeSet = {};
+        std::set<L2::Variable*> afterSet = {};
+
+        
+        for(int i = 0; i < f->instructions.size(); i++){
+            if(i < instNum){
+                for(int j = 0; j < f->instructions[i]->registers.size(); j++){
+                    Variable* V = findCorrespondingVar(f->instructions[i]->registers[j], f->interferenceGraph);
+                    if(V != NULL){
+                       beforeSet.insert(V); 
+                    }
+                    
+                }
+            }
+            else if(i > instNum){
+                for(int j = 0; j < f->instructions[i]->registers.size(); j++){
+                    Variable* V = findCorrespondingVar(f->instructions[i]->registers[j], f->interferenceGraph);
+                    if(V != NULL){
+                       afterSet.insert(V); 
+                    }
+                }
+            }
+        }
+        // //return beforeSet;
+        set_intersection(beforeSet.begin(), beforeSet.end(), afterSet.begin(), afterSet.end(), std::inserter(*result, result->begin()));
+        if(DEBUG_S){
+            printf("The intersection is (size is %ld):\n", result->size());
+            for(L2::Variable* curVar : *result){
+                printf("%s ", curVar->name.c_str());
+            }
+            printf("\n");
+        }
+        std::vector<std::string>* regsToAdd;
+        if(result->size() != 0){
+            regsToAdd = &allRegs;
+        }
+        else{
+            regsToAdd = &calleeSaveRegs;
+        }
+        for(std::string r : *regsToAdd){
+            Variable* V = findCorrespondingVar(r, f->interferenceGraph);
+            if(V != NULL){
+                result->insert(V);
+            }  
+        }
+        return;
+
+
+    }
+
     void generateInterferenceGraph(L2::Function* f){
         
         L2::InterferenceGraph* iG = new L2::InterferenceGraph();
+        f->interferenceGraph = iG;
         //iG->variables = {};
         instatiateVariables(f, iG);
 
@@ -89,7 +160,9 @@ namespace L2{
             }
         }
         //Link the kill sets and out sets
+        int instNum = 0;
         for(Instruction* I : f->instructions){
+
             if(I->type != 1){
                 // for each variable in the kill sets, link to variables in the out sets
                 for(std::string curVar : I->kill){
@@ -99,6 +172,31 @@ namespace L2{
                 }
             }
             
+            //Call
+            if(I->type == 8){
+                std::set<L2::Variable*> result = {};
+                getCallInstructionIntersection(instNum, f, &result);
+                if(DEBUG_S){
+                    printf("The call intersection is:\n");
+                    for(Variable* V: result){
+                        printf("%s ", V->name.c_str());
+                    }
+                    printf("\n");
+                }
+
+
+
+                for(Variable* V : result){
+                    for(Variable* V1 : result){
+                        if(V != V1){
+                            std::vector<std::string> edgesVector;
+                            edgesVector.assign(V1->edges.begin(), V1->edges.end());
+                            addToEdgeSet(V, edgesVector);
+                        }
+                    }
+                }
+            }
+
             //Time to see if we are a shift
             if(I->type == 0 && (I->operation[0] == "<<=" || I->operation[0] == ">>=")){
 
@@ -110,10 +208,11 @@ namespace L2{
                     V->edges.erase("rcx");
                 }
             }
+            instNum++;
         }
 
         printInterferenceGraph(iG);
-        f->interferenceGraph = iG;
+        
     }
 
     void generatePrevInstPointers(L2::Function* f){
@@ -156,8 +255,7 @@ namespace L2{
         
 
 
-        std::vector<std::string> callInstKill = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi"};
-        std::vector<std::string> callInstGen = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+        
         //Iterate through each instruction and generate the instructions gen and kill sets
         for(Instruction* I : f->instructions) {
             std::istringstream iss(I->instruction);

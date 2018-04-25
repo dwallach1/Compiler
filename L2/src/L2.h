@@ -9,29 +9,29 @@ namespace L2 {
     std::string labelName;
   };
  
-    struct Variable {
-        std::string name;
-        std::set<std::string> edges;
-    };
-    
-    struct InterferenceGraph {
-        std::set<L2::Variable*> variables;
+  struct Variable {
+      std::string name;
+      std::set<std::string> edges;
+  };
+  
+  struct InterferenceGraph {
+      std::set<L2::Variable*> variables;
 
-         std::string toString() {
-           printf("toString method of IG called");
-           std::string str = "";
-           for(L2::Variable* V : variables) {
-                str.append(V->name);
-                printf(V->name.c_str());
-                for(std::string E : V->edges){
-                    str.append(" ");
-                    str.append(E);
-                }
-                str.append("\n");
-           }
-          return str;
-        };
-    };
+       std::string toString() {
+         printf("%s", "toString method of IG called");
+         std::string str = "";
+         for(L2::Variable* V : variables) {
+              str.append(V->name);
+              printf("%s", V->name.c_str());
+              for(std::string E : V->edges){
+                  str.append(" ");
+                  str.append(E);
+              }
+              str.append("\n");
+         }
+        return str;
+      };
+  };
 
   struct Instruction {
     std::string instruction;
