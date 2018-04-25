@@ -136,7 +136,18 @@ int main(
        * Print the liveness.
        */
       //cout << liveness->result << endl;
+      
+      /*
+       * Print the Interference Graph
+       */
+
       generateInterferenceGraph(f);
+      
+      //cout << f->interferenceGraph->toString() << endl;
+      
+      
+     
+
       //cout << liveness->toString(f, liveness_only > 1) << endl;
 
       /*

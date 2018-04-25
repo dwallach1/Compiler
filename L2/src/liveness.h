@@ -15,10 +15,8 @@ using namespace std;
 
 namespace L2{    
 
-
-    //This will find a variable in a function given a string of the variables name
-    L2::Variable* findCorrespondingVar(std::string name, L2::Function* funct){
-        for(Variable* var : funct->variables){
+    L2::Variable* findCorrespondingVar(std::string name, L2::InterferenceGraph* iG){
+        for(Variable* var : iG->variables){
             if(name == var->name){
                 return var;
             }
@@ -26,23 +24,9 @@ namespace L2{
         return NULL;
     }
 
-    //This will add all instructions that use our Variable to a set.
-    void generateUses(L2::Function* f){
-        for(Instruction* I : f->instructions){
-            for(std::string curVar : I->registers){
-                Variable* V = findCorrespondingVar(curVar, f);
-                //Found the variable
-                if(V != NULL){
-                    V->uses.insert(I);
-                    I->vars.insert(V);
-                }
-            }
-        }
-    }
     
-    //prints the interference graph
-    void printInterferenceGraph(L2::Function* f){
-        for(L2::Variable* V : f->variables){
+    void printInterferenceGraph(L2::InterferenceGraph* iG){
+        for(L2::Variable* V : iG->variables){
             printf("%s", V->name.c_str());
             for(std::string E : V->edges){
                 printf(" %s", E.c_str());
@@ -51,17 +35,28 @@ namespace L2{
         }
     }
     
-    //Iterates through the string of vars and makes them into Variables
-    void instatiateVariables(L2::Function* f){
-    
-        for(std::string curVar : f->vars){
+
+    void instatiateVariables(L2::Function* f, L2::InterferenceGraph* iG){
+        std::set<std::string> vars = {};
+
+        //add all regs to the variable list
+        std::copy(allRegs.begin(), allRegs.end(), std::inserter(vars, vars.end()));
+
+        //Loop to add any new variables to the set of variables for interference graph
+        for(Instruction* I : f->instructions){
+            //In set
+            for(std::string curIn : I->in){
+                vars.insert(curIn);
+            }
+        }
+        
+
+        for(std::string curVar : vars){
             L2::Variable* newVar = new L2::Variable();
             newVar->name = curVar;
             newVar->edges = {};
-            newVar->uses = {};
-            f->variables.insert(newVar);
+            iG->variables.insert(newVar);
         }
-        generateUses(f);
     }
     
     void addToEdgeSet(Variable* V, std::vector<std::string> vec){
@@ -75,10 +70,12 @@ namespace L2{
     }
 
     void generateInterferenceGraph(L2::Function* f){
-    
-        instatiateVariables(f);
+        
+        L2::InterferenceGraph* iG = new L2::InterferenceGraph();
+        //iG->variables = {};
+        instatiateVariables(f, iG);
 
-        for(L2::Variable* V : f->variables){ 
+        for(L2::Variable* V : iG->variables){ 
             std::string curVar = V->name;
             
             //Add all registers to Edge set if it is a reg
@@ -97,7 +94,7 @@ namespace L2{
                 // for each variable in the kill sets, link to variables in the out sets
                 for(std::string curVar : I->kill){
                     //Grab the correpsonding variable
-                    L2::Variable* V = findCorrespondingVar(curVar, f);
+                    L2::Variable* V = findCorrespondingVar(curVar, iG);
                     addToEdgeSet(V, I->out);
                 }
             }
@@ -107,7 +104,7 @@ namespace L2{
 
                 //If not a digit, then add all registers except for rcx to the interence graph
                 if(!(std::isdigit(I->registers[1][0]))){
-                    L2::Variable* V = findCorrespondingVar(I->registers[1], f);
+                    L2::Variable* V = findCorrespondingVar(I->registers[1], iG);
                     addToEdgeSet(V, allRegs);
                     // need to make sure rcx isn't in edge set
                     V->edges.erase("rcx");
@@ -115,8 +112,8 @@ namespace L2{
             }
         }
 
-        printInterferenceGraph(f);
-
+        printInterferenceGraph(iG);
+        f->interferenceGraph = iG;
     }
 
     void generatePrevInstPointers(L2::Function* f){
@@ -155,7 +152,8 @@ namespace L2{
         generatePrevInstPointers(f);
 
         //add all regs to the variable list
-        std::copy(allRegs.begin(), allRegs.end(), std::inserter(f->vars, f->vars.end()));
+        //std::copy(allRegs.begin(), allRegs.end(), std::inserter(f->vars, f->vars.end()));
+        
 
 
         std::vector<std::string> callInstKill = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi"};
@@ -525,22 +523,22 @@ namespace L2{
         }
 
         //Loop to add any new variables to the set of variables for interference graph
-        for(Instruction* I : f->instructions){
+        //for(Instruction* I : f->instructions){
             //In set
-            for(std::string curIn : I->in){
-                f->vars.insert(curIn);
-            }
-        }
+          //  for(std::string curIn : I->in){
+            //    f->vars.insert(curIn);
+           // }
+        //}
 
-        if(DEBUGGING){
-            printf("The vars in this function are:\n");
+        //if(DEBUGGING){
+          //  printf("The vars in this function are:\n");
             //std::set<std::string>::iterator iter;
             //for (iter = f->vars.begin(); iter != f->vars.end(); iter++){
-            for(std::string iter : f->vars){   
-                printf("%s ", iter.c_str());
-            }
-            printf("\n");
-        }
+            //for(std::string iter : f->vars){   
+            //    printf("%s ", iter.c_str());
+            //}
+           // printf("\n");
+       // }
 
         //Time to print to the string
         std::string inGlobal;

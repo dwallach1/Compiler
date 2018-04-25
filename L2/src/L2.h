@@ -5,16 +5,33 @@
 
 namespace L2 {
 
-  struct Instruction;
-  struct Variable;
-  struct Function;
-  struct Program;
-  struct L2_item;
-  struct DataFlowResult;
-
   struct L2_item {
     std::string labelName;
   };
+ 
+    struct Variable {
+        std::string name;
+        std::set<std::string> edges;
+    };
+    
+    struct InterferenceGraph {
+        std::set<L2::Variable*> variables;
+
+         std::string toString() {
+           printf("toString method of IG called");
+           std::string str = "";
+           for(L2::Variable* V : variables) {
+                str.append(V->name);
+                printf(V->name.c_str());
+                for(std::string E : V->edges){
+                    str.append(" ");
+                    str.append(E);
+                }
+                str.append("\n");
+           }
+          return str;
+        };
+    };
 
   struct Instruction {
     std::string instruction;
@@ -22,9 +39,6 @@ namespace L2 {
 
     Instruction* prevInst;
     Instruction* nextInst;
-
-    std::set<L2::Variable*> vars;
-    
     std::vector<std::string> registers;
     std::vector<std::string> operation;
 
@@ -35,19 +49,13 @@ namespace L2 {
     std::vector<std::string> out;
   };
 
-  struct Variable {
-    std::string name;
-    std::set<std::string> edges;
-    std::set<L2::Instruction*> uses;
-  };
-
   struct Function{
     std::string name;
     int64_t arguments;
     int64_t locals;
     std::vector<L2::Instruction *> instructions;
-    std::set<std::string> vars;
-    std::set<L2::Variable*> variables;
+    //std::set<std::string> vars; 
+    L2::InterferenceGraph* interferenceGraph;
   };
 
   struct Program{
