@@ -15,6 +15,8 @@ using namespace std;
 
 namespace L2{    
 
+
+    //This will find a variable in a function given a string of the variables name
     L2::Variable* findCorrespondingVar(std::string name, L2::Function* funct){
         for(Variable* var : funct->variables){
             if(name == var->name){
@@ -24,6 +26,21 @@ namespace L2{
         return NULL;
     }
 
+    //This will add all instructions that use our Variable to a set.
+    void generateUses(L2::Function* f){
+        for(Instruction* I : f->instructions){
+            for(std::string curVar : I->registers){
+                Variable* V = findCorrespondingVar(curVar, f);
+                //Found the variable
+                if(V != NULL){
+                    V->uses.insert(I);
+                    I->vars.insert(V);
+                }
+            }
+        }
+    }
+    
+    //prints the interference graph
     void printInterferenceGraph(L2::Function* f){
         for(L2::Variable* V : f->variables){
             printf("%s", V->name.c_str());
@@ -34,14 +51,17 @@ namespace L2{
         }
     }
     
+    //Iterates through the string of vars and makes them into Variables
     void instatiateVariables(L2::Function* f){
     
         for(std::string curVar : f->vars){
             L2::Variable* newVar = new L2::Variable();
             newVar->name = curVar;
             newVar->edges = {};
+            newVar->uses = {};
             f->variables.insert(newVar);
         }
+        generateUses(f);
     }
     
     void addToEdgeSet(Variable* V, std::vector<std::string> vec){

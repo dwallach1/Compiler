@@ -5,13 +5,15 @@
 
 namespace L2 {
 
+  struct Instruction;
+  struct Variable;
+  struct Function;
+  struct Program;
+  struct L2_item;
+  struct DataFlowResult;
+
   struct L2_item {
     std::string labelName;
-  };
-
-  struct Variable {
-    std::string name;
-    std::set<std::string> edges;
   };
 
   struct Instruction {
@@ -20,6 +22,9 @@ namespace L2 {
 
     Instruction* prevInst;
     Instruction* nextInst;
+
+    std::set<L2::Variable*> vars;
+    
     std::vector<std::string> registers;
     std::vector<std::string> operation;
 
@@ -28,6 +33,12 @@ namespace L2 {
 
     std::vector<std::string> in;
     std::vector<std::string> out;
+  };
+
+  struct Variable {
+    std::string name;
+    std::set<std::string> edges;
+    std::set<L2::Instruction*> uses;
   };
 
   struct Function{
