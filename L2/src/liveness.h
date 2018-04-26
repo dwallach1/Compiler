@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <stdlib.h>
 #define DEBUGGING 0
-#define DEBUG_S 0
+#define DEBUG_S 1
 //#include <L2.h>
 //#include <code_generator.h>
 std::vector<std::string> allRegs = {"r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rax", "rbx", "rbp", "rcx", "rdi", "rdx", "rsi"};
@@ -66,6 +66,15 @@ namespace L2{
                 }
             }
             if(DEBUG_S) printf("\n");
+
+            if(DEBUG_S) printf("\nPrinting KILL set:\n");
+            for(std::string curKill : I->kill){
+                vars.insert(curKill);
+                if(DEBUG_S){
+                    printf("%s ", curKill.c_str());
+                }
+            }
+            if(DEBUG_S) printf("\n");
         }
         
 
@@ -77,7 +86,20 @@ namespace L2{
             if(DEBUG_S) printf("Added new variable: %s\n", curVar.c_str());
         }
     }
-    
+    bool isVar(std::string V, L2::Function* f){
+        if(DEBUG_S) printf("inside isVar\n");
+        if(std::isdigit(V[0])){
+            return false;
+        }
+
+        for(L2::Variable* VCheck : f->interferenceGraph->variables){
+            if(V == VCheck->name){
+                return true;
+            }
+        }
+        return false;
+    }
+
     void addToEdgeSet(Variable* V, std::vector<std::string> vec){
         if (std::find(vec.begin(), vec.end(), V->name) != vec.end()){
             for (std::string curVal : vec) {
@@ -112,8 +134,16 @@ namespace L2{
                 }
             }
         }
+        
         // //return beforeSet;
         set_intersection(beforeSet.begin(), beforeSet.end(), afterSet.begin(), afterSet.end(), std::inserter(*result, result->begin()));
+        if(DEBUG_S){
+            printf("The beforeSet is:\n");
+            for(L2::Variable* V : beforeSet){
+                printf("%s ", V->name.c_str());
+            }
+            printf("\n");
+        }
         if(DEBUG_S){
             printf("The intersection is (size is %ld):\n", result->size());
             for(L2::Variable* curVar : *result){
@@ -121,18 +151,26 @@ namespace L2{
             }
             printf("\n");
         }
-        std::vector<std::string>* regsToAdd;
+        std::vector<std::string> regsToAdd;
         if(result->size() != 0){
-            regsToAdd = &allRegs;
+            regsToAdd = allRegs;
         }
         else{
-            regsToAdd = &calleeSaveRegs;
+            regsToAdd = calleeSaveRegs;
+            for(L2::Variable* V : beforeSet){
+                regsToAdd.push_back(V->name);
+                if(DEBUG_S) printf("Pushing back %s into regsToAdd\n", V->name.c_str());
+            }
         }
-        for(std::string r : *regsToAdd){
+        for(std::string r : regsToAdd){
             Variable* V = findCorrespondingVar(r, f->interferenceGraph);
             if(V != NULL){
+                if(DEBUG_S) printf("Inserting %s into result\n", V->name.c_str());
                 result->insert(V);
-            }  
+            } 
+            else{
+                if(DEBUG_S) printf("Could not correpsonding var %s\n", r.c_str());
+            } 
         }
         return;
 
@@ -140,12 +178,14 @@ namespace L2{
     }
 
     void generateInterferenceGraph(L2::Function* f){
-        
+        if(DEBUG_S) printf("Beginning generateInterferenceGraph\n");
         L2::InterferenceGraph* iG = new L2::InterferenceGraph();
         f->interferenceGraph = iG;
         //iG->variables = {};
+        if(DEBUG_S) printf("instatiateVariables Time\n");
         instatiateVariables(f, iG);
 
+        if(DEBUG_S) printf("Linking all registers and IN and OUT sets\n");
         for(L2::Variable* V : iG->variables){ 
             std::string curVar = V->name;
             
@@ -159,16 +199,34 @@ namespace L2{
                 addToEdgeSet(V, I->out);       
             }
         }
+
+        if(DEBUG_S) printf("Linking KILL and OUT sets\n");
         //Link the kill sets and out sets
         int instNum = 0;
         for(Instruction* I : f->instructions){
 
-            if(I->type != 1){
+            //if(I->type != 1 || (I->type == 1 && std::isdigit(I->registers[1][0]))){
+            if(I->type != 1  ){ 
+            // || ( I->type == 1 && !isVar(I->registers[1], f) )
                 // for each variable in the kill sets, link to variables in the out sets
                 for(std::string curVar : I->kill){
                     //Grab the correpsonding variable
                     L2::Variable* V = findCorrespondingVar(curVar, iG);
                     addToEdgeSet(V, I->out);
+                }
+            }
+            else{
+                if(DEBUG_S) printf("Assignment registers[1]: %s\n", I->registers[1].c_str());
+                if(I->registers[1][0] == ':' || std::isdigit(I->registers[1][0])){
+                    if(DEBUG_S) printf("NOT A VAR!!!\n");
+                    for(std::string curVar : I->kill){
+                        //Grab the correpsonding variable
+                        L2::Variable* V = findCorrespondingVar(curVar, f->interferenceGraph);
+                        if(V != NULL){
+                            if(DEBUG_S) printf("Adding kill set to edgeset!!!\n");
+                            addToEdgeSet(V, I->out);
+                        }
+                    }
                 }
             }
             
@@ -178,7 +236,7 @@ namespace L2{
                 getCallInstructionIntersection(instNum, f, &result);
                 if(DEBUG_S){
                     printf("The call intersection is:\n");
-                    for(Variable* V: result){
+                    for(Variable* V : result){
                         printf("%s ", V->name.c_str());
                     }
                     printf("\n");
@@ -189,10 +247,20 @@ namespace L2{
                 for(Variable* V : result){
                     for(Variable* V1 : result){
                         if(V != V1){
+                            if(DEBUG_S) printf("adding the results to %s\n", V->name.c_str());
                             std::vector<std::string> edgesVector;
                             edgesVector.assign(V1->edges.begin(), V1->edges.end());
                             addToEdgeSet(V, edgesVector);
                         }
+                    }
+                }
+                if(DEBUG_S){
+                    for(Variable* V : result){
+                        printf("%s edges:\n", V->name.c_str());
+                        for(std::string str : V->edges){
+                            printf("%s ", str.c_str());
+                        }
+                        printf("\n");
                     }
                 }
             }
