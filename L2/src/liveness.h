@@ -49,30 +49,30 @@ namespace L2{
         //Loop to add any new variables to the set of variables for interference graph
         for(Instruction* I : f->instructions){
             //In set
-            if(DEBUG_S) printf("Instruction %s\nPrinting IN Set:\n", I->instruction.c_str());
+            if(DEBUGGING) printf("Instruction %s\nPrinting IN Set:\n", I->instruction.c_str());
             for(std::string curIn : I->in){
                 vars.insert(curIn);
-                if(DEBUG_S){
+                if(DEBUGGING){
                     printf("%s ", curIn.c_str());
                 }
             }
-            if(DEBUG_S) printf("\nPrinting OUT set:\n");
+            if(DEBUGGING) printf("\nPrinting OUT set:\n");
             for(std::string curOut : I->out){
                 vars.insert(curOut);
-                if(DEBUG_S){
+                if(DEBUGGING){
                     printf("%s ", curOut.c_str());
                 }
             }
-            if(DEBUG_S) printf("\n");
+            if(DEBUGGING) printf("\n");
 
-            if(DEBUG_S) printf("\nPrinting KILL set:\n");
+            if(DEBUGGING) printf("\nPrinting KILL set:\n");
             for(std::string curKill : I->kill){
                 vars.insert(curKill);
-                if(DEBUG_S){
+                if(DEBUGGING){
                     printf("%s ", curKill.c_str());
                 }
             }
-            if(DEBUG_S) printf("\n");
+            if(DEBUGGING) printf("\n");
         }
         
 
@@ -81,11 +81,11 @@ namespace L2{
             newVar->name = curVar;
             newVar->edges = {};
             iG->variables.insert(newVar);
-            if(DEBUG_S) printf("Added new variable: %s\n", curVar.c_str());
+            if(DEBUGGING) printf("Added new variable: %s\n", curVar.c_str());
         }
     }
     bool isVar(std::string V, L2::Function* f){
-        if(DEBUG_S) printf("inside isVar\n");
+        if(DEBUGGING) printf("inside isVar\n");
         if(std::isdigit(V[0])){
             return false;
         }
@@ -108,11 +108,12 @@ namespace L2{
         }
     }
 
-    void getCallInstructionIntersection(int instNum, L2::Function* f, std::set<L2::Variable*>* result){
+    void getCallInstructionIntersection(int instNum, L2::Function* f, std::set<L2::Variable*>* result, int numArgs){
         std::set<L2::Variable*> beforeSet = {};
         std::set<L2::Variable*> afterSet = {};
+        *result = {};
 
-        
+        if(DEBUG_S) printf("We are getting call inst. intersection for inst: %s\n", f->instructions[instNum]->instruction.c_str());
         for(int i = 0; i < f->instructions.size(); i++){
             if(i < instNum){
                 for(int j = 0; j < f->instructions[i]->registers.size(); j++){
@@ -122,8 +123,14 @@ namespace L2{
                     }
                     
                 }
+                if(f->instructions[i]->type == 8){
+                    beforeSet = {};
+                }
             }
             else if(i > instNum){
+                if(f->instructions[i]->type == 8){
+                    break;
+                }
                 for(int j = 0; j < f->instructions[i]->registers.size(); j++){
                     Variable* V = findCorrespondingVar(f->instructions[i]->registers[j], f->interferenceGraph);
                     if(V != NULL){
@@ -135,7 +142,7 @@ namespace L2{
         
         // //return beforeSet;
         set_intersection(beforeSet.begin(), beforeSet.end(), afterSet.begin(), afterSet.end(), std::inserter(*result, result->begin()));
-        if(DEBUG_S){
+        if(DEBUGGING){
             printf("The beforeSet is:\n");
             for(L2::Variable* V : beforeSet){
                 printf("%s ", V->name.c_str());
@@ -149,26 +156,52 @@ namespace L2{
             }
             printf("\n");
         }
-        std::vector<std::string> regsToAdd;
+        std::vector<std::string> regsToAdd = {};
         if(result->size() != 0){
             regsToAdd = allRegs;
         }
         else{
+            if(DEBUGGING) printf("Setting regsToAdd to be calleeSaveRegs\n");
+
             regsToAdd = calleeSaveRegs;
             for(L2::Variable* V : beforeSet){
-                regsToAdd.push_back(V->name);
-                if(DEBUG_S) printf("Pushing back %s into regsToAdd\n", V->name.c_str());
+                if(DEBUG_S) printf("Working on VAR %s\n", V->name.c_str());
+                bool found = 0;
+                for(std::string curStr : allRegs){
+                    if(curStr == V->name){
+                        found = true;
+                    }
+                }
+                if(!found){
+                    if(DEBUG_S) printf("Pushing back a non-reg var\n");
+                    regsToAdd.push_back(V->name);
+                }
+                
+            }
+        }
+        for(int i = 0; i < numArgs; i++){
+            if(DEBUGGING) printf("Removing %s from regsToAdd\n", callInstGen[i].c_str());
+            std::vector<std::string>::iterator position = std::find(regsToAdd.begin(), regsToAdd.end(), callInstGen[i]);
+            if(position != regsToAdd.end()){
+                regsToAdd.erase(position);
+            }
+        }
+        for(int i= 0; i < f->locals; i++){
+            if(DEBUGGING) printf("Removing %s from regsToAdd\n", calleeSaveRegs[i].c_str());
+            std::vector<std::string>::iterator position = std::find(regsToAdd.begin(), regsToAdd.end(), calleeSaveRegs[i]);
+            if(position != regsToAdd.end()){
+                regsToAdd.erase(position);
             }
         }
         
         for(std::string r : regsToAdd){
             Variable* V = findCorrespondingVar(r, f->interferenceGraph);
             if(V != NULL){
-                if(DEBUG_S) printf("Inserting %s into result\n", V->name.c_str());
+                if(DEBUGGING) printf("Inserting %s into result\n", V->name.c_str());
                 result->insert(V);
             } 
             else{
-                if(DEBUG_S) printf("Could not correpsonding var %s\n", r.c_str());
+                if(DEBUGGING) printf("Could not correpsonding var %s\n", r.c_str());
             } 
         }
         return;
@@ -179,8 +212,15 @@ namespace L2{
     void makeClique(std::set<L2::Variable*>* variables) {
         
         for (L2::Variable* V0 : *variables) {
+            if(DEBUG_S && V0->name == "isAnArray"){
+                printf("Cliquing variable: %s\n", V0->name.c_str());
+                for(L2::Variable* curStr : *variables){
+                    printf("%s ", curStr->name.c_str());   
+                }
+                printf("\n");
+            } 
             for (L2::Variable* V1 : *variables) {
-                if (V0 != V1) 
+                if (V0 != V1)
                     V0->edges.insert(V1->name);
             }
         }
@@ -188,14 +228,14 @@ namespace L2{
     }
 
     void generateInterferenceGraph(L2::Function* f){
-        if(DEBUG_S) printf("Beginning generateInterferenceGraph\n");
+        if(DEBUGGING) printf("Beginning generateInterferenceGraph\n");
         L2::InterferenceGraph* iG = new L2::InterferenceGraph();
         f->interferenceGraph = iG;
         //iG->variables = {};
-        if(DEBUG_S) printf("instatiateVariables Time\n");
+        if(DEBUGGING) printf("instatiateVariables Time\n");
         instatiateVariables(f, iG);
 
-        if(DEBUG_S) printf("Linking all registers and IN and OUT sets\n");
+        if(DEBUGGING) printf("Linking all registers and IN and OUT sets\n");
         for(L2::Variable* V : iG->variables){ 
             std::string curVar = V->name;
             
@@ -210,27 +250,39 @@ namespace L2{
             }
         }
 
-        if(DEBUG_S) printf("Linking KILL and OUT sets\n");
+        if(DEBUGGING) printf("Linking KILL and OUT sets\n");
         //Link the kill sets and out sets
         int instNum = 0;
         for(Instruction* I : f->instructions){
 
            
             if((I->type != 1) || (I->type == 1 && (I->registers[1][0] == ':' || std::isdigit(I->registers[1][0])))){ 
-          
+                std::set<L2::Variable*> result = {};
                 // for each variable in the kill sets, link to variables in the out sets
                 for(std::string curVar : I->kill){
                     //Grab the correpsonding variable
                     L2::Variable* V = findCorrespondingVar(curVar, iG);
-                    if (V)
-                        addToEdgeSet(V, I->out);
+                    if (V){
+                        result.insert(V);
+                    }
                 }
+                for(std::string curOut : I->out){
+                    L2::Variable* V = findCorrespondingVar(curOut, iG);
+                    if (V){
+                        result.insert(V);
+                    }
+                }
+                makeClique(&result);
             }     
             
             //Call
-            if(I->type == 8){
+            //&& (I->registers[0] != "print" && I->registers[0] != "allocate")
+            if(I->type == 8 ){
+                if(DEBUGGING) printf("\n");
                 std::set<L2::Variable*> result = {};
-                getCallInstructionIntersection(instNum, f, &result);
+                int numArgs = atoi(I->registers[1].c_str());
+                getCallInstructionIntersection(instNum, f, &result, numArgs);
+
                 makeClique(&result);        
        
             }
@@ -240,10 +292,18 @@ namespace L2{
 
                 //If not a digit, then add all registers except for rcx to the interence graph
                 if(!(std::isdigit(I->registers[1][0]))){
+                    std::set<L2::Variable*> result = {};
                     L2::Variable* V = findCorrespondingVar(I->registers[1], iG);
-                    addToEdgeSet(V, allRegs);
+                    result.insert(V);
+                    for(std::string s : allRegs){
+                        if(s != "rcx"){
+                           L2:Variable* V1 = findCorrespondingVar(s, iG);
+                            result.insert(V1); 
+                        }
+                        
+                    }
+                    makeClique(&result);
                     // need to make sure rcx isn't in edge set
-                    V->edges.erase("rcx");
                 }
             }
             instNum++;
@@ -554,14 +614,14 @@ namespace L2{
 
                 //if it is a special cjump or goto instruction, we need to do some shifty stuff
                 if(I->type == 5 || I->type == 6){
-                    if(DEBUG_S) printf("Found a cjump or goto instruction, now finding its labels\nThe inst: %s\nThe label(s): %s\n%s\n", I->instruction.c_str(), I->registers[0].c_str(), I->registers[1].c_str());
+                    if(DEBUGGING) printf("Found a cjump or goto instruction, now finding its labels\nThe inst: %s\nThe label(s): %s\n%s\n", I->instruction.c_str(), I->registers[0].c_str(), I->registers[1].c_str());
                     for(Instruction* ITemp : f->instructions){
                         //label instruction
                         if(ITemp->type == 11){
                             //if the label is present in the cjump/goto instruction
-                            if(DEBUG_S) printf("Found a label inst: %s\n", ITemp->instruction.c_str());
+                            if(DEBUGGING) printf("Found a label inst: %s\n", ITemp->instruction.c_str());
                             if (ITemp->registers[0].find(I->registers[0]) != std::string::npos || ITemp->registers[0].find(I->registers[1]) != std::string::npos){
-                                if(DEBUG_S) printf("Found one of its labels: %s\n", ITemp->registers[0].c_str());
+                                if(DEBUGGING) printf("Found one of its labels: %s\n", ITemp->registers[0].c_str());
                                 for(std::string curVal : ITemp->in){
                                     bool found = false;
                                     for(std::string compVal : newOut){
