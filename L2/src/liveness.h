@@ -5,15 +5,13 @@
 #include <cstdio>
 #include <stdlib.h>
 #define DEBUGGING 0
-#define DEBUG_S 1
-//#include <L2.h>
-//#include <code_generator.h>
+#define DEBUG_S 0
+
+
 std::vector<std::string> allRegs = {"r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rax", "rbx", "rbp", "rcx", "rdi", "rdx", "rsi"};
 std::vector<std::string> callInstKill = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi"};
 std::vector<std::string> callInstGen = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 std::vector<std::string> calleeSaveRegs = {"r12", "r13", "r14", "r15", "rbx", "rbp"};
-
-//std::vector<std::string> allRegsWoRCX = {"r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rax", "rbx", "rbp", "rdi", "rdx", "rsi"};
 
 
 using namespace std;
@@ -162,6 +160,7 @@ namespace L2{
                 if(DEBUG_S) printf("Pushing back %s into regsToAdd\n", V->name.c_str());
             }
         }
+        
         for(std::string r : regsToAdd){
             Variable* V = findCorrespondingVar(r, f->interferenceGraph);
             if(V != NULL){
@@ -175,6 +174,17 @@ namespace L2{
         return;
 
 
+    }
+
+    void makeClique(std::set<L2::Variable*>* variables) {
+        
+        for (L2::Variable* V0 : *variables) {
+            for (L2::Variable* V1 : *variables) {
+                if (V0 != V1) 
+                    V0->edges.insert(V1->name);
+            }
+        }
+    
     }
 
     void generateInterferenceGraph(L2::Function* f){
@@ -205,67 +215,27 @@ namespace L2{
         int instNum = 0;
         for(Instruction* I : f->instructions){
 
-            //if(I->type != 1 || (I->type == 1 && std::isdigit(I->registers[1][0]))){
-            if(I->type != 1  ){ 
-            // || ( I->type == 1 && !isVar(I->registers[1], f) )
+           
+            if((I->type != 1) || (I->type == 1 && (I->registers[1][0] == ':' || std::isdigit(I->registers[1][0])))){ 
+          
                 // for each variable in the kill sets, link to variables in the out sets
                 for(std::string curVar : I->kill){
                     //Grab the correpsonding variable
                     L2::Variable* V = findCorrespondingVar(curVar, iG);
-                    addToEdgeSet(V, I->out);
+                    if (V)
+                        addToEdgeSet(V, I->out);
                 }
-            }
-            else{
-                if(DEBUG_S) printf("Assignment registers[1]: %s\n", I->registers[1].c_str());
-                if(I->registers[1][0] == ':' || std::isdigit(I->registers[1][0])){
-                    if(DEBUG_S) printf("NOT A VAR!!!\n");
-                    for(std::string curVar : I->kill){
-                        //Grab the correpsonding variable
-                        L2::Variable* V = findCorrespondingVar(curVar, f->interferenceGraph);
-                        if(V != NULL){
-                            if(DEBUG_S) printf("Adding kill set to edgeset!!!\n");
-                            addToEdgeSet(V, I->out);
-                        }
-                    }
-                }
-            }
+            }     
             
             //Call
             if(I->type == 8){
                 std::set<L2::Variable*> result = {};
                 getCallInstructionIntersection(instNum, f, &result);
-                if(DEBUG_S){
-                    printf("The call intersection is:\n");
-                    for(Variable* V : result){
-                        printf("%s ", V->name.c_str());
-                    }
-                    printf("\n");
-                }
-
-
-
-                for(Variable* V : result){
-                    for(Variable* V1 : result){
-                        if(V != V1){
-                            if(DEBUG_S) printf("adding the results to %s\n", V->name.c_str());
-                            std::vector<std::string> edgesVector;
-                            edgesVector.assign(V1->edges.begin(), V1->edges.end());
-                            addToEdgeSet(V, edgesVector);
-                        }
-                    }
-                }
-                if(DEBUG_S){
-                    for(Variable* V : result){
-                        printf("%s edges:\n", V->name.c_str());
-                        for(std::string str : V->edges){
-                            printf("%s ", str.c_str());
-                        }
-                        printf("\n");
-                    }
-                }
+                makeClique(&result);        
+       
             }
-
-            //Time to see if we are a shift
+    
+            //Shift
             if(I->type == 0 && (I->operation[0] == "<<=" || I->operation[0] == ">>=")){
 
                 //If not a digit, then add all registers except for rcx to the interence graph
