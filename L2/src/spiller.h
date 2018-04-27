@@ -145,6 +145,18 @@ namespace L2{
 					newInst->operation.push_back("<-");
 					if(DEBUG_S) printf("Adding load inst at location %ld\n", I->instNum);
 					f->instructions.insert(iter2 + I->instNum, newInst);
+					if(!callInstAhead && I->type != 8){
+						generateInstNums(f);
+						iter2 = f->instructions.begin();
+						Instruction* newInst1 = new Instruction();
+						newInst1->type = 3;
+						newInst1->instruction = "mem rsp " + std::to_string(stackLoc) + " <- "+ replacementString;
+						newInst1->registers.push_back("mem rsp " + std::to_string(stackLoc));
+						newInst1->registers.push_back(replacementString);
+						newInst1->operation.push_back("<-");
+						if(DEBUG_S) printf("Adding store inst at location %ld\n",  I->instNum + 1);
+						f->instructions.insert(iter2 + I->instNum + 1, newInst1);
+					}
 				}
 				//First Inst
 				else if(i == 0 && I->type != 3){
