@@ -21,7 +21,7 @@ namespace L2 {
       int type;
       std::string name;
       std::set<std::string> edges;
-      std::set<L2::Instruction*> uses;
+      std::vector<L2::Instruction*> uses;
   };
   
   struct InterferenceGraph {

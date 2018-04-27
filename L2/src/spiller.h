@@ -7,6 +7,7 @@
 #include <regex>
 #include <stdlib.h>
 #include <algorithm>
+
 #define DEBUGGING 0
 #define DEBUG_S 0
 
@@ -31,13 +32,18 @@ namespace L2{
         //iG->variables = {};
         if(DEBUGGING) printf("instatiateVariables Time\n");
         instatiateVariables(f, iG);
-
 		for(Instruction* I : f->instructions){
 			for(int i = 0; i < I->registers.size(); i++){
 				L2::Variable* V = findCorrespondingVar(I->registers[i], iG);
 				//Found a variable
 				if(V){
-					V->uses.insert(I);
+					//varFound = true;
+					V->uses.push_back(I);
+					if(I->type == 1){ 
+						if(I->registers[0] == I->registers[1]){
+							break;
+						}
+					}
 				}
 			}
 		}
@@ -97,6 +103,8 @@ namespace L2{
 	}
 
 	void spillVar(L2::Function* f){
+		//Is it a cJump Goto or call
+		bool cJGC;
 		removeIncDecSpaces(f);
 		if(DEBUGGING){
 			printf("Spilling the variable %s\n", f->toSpill.c_str());
@@ -114,13 +122,22 @@ namespace L2{
 			if(DEBUG_S) printf("Incrementing F->locals\n");
 			int stackLoc = (f->locals * 8) - 8;
 			int numUses = V->uses.size();
+
+			if(DEBUG_S){
+				printf("Printing Uses in order\n");
+				for(Instruction* str : V->uses){
+					printf("%s\n", str->instruction.c_str());
+				}
+			} 
 			while(V->uses.size() > 0){
 				if(DEBUG_S) printf("The variable currently has %ld uses\n", V->uses.size());
-				std::set<Instruction*>::iterator iter = V->uses.begin();
+				std::vector<Instruction*>::iterator iter = V->uses.begin();
 				Instruction* I = *iter;
+				cJGC = I->type == 8 || I->type == 5 || I->type == 6;
 				if(DEBUG_S) printf("Dealing with instruction: %s\n", I->instruction.c_str());
 				int j = 0;
 				std::string replacementString = f->replaceSpill + std::to_string(i);
+				if(DEBUG_S) printf("replacemnet string is: %s", replacementString.c_str());
 				for(std::string curStr : I->registers){
 					if(curStr == f->toSpill){
 						I->registers[j] = replacementString;
@@ -145,7 +162,7 @@ namespace L2{
 					newInst->operation.push_back("<-");
 					if(DEBUG_S) printf("Adding load inst at location %ld\n", I->instNum);
 					f->instructions.insert(iter2 + I->instNum, newInst);
-					if(!callInstAhead && I->type != 8){
+					if(!callInstAhead && !cJGC ){
 						generateInstNums(f);
 						iter2 = f->instructions.begin();
 						Instruction* newInst1 = new Instruction();
@@ -159,7 +176,7 @@ namespace L2{
 					}
 				}
 				//First Inst
-				else if(i == 0 && I->type != 3){
+				else if(i == 0 && I->type != 3 && !cJGC){
 					Instruction* newInst = new Instruction();
 					//Store inst
 					newInst->type = 3;
@@ -174,7 +191,7 @@ namespace L2{
 				//Middle case
 				else{
 				
-					if(I->type !=3){ 
+					if(I->type !=3 && !cJGC){ 
 						Instruction* newInst1 = new Instruction();
 						//Store inst
 						newInst1->type = 3;
@@ -204,18 +221,18 @@ namespace L2{
 					}
 				}
 				int k = 0;
-				std::set<Instruction*> newUses = {};
+				std::vector<Instruction*> newUses = {};
 				for(Instruction* I : V->uses){
 					if (k){
-						newUses.insert(I);
+						newUses.push_back(I);
 					}
 					else{
 						k++;
 					}
 				}
-				std::set<Instruction*> result;
-				set_intersection(newUses.begin(), newUses.end(), V->uses.begin(), V->uses.end(), std::inserter(result, result.begin()));
-				V->uses = result;
+				
+				V->uses = newUses;
+
 				generateInstNums(f);
 				i++;
 			}
