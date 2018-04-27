@@ -1,5 +1,5 @@
 (:myF
-	0 1
+	0 0
 	myVar <- 0
 	myVar++
 	myVar += 3
