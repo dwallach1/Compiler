@@ -4,14 +4,24 @@
 #include <set>
 
 namespace L2 {
+  struct L2_item;
+  struct Variable;
+  struct InterferenceGraph;
+  struct Instruction;
+  struct Function;
+  struct Program;
+  struct DataFlowResult;
+
 
   struct L2_item {
     std::string labelName;
   };
  
   struct Variable {
+      int type;
       std::string name;
       std::set<std::string> edges;
+      std::set<L2::Instruction*> uses;
   };
   
   struct InterferenceGraph {
@@ -36,7 +46,8 @@ namespace L2 {
   struct Instruction {
     std::string instruction;
     int64_t type;
-
+    int64_t instNum;
+    bool stackArg;
     Instruction* prevInst;
     Instruction* nextInst;
     std::vector<std::string> registers;
@@ -54,8 +65,9 @@ namespace L2 {
     int64_t arguments;
     int64_t locals;
     std::vector<L2::Instruction *> instructions;
-    //std::set<std::string> vars; 
     L2::InterferenceGraph* interferenceGraph;
+    std::string toSpill;
+    std::string replaceSpill;
   };
 
   struct Program{

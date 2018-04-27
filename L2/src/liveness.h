@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <stdlib.h>
 #define DEBUGGING 0
-#define DEBUG_S 0
+#define DEBUG_S 1
 
 
 std::vector<std::string> allRegs = {"r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rax", "rbx", "rbp", "rcx", "rdi", "rdx", "rsi"};
@@ -113,7 +113,7 @@ namespace L2{
         std::set<L2::Variable*> afterSet = {};
         *result = {};
 
-        if(DEBUG_S) printf("We are getting call inst. intersection for inst: %s\n", f->instructions[instNum]->instruction.c_str());
+        if(DEBUGGING) printf("We are getting call inst. intersection for inst: %s\n", f->instructions[instNum]->instruction.c_str());
         for(int i = 0; i < f->instructions.size(); i++){
             if(i < instNum){
                 for(int j = 0; j < f->instructions[i]->registers.size(); j++){
@@ -149,7 +149,7 @@ namespace L2{
             }
             printf("\n");
         }
-        if(DEBUG_S){
+        if(DEBUGGING){
             printf("The intersection is (size is %ld):\n", result->size());
             for(L2::Variable* curVar : *result){
                 printf("%s ", curVar->name.c_str());
@@ -165,7 +165,7 @@ namespace L2{
 
             regsToAdd = calleeSaveRegs;
             for(L2::Variable* V : beforeSet){
-                if(DEBUG_S) printf("Working on VAR %s\n", V->name.c_str());
+                if(DEBUGGING) printf("Working on VAR %s\n", V->name.c_str());
                 bool found = 0;
                 for(std::string curStr : allRegs){
                     if(curStr == V->name){
@@ -173,7 +173,7 @@ namespace L2{
                     }
                 }
                 if(!found){
-                    if(DEBUG_S) printf("Pushing back a non-reg var\n");
+                    if(DEBUGGING) printf("Pushing back a non-reg var\n");
                     regsToAdd.push_back(V->name);
                 }
                 
@@ -212,7 +212,7 @@ namespace L2{
     void makeClique(std::set<L2::Variable*>* variables) {
         
         for (L2::Variable* V0 : *variables) {
-            if(DEBUG_S && V0->name == "isAnArray"){
+            if(DEBUGGING && V0->name == "isAnArray"){
                 printf("Cliquing variable: %s\n", V0->name.c_str());
                 for(L2::Variable* curStr : *variables){
                     printf("%s ", curStr->name.c_str());   
@@ -309,7 +309,7 @@ namespace L2{
             instNum++;
         }
 
-        printInterferenceGraph(iG);
+        //printInterferenceGraph(iG);
         
     }
 

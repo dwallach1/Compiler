@@ -14,6 +14,7 @@
 
 #include <parser.h>
 #include <liveness.h>
+#include <spiller.h>
 #include <code_generator.h>
 
 
@@ -91,8 +92,9 @@ int main(
     /* 
      * Parse an L2 function and the spill arguments.
      */
-    //p = L2::parse_spill_file(argv[optind]);
- 
+    p = L2::parse_spill_file(argv[optind]);
+    if(DEBUGGING) printf("We are running spill only and just parsed a spill function\n");
+  
   } else if (liveness_only){
 
     /*
@@ -114,7 +116,14 @@ int main(
    * Special cases.
    */
   if (spill_only){
+    if(DEBUGGING) printf("About to run a spill\n");
+    for(auto f : p.functions){ 
+      L2::DataFlowResult *liveness = L2::computeLivenessAnalysis(&p, f);
+      L2::spillVar(f);
+    }
+    if(DEBUGGING) printf("Spilled Var\n");
 
+    printNewSpill(p.functions[0]);
     /*
      * Spill.
      */
@@ -129,6 +138,7 @@ int main(
       /*
        * Compute the liveness analysis.
        */
+
       L2::DataFlowResult *liveness = L2::computeLivenessAnalysis(&p, f);
       if(DEBUGGING) printf("We are running liveness only and iterating through all functions of p\n");
 
@@ -142,6 +152,7 @@ int main(
        */
 
       generateInterferenceGraph(f);
+      printInterferenceGraph(f->interferenceGraph);
       
       //cout << f->interferenceGraph->toString() << endl;
       

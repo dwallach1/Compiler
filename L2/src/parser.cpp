@@ -402,6 +402,16 @@ namespace L2 {
       pegtl::plus< L2_function_rule >
     > {};
 
+  struct L2_Spill_Rule:
+    pegtl::seq<
+    L2_function_rule,
+    seps,
+    var,
+    seps,
+    var
+    >
+  {};
+
   struct entry_point_rule:
     pegtl::seq<
       seps,
@@ -423,6 +433,11 @@ namespace L2 {
   struct function_grammar :
     pegtl::must<
       L2_function_rule
+    >{};
+
+  struct spill_grammar :
+    pegtl::must<
+      L2_Spill_Rule
     >{};
 
 
@@ -537,6 +552,9 @@ namespace L2 {
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
         instruction->instruction = dest + ' ' + oper + ' ' + source;
+        if(source[0] == 's'){
+          instruction->stackArg = true;
+        }
         instruction->registers.push_back(dest);
         instruction->registers.push_back(source);
         instruction->operation.push_back(oper);
@@ -603,13 +621,14 @@ namespace L2 {
         L2::Instruction *instruction = new L2::Instruction();
         instruction->instruction = in.string();
 
-        int bytes = 8 * currentF->locals;
+        // int bytes = 8 * currentF->locals;
         int arg = atoi(parsed_registers.back().c_str());
-        parsed_registers.pop_back();
-        bytes += arg * 8;
+        // parsed_registers.pop_back();
+        // bytes += arg * 8;
 
-        std::string mem = "mem rsp " + bytes;
-        parsed_registers.push_back(mem);
+        // std::string mem = "mem rsp " + bytes;
+
+        parsed_registers.push_back("stack-arg" + arg);
     }
   };
 
@@ -924,6 +943,18 @@ namespace L2 {
 
     }
   };
+
+  template<> struct action < L2_Spill_Rule > {
+    template< typename Input >
+    static void apply( const Input & in, L2::Program & p){
+      if(DEBUGGING) std::cout << "Found a SPILL function " << in.string() << std::endl;
+      L2::Function *currentF = p.functions.back();
+      currentF->replaceSpill = (parsed_registers.back());
+      parsed_registers.pop_back();
+      currentF->toSpill = (parsed_registers.back());
+
+    }
+  };
   
 
 
@@ -970,6 +1001,28 @@ namespace L2 {
     if(DEBUGGING) std::cout << "Begin Parsing Function File" << std::endl;
     parse<L2::function_grammar, L2::action>(fileInput, p);
     if(DEBUGGING) std::cout << "Done Parsing Function File" << std::endl;
+    return p;
+  }
+
+  Program parse_spill_file (char *fileName){
+
+    /* 
+     * Check the grammar for some possible issues.
+     */
+    if(DEBUGGING) std::cout << "Checking the grammar" << std::endl;
+    pegtl::analyze< L2::spill_grammar >();
+
+    if(DEBUGGING) std::cout << "Finished checking grammar" << std::endl;
+
+
+    /*
+     * Parse.
+     */   
+    file_input< > fileInput(fileName);
+    L2::Program p;
+    if(DEBUGGING) std::cout << "Begin Parsing Spill File" << std::endl;
+    parse<L2::spill_grammar, L2::action>(fileInput, p);
+    if(DEBUGGING) std::cout << "Done Parsing Spill File" << std::endl;
     return p;
   }
 
