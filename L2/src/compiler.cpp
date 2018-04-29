@@ -154,13 +154,7 @@ int main(
       generateInterferenceGraph(f);
       printInterferenceGraph(f->interferenceGraph);
       
-      //cout << f->interferenceGraph->toString() << endl;
-      
-      
-     
-
-      //cout << liveness->toString(f, liveness_only > 1) << endl;
-
+    
       /*
        * Free the memory.
        */

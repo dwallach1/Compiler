@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <stdlib.h>
 #define DEBUGGING 0
-#define DEBUG_S 1
+#define DEBUG_S 0
 
 
 std::vector<std::string> allRegs = {"r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rax", "rbx", "rbp", "rcx", "rdi", "rdx", "rsi"};
@@ -18,13 +18,24 @@ using namespace std;
 
 namespace L2{    
 
+    /*
+     *
+     *
+     *
+     *  GENERATE INTERFERENCE GRAPH 
+     *
+     *
+     *
+     *
+     *
+     */
+    
     L2::Variable* findCorrespondingVar(std::string name, L2::InterferenceGraph* iG){
         for(Variable* var : iG->variables){
             if(name == var->name){
                 return var;
             }
         }
-
         return NULL;
     }
 
@@ -48,54 +59,28 @@ namespace L2{
 
         //Loop to add any new variables to the set of variables for interference graph
         for(Instruction* I : f->instructions){
-            //In set
-            if(DEBUGGING) printf("Instruction %s\nPrinting IN Set:\n", I->instruction.c_str());
+            
+            // add all instruction variables from in set
             for(std::string curIn : I->in){
                 vars.insert(curIn);
-                if(DEBUGGING){
-                    printf("%s ", curIn.c_str());
-                }
             }
-            if(DEBUGGING) printf("\nPrinting OUT set:\n");
+            // add all instruction variables from out set
             for(std::string curOut : I->out){
                 vars.insert(curOut);
-                if(DEBUGGING){
-                    printf("%s ", curOut.c_str());
-                }
             }
-            if(DEBUGGING) printf("\n");
-
-            if(DEBUGGING) printf("\nPrinting KILL set:\n");
+            // add all instruction variables from kill set
             for(std::string curKill : I->kill){
                 vars.insert(curKill);
-                if(DEBUGGING){
-                    printf("%s ", curKill.c_str());
-                }
-            }
-            if(DEBUGGING) printf("\n");
+            } 
         }
         
-
+        // now we have all variable names, instiate new Variable objects for them
         for(std::string curVar : vars){
             L2::Variable* newVar = new L2::Variable();
             newVar->name = curVar;
             newVar->edges = {};
-            iG->variables.insert(newVar);
-            if(DEBUGGING) printf("Added new variable: %s\n", curVar.c_str());
+            iG->variables.insert(newVar); 
         }
-    }
-    bool isVar(std::string V, L2::Function* f){
-        if(DEBUGGING) printf("inside isVar\n");
-        if(std::isdigit(V[0])){
-            return false;
-        }
-
-        for(L2::Variable* VCheck : f->interferenceGraph->variables){
-            if(V == VCheck->name){
-                return true;
-            }
-        }
-        return false;
     }
 
     void addToEdgeSet(Variable* V, std::vector<std::string> vec){
@@ -108,29 +93,35 @@ namespace L2{
         }
     }
 
+
     void getCallInstructionIntersection(int instNum, L2::Function* f, std::set<L2::Variable*>* result, int numArgs){
         std::set<L2::Variable*> beforeSet = {};
         std::set<L2::Variable*> afterSet = {};
         *result = {};
 
-        if(DEBUGGING) printf("We are getting call inst. intersection for inst: %s\n", f->instructions[instNum]->instruction.c_str());
+        
         for(int i = 0; i < f->instructions.size(); i++){
+            // build the before set
             if(i < instNum){
+                // find corresponding variable and add it into the before set
                 for(int j = 0; j < f->instructions[i]->registers.size(); j++){
                     Variable* V = findCorrespondingVar(f->instructions[i]->registers[j], f->interferenceGraph);
                     if(V != NULL){
                        beforeSet.insert(V); 
-                    }
-                    
+                    } 
                 }
+                // if theres another call instruction before instNum, we restart b/c we were out of scope
                 if(f->instructions[i]->type == 8){
                     beforeSet = {};
                 }
             }
+            // build the after set
             else if(i > instNum){
+                // if theres another call instruction after instNum, break out --> we're done
                 if(f->instructions[i]->type == 8){
                     break;
                 }
+                // otherwise find the corresponding variable and insert into the after set
                 for(int j = 0; j < f->instructions[i]->registers.size(); j++){
                     Variable* V = findCorrespondingVar(f->instructions[i]->registers[j], f->interferenceGraph);
                     if(V != NULL){
@@ -140,85 +131,56 @@ namespace L2{
             }
         }
         
-        // //return beforeSet;
+        // find the intersection of the before and after call instruction sets    
         set_intersection(beforeSet.begin(), beforeSet.end(), afterSet.begin(), afterSet.end(), std::inserter(*result, result->begin()));
-        if(DEBUGGING){
-            printf("The beforeSet is:\n");
-            for(L2::Variable* V : beforeSet){
-                printf("%s ", V->name.c_str());
-            }
-            printf("\n");
-        }
-        if(DEBUGGING){
-            printf("The intersection is (size is %ld):\n", result->size());
-            for(L2::Variable* curVar : *result){
-                printf("%s ", curVar->name.c_str());
-            }
-            printf("\n");
-        }
+       
+    
         std::vector<std::string> regsToAdd = {};
-        if(result->size() != 0){
-            regsToAdd = allRegs;
-        }
-        else{
-            if(DEBUGGING) printf("Setting regsToAdd to be calleeSaveRegs\n");
-
+        // depending on the intersection of the before and after set, we build the set that we want to make a clique 
+        if (result->size() == 0) {
             regsToAdd = calleeSaveRegs;
             for(L2::Variable* V : beforeSet){
-                if(DEBUGGING) printf("Working on VAR %s\n", V->name.c_str());
                 bool found = 0;
                 for(std::string curStr : allRegs){
                     if(curStr == V->name){
                         found = true;
                     }
                 }
+                // only add it to the callee saved registers if the var itself is not a register
                 if(!found){
-                    if(DEBUGGING) printf("Pushing back a non-reg var\n");
                     regsToAdd.push_back(V->name);
                 }
-                
             }
         }
+        // otherwise, we need to add all registers
+        else { regsToAdd = allRegs; }
+        
+        // remove argument registers for each one used in a call 
         for(int i = 0; i < numArgs; i++){
-            if(DEBUGGING) printf("Removing %s from regsToAdd\n", callInstGen[i].c_str());
             std::vector<std::string>::iterator position = std::find(regsToAdd.begin(), regsToAdd.end(), callInstGen[i]);
             if(position != regsToAdd.end()){
                 regsToAdd.erase(position);
             }
         }
+        // remove callee-saved registers for each one used in function's local variables
         for(int i= 0; i < f->locals; i++){
-            if(DEBUGGING) printf("Removing %s from regsToAdd\n", calleeSaveRegs[i].c_str());
             std::vector<std::string>::iterator position = std::find(regsToAdd.begin(), regsToAdd.end(), calleeSaveRegs[i]);
             if(position != regsToAdd.end()){
                 regsToAdd.erase(position);
             }
         }
-        
+        // insert all necessary variables and registers to make a clique
         for(std::string r : regsToAdd){
             Variable* V = findCorrespondingVar(r, f->interferenceGraph);
             if(V != NULL){
-                if(DEBUGGING) printf("Inserting %s into result\n", V->name.c_str());
                 result->insert(V);
             } 
-            else{
-                if(DEBUGGING) printf("Could not correpsonding var %s\n", r.c_str());
-            } 
-        }
-        return;
-
-
+        } 
     }
 
     void makeClique(std::set<L2::Variable*>* variables) {
         
-        for (L2::Variable* V0 : *variables) {
-            if(DEBUGGING && V0->name == "isAnArray"){
-                printf("Cliquing variable: %s\n", V0->name.c_str());
-                for(L2::Variable* curStr : *variables){
-                    printf("%s ", curStr->name.c_str());   
-                }
-                printf("\n");
-            } 
+        for (L2::Variable* V0 : *variables) { 
             for (L2::Variable* V1 : *variables) {
                 if (V0 != V1)
                     V0->edges.insert(V1->name);
@@ -228,14 +190,12 @@ namespace L2{
     }
 
     void generateInterferenceGraph(L2::Function* f){
-        if(DEBUGGING) printf("Beginning generateInterferenceGraph\n");
+   
         L2::InterferenceGraph* iG = new L2::InterferenceGraph();
         f->interferenceGraph = iG;
-        //iG->variables = {};
-        if(DEBUGGING) printf("instatiateVariables Time\n");
+      
         instatiateVariables(f, iG);
 
-        if(DEBUGGING) printf("Linking all registers and IN and OUT sets\n");
         for(L2::Variable* V : iG->variables){ 
             std::string curVar = V->name;
             
@@ -250,14 +210,16 @@ namespace L2{
             }
         }
 
-        if(DEBUGGING) printf("Linking KILL and OUT sets\n");
+
         //Link the kill sets and out sets
         int instNum = 0;
         for(Instruction* I : f->instructions){
 
-           
+            // check if x <- y condition           
             if((I->type != 1) || (I->type == 1 && (I->registers[1][0] == ':' || std::isdigit(I->registers[1][0])))){ 
+                
                 std::set<L2::Variable*> result = {};
+                
                 // for each variable in the kill sets, link to variables in the out sets
                 for(std::string curVar : I->kill){
                     //Grab the correpsonding variable
@@ -275,16 +237,12 @@ namespace L2{
                 makeClique(&result);
             }     
             
-            //Call
-            //&& (I->registers[0] != "print" && I->registers[0] != "allocate")
+            //Call 
             if(I->type == 8 ){
-                if(DEBUGGING) printf("\n");
                 std::set<L2::Variable*> result = {};
                 int numArgs = atoi(I->registers[1].c_str());
                 getCallInstructionIntersection(instNum, f, &result, numArgs);
-
                 makeClique(&result);        
-       
             }
     
             //Shift
@@ -302,18 +260,35 @@ namespace L2{
                         }
                         
                     }
-                    makeClique(&result);
-                    // need to make sure rcx isn't in edge set
+                    makeClique(&result); 
                 }
             }
             instNum++;
-        }
-
-        //printInterferenceGraph(iG);
-        
+        }        
     }
 
-    void generatePrevInstPointers(L2::Function* f){
+    /*
+     *
+     *
+     *
+     *
+     *
+     *
+     *      GENERATE IN AND OUT SETS FOR LIVENESS ANALYSIS
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     */
+
+
+    void linkInstructionPointers(L2::Function* f){
         int size = f->instructions.size();
         if(size == 1){
             f->instructions[0]->prevInst = NULL;
@@ -324,36 +299,25 @@ namespace L2{
         {   
             //first inst can't have a prev inst.
             if(i == 0){
-                //if(DEBUGGING) printf("First instruction is: %s", f->instructions[i]->instruction.c_str());
                 f->instructions[i]->nextInst = f->instructions[i+1];
                 f->instructions[i]->prevInst = NULL;
             }
             else if(i != (size -1)){
                 //set previous instruction to be above it
-                //if(DEBUGGING) printf("Next instruction is: %s", f->instructions[i]->instruction.c_str());
                 f->instructions[i]->prevInst = f->instructions[i-1];
                 f->instructions[i]->nextInst = f->instructions[i+1];
-                //if(DEBUGGING) printf("The next instruction should be: %s", f->instructions[i+1]->instruction.c_str());
 
             }
             //Last instruction doesn't have a next inst
             else{
-                //if(DEBUGGING) printf("Last instruction is: %s", f->instructions[i]->instruction.c_str());
                 f->instructions[i]->prevInst = f->instructions[i-1];
                 f->instructions[i]->nextInst = NULL;
             }
         }
     }
 
-    L2::DataFlowResult* computeLivenessAnalysis(L2::Program* p, L2::Function* f) {
-        generatePrevInstPointers(f);
 
-        //add all regs to the variable list
-        //std::copy(allRegs.begin(), allRegs.end(), std::inserter(f->vars, f->vars.end()));
-        
-
-
-        
+    void computeGenKillSet(L2::Function* f) {
         //Iterate through each instruction and generate the instructions gen and kill sets
         for(Instruction* I : f->instructions) {
             std::istringstream iss(I->instruction);
@@ -460,8 +424,6 @@ namespace L2{
                 // call    
                 case 8:
 
-                    //I->gen.push_back("rsp");
-
                     if (I->registers[0] != "print" && 
                         I->registers[0] != "allocate" && 
                         I->registers[0] != "array_error" && I->registers[0][0] != ':') {
@@ -509,232 +471,10 @@ namespace L2{
                     break;
             }
         }
+    }
 
-        bool changed = true;
-        int debugIters = 1;
-        //this will be used to set the next outset for an instruction
-        std::vector<std::string> prevINSet = {"r12", "r13", "r14", "r15", "rax", "rbp", "rbx"};
-        while (changed) {
-            //This will determine if we are dealing with the very first instruction in order to correctly make the IN set {}
-            int firstInst = 1;
-            if(DEBUGGING){
-                printf("Running Iteration %d\n", debugIters);
-                debugIters++;
-            }
-            changed = false;
-            for (Instruction* I: f->instructions) {
-                if(DEBUGGING) printf("\n-------NEW INST--------\n%s\n", I->instruction.c_str());
-                //Declare the vectortors that will be used for intermediate steps in IN computation
-                //outKill is the  result of OUT[i] - KILL[i]
-                std::vector<std::string> outKill = {};
-                //genUoutKill is the Union of outKill and the GEN set. Begins by taking the current gen set
-                std::vector<std::string> genUoutKill = I->gen;
-                if(DEBUGGING){
-                    printf("The out set is:\n");
-                    for(std::string val : I->out){
-                        printf("%s ", val.c_str());
-                    }
-                    printf("\n");
-                    printf("The kill set is:\n");
-                    for(std::string val : I->kill){
-                        printf("%s ", val.c_str());
-                    }
-                    printf("\n");
-                }
-                //This will look at the out set and kill set and only add entrys to the outKill that are unique to the OUT set
-                for (std::string o : I->out) {
-                    bool match = false;
-                    for (std::string k : I->kill) {
-                        if (o == k) {
-                            match = true;
-                        }
-                    }
-                    if (!match) {
-                        outKill.push_back(o);
-                    }
-                }
-                if(DEBUGGING){
-                    printf("The out set - kill set is:\n");
-                    for(std::string val : outKill){
-                        printf("%s ", val.c_str());
-                    }
-                    printf("\n");
-                }
 
-                //This will take the union of the outkill and genUoutKill set. The loop is so there are no duplicates, but isn't 100% necessary I suppose
-                for (std::string oK : outKill) {
-                    bool found = false;
-                    for (std::string g : genUoutKill) {
-                        //Is the entry in outKill currently in the gen set
-                        if (oK == g) {
-                            found = true;
-                        }
-                    }
-                    //If it isn't in the current gen set then let us add it to the gen set.
-                    if (!found) {
-                        genUoutKill.push_back(oK);
-                    }
-                }
-
-                //Now we will make a comparison of the newly generated set of genUoutKill to the current IN set, if they match then we won't set changed, otherwise we will.
-                for(std::string curVal : genUoutKill){
-                    bool found = false;
-                    for(std::string compVal : I->in){
-                        if(curVal == compVal){
-                            found = true;
-                        }
-                    }
-                    //There is a new entry, in should never really become smaller over time per each unique instruction. 
-                    //This means the new IN set is going to be different. 
-                    if(!found){
-                        changed = true;
-                        //Add the new variable to the IN set
-                        I->in.push_back(curVal);
-                    }
-                }
-                if(DEBUGGING){
-                    printf("The gen set is:\n");
-                    for(std::string val : I->gen){
-                        printf("%s ", val.c_str());
-                    }
-                    printf("\n");
-                    printf("The gen set unioned with the outKill set (aka the IN set) is:\n");
-                    for(std::string val : genUoutKill){
-                        printf("%s ", val.c_str());
-                    }
-                    printf("\n");
-                }
-
-                //The outset is going to be a little tricky,
-                //it is normal if the instruction is anything but a goto or cjump instruction
-                //because we just look at the instruction below it
-                //Special insts will have to iterate through the instructions to see what it calls
-                //and then Union their IN sets, won't be hard to do, but may be fun to explain
-                std::vector<std::string> newOut = {};
-
-                //if it is a special cjump or goto instruction, we need to do some shifty stuff
-                if(I->type == 5 || I->type == 6){
-                    if(DEBUGGING) printf("Found a cjump or goto instruction, now finding its labels\nThe inst: %s\nThe label(s): %s\n%s\n", I->instruction.c_str(), I->registers[0].c_str(), I->registers[1].c_str());
-                    for(Instruction* ITemp : f->instructions){
-                        //label instruction
-                        if(ITemp->type == 11){
-                            //if the label is present in the cjump/goto instruction
-                            if(DEBUGGING) printf("Found a label inst: %s\n", ITemp->instruction.c_str());
-                            if (ITemp->registers[0].find(I->registers[0]) != std::string::npos || ITemp->registers[0].find(I->registers[1]) != std::string::npos){
-                                if(DEBUGGING) printf("Found one of its labels: %s\n", ITemp->registers[0].c_str());
-                                for(std::string curVal : ITemp->in){
-                                    bool found = false;
-                                    for(std::string compVal : newOut){
-                                        if(curVal == compVal){
-                                            found = true;
-                                        }
-                                    }
-                                    if(!found){
-                                        //Add the new variable to the newOut set
-                                        newOut.push_back(curVal);
-                                    }
-                                }
-                            }  
-                        }
-                    }
-                    // if(I->prevInst != NULL){
-                    //   for(std::string curVal : prevINSet){
-                    //         bool found = false;
-                    //         for(std::string compVal : newOut){
-                    //             if(curVal == compVal){
-                    //                 found = true;
-                    //             }
-                    //         }
-                    //         if(!found){
-                    //             //Add the new variable to the newOut set
-                    //             newOut.push_back(curVal);
-                    //         }
-                    //     }  
-                    // }
-                    //Is the first instruction
-                    // else{
-                    //     for(std::string curVal : I->prevInst->in){
-                    //         bool found = false;
-                    //         for(std::string compVal : newOut){
-                    //             if(curVal == compVal){
-                    //                 found = true;
-                    //             }
-                    //         }
-                    //         if(!found){
-                    //             //Add the new variable to the newOut set
-                    //             newOut.push_back(curVal);
-                    //         }
-                    //     }
-                    // }
-                }
-                //Otherwise we just need to take the sucessor IN set and pretend everything is ok. Also for correctness
-                else{
-                    if(I->nextInst != NULL){
-                        newOut = I->nextInst->in;                        
-                    }
-                    else{
-                        newOut = prevINSet;
-                    }
-                }
-
-                
-
-                //Attempting to strap the kill set into the out set
-
-                // for(std::string curVal : I->kill){
-                //     bool found = false;
-                //     for(std::string compVal : newOut){
-                //         if(curVal == compVal){
-                //             found = true;
-                //         }
-                //     }
-                //     if(!found){
-                //         //Add the new variable to the IN set
-                //         newOut.push_back(curVal);
-                //     }
-                // }
-
-                if(DEBUGGING){
-                    printf("The new OUT set is:\n");
-                    for(std::string val : newOut){
-                        printf("%s ", val.c_str());
-                    }
-                    printf("\n");
-                }
-
-                for(std::string curVal : newOut){
-                    bool found = false;
-                    for(std::string compVal : I->out){
-                        if(curVal == compVal){
-                            found = true;
-                        }
-                    }
-                    if(!found){
-                        changed = true;
-                        //Add the new variable to the IN set
-                        I->out.push_back(curVal);
-                    }
-                }
-            }   
-        }
-
-        //Loop to add any new variables to the set of variables for interference graph
-        //for(Instruction* I : f->instructions){
-            //In set
-          //  for(std::string curIn : I->in){
-            //    f->vars.insert(curIn);
-           // }
-        //}
-
-        //if(DEBUGGING){
-          //  printf("The vars in this function are:\n");
-            //std::set<std::string>::iterator iter;
-            //for (iter = f->vars.begin(); iter != f->vars.end(); iter++){
-            //for(std::string iter : f->vars){   
-            //    printf("%s ", iter.c_str());
-            //}
-           // printf("\n");
-       // }
+    std::string buildDFResult(L2::Function* f) {
 
         //Time to print to the string
         std::string inGlobal;
@@ -786,9 +526,153 @@ namespace L2{
         outGlobal.append(")\n\n)");
         inGlobal.append(outGlobal);
 
+        return inGlobal;
+
+    }
+
+
+    L2::DataFlowResult* computeLivenessAnalysis(L2::Program* p, L2::Function* f) { 
+
+        linkInstructionPointers(f);
+        computeGenKillSet(f);
+        
+
+        bool changed = true;
+        int debugIters = 1;
+        //this will be used to set the next outset for an instruction
+        std::vector<std::string> prevINSet = {"r12", "r13", "r14", "r15", "rax", "rbp", "rbx"};
+        while (changed) {
+            //This will determine if we are dealing with the very first instruction in order to correctly make the IN set {}
+            int firstInst = 1;
+            if(DEBUGGING){
+                printf("Running Iteration %d\n", debugIters);
+                debugIters++;
+            }
+            changed = false;
+            for (Instruction* I: f->instructions) {
+                if(DEBUGGING) printf("\n-------NEW INST--------\n%s\n", I->instruction.c_str());
+                //Declare the vectortors that will be used for intermediate steps in IN computation
+                //outKill is the  result of OUT[i] - KILL[i]
+                std::vector<std::string> outKill = {};
+                //genUoutKill is the Union of outKill and the GEN set. Begins by taking the current gen set
+                std::vector<std::string> genUoutKill = I->gen;
+                
+
+                //This will look at the out set and kill set and only add entrys to the outKill that are unique to the OUT set
+                for (std::string o : I->out) {
+                    bool match = false;
+                    for (std::string k : I->kill) {
+                        if (o == k) {
+                            match = true;
+                        }
+                    }
+                    if (!match) {
+                        outKill.push_back(o);
+                    }
+                }
+                
+
+                //This will take the union of the outkill and genUoutKill set. The loop is so there are no duplicates, but isn't 100% necessary I suppose
+                for (std::string oK : outKill) {
+                    bool found = false;
+                    for (std::string g : genUoutKill) {
+                        //Is the entry in outKill currently in the gen set
+                        if (oK == g) {
+                            found = true;
+                        }
+                    }
+                    //If it isn't in the current gen set then let us add it to the gen set.
+                    if (!found) {
+                        genUoutKill.push_back(oK);
+                    }
+                }
+
+                //Now we will make a comparison of the newly generated set of genUoutKill to the current IN set, if they match then we won't set changed, otherwise we will.
+                for(std::string curVal : genUoutKill){
+                    bool found = false;
+                    for(std::string compVal : I->in){
+                        if(curVal == compVal){
+                            found = true;
+                        }
+                    }
+                    //There is a new entry, in should never really become smaller over time per each unique instruction. 
+                    //This means the new IN set is going to be different. 
+                    if(!found){
+                        changed = true;
+                        //Add the new variable to the IN set
+                        I->in.push_back(curVal);
+                    }
+                }
+                
+
+                //The outset is going to be a little tricky,
+                //it is normal if the instruction is anything but a goto or cjump instruction
+                //because we just look at the instruction below it
+                //Special insts will have to iterate through the instructions to see what it calls
+                //and then Union their IN sets, won't be hard to do, but may be fun to explain
+                std::vector<std::string> newOut = {};
+
+                //if it is a special cjump or goto instruction, we need to do some shifty stuff
+                if(I->type == 5 || I->type == 6){
+                    if(DEBUGGING) printf("Found a cjump or goto instruction, now finding its labels\nThe inst: %s\nThe label(s): %s\n%s\n", I->instruction.c_str(), I->registers[0].c_str(), I->registers[1].c_str());
+                    for(Instruction* ITemp : f->instructions){
+                        //label instruction
+                        if(ITemp->type == 11){
+                            //if the label is present in the cjump/goto instruction
+                            if(DEBUGGING) printf("Found a label inst: %s\n", ITemp->instruction.c_str());
+                            if (ITemp->registers[0].find(I->registers[0]) != std::string::npos || ITemp->registers[0].find(I->registers[1]) != std::string::npos){
+                                if(DEBUGGING) printf("Found one of its labels: %s\n", ITemp->registers[0].c_str());
+                                for(std::string curVal : ITemp->in){
+                                    bool found = false;
+                                    for(std::string compVal : newOut){
+                                        if(curVal == compVal){
+                                            found = true;
+                                        }
+                                    }
+                                    if(!found){
+                                        //Add the new variable to the newOut set
+                                        newOut.push_back(curVal);
+                                    }
+                                }
+                            }  
+                        }
+                    }
+                }
+                //Otherwise we just need to take the sucessor IN set and pretend everything is ok. Also for correctness
+                else{
+                    if(I->nextInst != NULL){
+                        newOut = I->nextInst->in;                        
+                    }
+                    else{
+                        newOut = prevINSet;
+                    }
+                }
+
+                
+
+                //Attempting to strap the kill set into the out set
+
+               
+                for(std::string curVal : newOut){
+                    bool found = false;
+                    for(std::string compVal : I->out){
+                        if(curVal == compVal){
+                            found = true;
+                        }
+                    }
+                    if(!found){
+                        changed = true;
+                        //Add the new variable to the IN set
+                        I->out.push_back(curVal);
+                    }
+                }
+            }   
+        }
+
+        std::string result = buildDFResult(f);
+
         DataFlowResult* newDF = new L2::DataFlowResult();
-        newDF->result = inGlobal;
-        //if(DEBUGGING) printf("%s\n", newDF->result.c_str());
+        newDF->result = result;
         return newDF;
 
     }

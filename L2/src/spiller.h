@@ -51,7 +51,7 @@ namespace L2{
 	
 	void generateInstNums(L2::Function* f){
 		int i = 0;
-		generatePrevInstPointers(f);
+		linkInstructionPointers(f);
 		for(Instruction* I : f->instructions){
 			I->instNum = i;
 			i++;
