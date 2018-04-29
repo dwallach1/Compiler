@@ -497,7 +497,7 @@ namespace L2 {
 
         if(DEBUGGING) printf("Pushing back the instruction: %s\n", instruction->instruction.c_str());
 
-        instruction->type = 0;
+        instruction->type = AOP;
         currentF->instructions.push_back(instruction);
     }
   };
@@ -531,7 +531,7 @@ namespace L2 {
         instruction->registers.push_back(source);
         instruction->operation.push_back(oper);
         
-        instruction->type = 1;
+        instruction->type = ASSIGN;
 
         currentF->instructions.push_back(instruction);
     }
@@ -559,7 +559,7 @@ namespace L2 {
         instruction->registers.push_back(source);
         instruction->operation.push_back(oper);
         
-        instruction->type = 2;
+        instruction->type = LOAD;
         currentF->instructions.push_back(instruction);
         if(DEBUGGING) printf("Writing load as: %s\n", instruction->instruction.c_str());
     }
@@ -596,7 +596,7 @@ namespace L2 {
         instruction->operation.push_back(oper);
         
 
-        instruction->type = 3;
+        instruction->type = STORE;
         currentF->instructions.push_back(instruction);
     }
   };
@@ -621,14 +621,14 @@ namespace L2 {
         L2::Instruction *instruction = new L2::Instruction();
         instruction->instruction = in.string();
 
-        // int bytes = 8 * currentF->locals;
+        int bytes = 8 * currentF->locals;
         int arg = atoi(parsed_registers.back().c_str());
-        // parsed_registers.pop_back();
-        // bytes += arg * 8;
+        parsed_registers.pop_back();
+        bytes += arg * 8;
 
-        // std::string mem = "mem rsp " + bytes;
-
-        parsed_registers.push_back("stack-arg" + arg);
+        std::string mem = "mem rsp " + bytes;
+        parsed_registers.push_back(mem);
+        //parsed_registers.push_back("stack-arg" + arg);
     }
   };
 
@@ -659,7 +659,7 @@ namespace L2 {
         instruction->operation.push_back(compareOp);
         
 
-        instruction->type = 10;
+        instruction->type = CMP_ASSIGN;
         currentF->instructions.push_back(instruction);
     }
   };
@@ -696,7 +696,7 @@ namespace L2 {
         }
 
         instruction->registers.push_back(instruction->instruction);
-        instruction->type = 11;
+        instruction->type = LABEL;
         currentF->instructions.push_back(instruction);
     }
   };
@@ -716,7 +716,7 @@ namespace L2 {
         instruction->registers.push_back(dest);
         instruction->operation.push_back(oper);
 
-        instruction->type = 12;
+        instruction->type = INC_DEC;
         currentF->instructions.push_back(instruction);
     }
   };
@@ -764,7 +764,7 @@ namespace L2 {
         instruction->registers.push_back(dest);
         instruction->operation.push_back(comparitor);
 
-        instruction->type = 5;
+        instruction->type = CJUMP;
         currentF->instructions.push_back(instruction);
     }
   };
@@ -784,7 +784,7 @@ namespace L2 {
         instruction->registers.push_back(label);
         
         
-        instruction->type = 6;
+        instruction->type = GOTO;
         currentF->instructions.push_back(instruction);
     }
   };
@@ -796,7 +796,7 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
         instruction->instruction = "return";
-        instruction->type = 7;
+        instruction->type = RET;
         currentF->instructions.push_back(instruction);
     }
   };
@@ -826,7 +826,7 @@ namespace L2 {
         instruction->registers.push_back(callee);
         instruction->registers.push_back(args);
 
-        instruction->type = 8;
+        instruction->type = CALL;
         currentF->instructions.push_back(instruction);
     }
   };
@@ -861,7 +861,7 @@ namespace L2 {
         instruction->registers.push_back(num);
         instruction->operation.push_back("@");
 
-        instruction->type = 9;
+        instruction->type = LEA;
         currentF->instructions.push_back(instruction);
     }
   };

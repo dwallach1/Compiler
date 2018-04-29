@@ -39,7 +39,7 @@ namespace L2{
 				if(V){
 					//varFound = true;
 					V->uses.push_back(I);
-					if(I->type == 1){ 
+					if(I->type == ASSIGN){ 
 						if(I->registers[0] == I->registers[1]){
 							break;
 						}
@@ -62,7 +62,7 @@ namespace L2{
 
 	void removeIncDecSpaces(L2::Function* f){
 		for(Instruction* I : f->instructions){
-			if(I->type == 12){
+			if(I->type == INC_DEC){
 				if(DEBUG_S) printf("Trying to remove spaces from inst: %s\n", I->instruction.c_str());
 				I->instruction.erase(remove(I->instruction.begin(), I->instruction.end(), ' '), I->instruction.end());
 			}
@@ -77,7 +77,7 @@ namespace L2{
 				continue;
 			}
 			if(found){
-				if(Ii->type == 8){
+				if(Ii->type == CALL){
 					return true;
 				}
 				for(std::string compStr : Ii->registers){
@@ -133,7 +133,7 @@ namespace L2{
 				if(DEBUG_S) printf("The variable currently has %ld uses\n", V->uses.size());
 				std::vector<Instruction*>::iterator iter = V->uses.begin();
 				Instruction* I = *iter;
-				cJGC = I->type == 8 || I->type == 5 || I->type == 6;
+				cJGC = I->type == CALL || I->type == CJUMP || I->type == GOTO;
 				if(DEBUG_S) printf("Dealing with instruction: %s\n", I->instruction.c_str());
 				int j = 0;
 				std::string replacementString = f->replaceSpill + std::to_string(i);
@@ -152,10 +152,10 @@ namespace L2{
 				iter2 = f->instructions.begin();
 				bool callInstAhead = callAhead(I, f);
 				//Last inst
-				if(i == numUses-1 && I->type != 2){
+				if(i == numUses-1 && I->type != LOAD){
 					Instruction* newInst = new Instruction();
 					//Load inst
-					newInst->type = 2;
+					newInst->type = LOAD;
 					newInst->instruction = replacementString + " <- "+ "mem rsp " + std::to_string(stackLoc);
 					newInst->registers.push_back(replacementString);
 					newInst->registers.push_back("mem rsp " + std::to_string(stackLoc));
@@ -166,7 +166,7 @@ namespace L2{
 						generateInstNums(f);
 						iter2 = f->instructions.begin();
 						Instruction* newInst1 = new Instruction();
-						newInst1->type = 3;
+						newInst1->type = STORE;
 						newInst1->instruction = "mem rsp " + std::to_string(stackLoc) + " <- "+ replacementString;
 						newInst1->registers.push_back("mem rsp " + std::to_string(stackLoc));
 						newInst1->registers.push_back(replacementString);
@@ -176,10 +176,10 @@ namespace L2{
 					}
 				}
 				//First Inst
-				else if(i == 0 && I->type != 3 && !cJGC){
+				else if(i == 0 && I->type != STORE && !cJGC){
 					Instruction* newInst = new Instruction();
 					//Store inst
-					newInst->type = 3;
+					newInst->type = STORE;
 					newInst->instruction = "mem rsp " + std::to_string(stackLoc) + " <- "+ replacementString;
 					newInst->registers.push_back("mem rsp " + std::to_string(stackLoc));
 					newInst->registers.push_back(replacementString);
@@ -191,10 +191,10 @@ namespace L2{
 				//Middle case
 				else{
 				
-					if(I->type !=3 && !cJGC){ 
+					if(I->type != STORE && !cJGC){ 
 						Instruction* newInst1 = new Instruction();
 						//Store inst
-						newInst1->type = 3;
+						newInst1->type = STORE;
 						newInst1->instruction = "mem rsp " + std::to_string(stackLoc) + " <- "+ replacementString;
 						newInst1->registers.push_back("mem rsp " + std::to_string(stackLoc));
 						newInst1->registers.push_back(replacementString);
@@ -208,10 +208,10 @@ namespace L2{
 
 					iter2 = f->instructions.begin();
 
-					if(I->type != 2){ 
+					if(I->type != LOAD){ 
 						Instruction* newInst = new Instruction();
 						//Load inst
-						newInst->type = 2;
+						newInst->type = LOAD;
 						newInst->instruction = replacementString + " <- "+ "mem rsp " + std::to_string(stackLoc);
 						newInst->registers.push_back(replacementString);
 						newInst->registers.push_back("mem rsp " + std::to_string(stackLoc));

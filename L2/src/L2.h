@@ -12,6 +12,20 @@ namespace L2 {
   struct Program;
   struct DataFlowResult;
 
+  enum Type {
+    AOP,
+    ASSIGN,
+    LOAD,
+    STORE,
+    CMP_ASSIGN,
+    LABEL,
+    INC_DEC,
+    CJUMP,
+    GOTO,
+    RET,
+    CALL,
+    LEA
+  };
 
   struct L2_item {
     std::string labelName;
@@ -31,7 +45,7 @@ namespace L2 {
 
   struct Instruction {
     std::string instruction;
-    int64_t type;
+    L2::Type type;
     int64_t instNum;
     bool stackArg;
     Instruction* prevInst;
