@@ -80,7 +80,7 @@ namespace L2{
 					return true;
 				}
 				for(Arg* compArg : Ii->arguments){
-					if(compArg.name == f->toSpill){
+					if(compArg->name == f->toSpill){
 						return false;
 					}
 				}
@@ -123,7 +123,7 @@ namespace L2{
 		f->instructions.insert(idx, newInst);
 	}
 
-	void insertStore(Function* f, std::string replacementString, int idx, int stackLoc) {
+	void insertStore(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc) {
 		Instruction* newInst = new Instruction();
 		//Store inst
 		newInst->instruction = "mem rsp " + std::to_string(stackLoc) + " <- "+ replacementString;
@@ -173,7 +173,7 @@ namespace L2{
 				std::string replacementString = f->replaceSpill + std::to_string(i);
 
 				for(Arg* curArg : I->arguments){
-					if(curArg.name == f->toSpill){
+					if(curArg->name == f->toSpill){
 						I->arguments[j]->name = replacementString;
 					}
 					
@@ -203,7 +203,7 @@ namespace L2{
 				}
 				//First Inst
 				else if(i == 0 && I->type != STORE && !specialInstruction){
-					insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc)
+					insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);
 					
 				}
 

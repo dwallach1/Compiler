@@ -27,10 +27,10 @@ namespace L2 {
   /* 
    * Data required to parse
    */ 
-  std::vector<L2::Arg> parsed_registers;
+  std::vector<L2::Arg*> parsed_registers;
   std::vector<std::string> assignmentVec;
   std::vector<std::string> compareVec;
-  std::vector<L2::Arg> labelInsts;
+  std::vector<std::string> labelInsts;
   int debugging = 0;
 
   /* 
@@ -493,7 +493,7 @@ namespace L2 {
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
-        instruction->instruction = dest.name + ' ' + oper + ' ' + source.name;
+        instruction->instruction = dest->name + ' ' + oper + ' ' + source->name;
         instruction->arguments.push_back(dest);
         instruction->arguments.push_back(source);
         instruction->operation.push_back(oper);
@@ -519,16 +519,16 @@ namespace L2 {
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
 
-        size_t loc = in.string().find(source.name);
+        size_t loc = in.string().find(source->name);
         if(loc != std::string::npos){
           //Checking to see if the callee is actually a label
           if (in.string()[loc-1] == ':'){
             //Found a label
-            source.name.insert(0,1,':');
+            source->name.insert(0,1,':');
           }
         }
 
-        instruction->instruction = dest.name + ' ' + oper + ' ' + source.name;
+        instruction->instruction = dest->name + ' ' + oper + ' ' + source->name;
         if(DEBUGGING) std::cout << "For the assignment, we wrote: " << instruction->instruction << std::endl;
         instruction->arguments.push_back(dest);
         instruction->arguments.push_back(source);
@@ -553,7 +553,7 @@ namespace L2 {
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
-        instruction->instruction = dest.name + ' ' + oper + ' ' + source.name;
+        instruction->instruction = dest->name + ' ' + oper + ' ' + source->name;
         // if(source.name[0] == 's'){
         //   instruction->stackArg = true;
         // }
@@ -582,17 +582,17 @@ namespace L2 {
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
 
-        size_t loc = in.string().find(source.name);
+        size_t loc = in.string().find(source->name);
         if(loc != std::string::npos){
           //Checking to see if the callee is actually a label
           if (in.string()[loc-1] == ':'){
             //Found a label
-            source.name.insert(0,1,':');
+            source->name.insert(0,1,':');
           }
         }
 
 
-        instruction->instruction = dest.name + ' ' + oper + ' ' + source.name;
+        instruction->instruction = dest->name + ' ' + oper + ' ' + source->name;
         instruction->arguments.push_back(dest);
         instruction->arguments.push_back(source);
         instruction->operation.push_back(oper);
@@ -628,9 +628,9 @@ namespace L2 {
         instruction->instruction = in.string();
 
         int bytes = 8 * currentF->locals;
-        int arg = atoi(parsed_registers.back().c_str());
+        int a = atoi(parsed_registers.back()->name.c_str());
         parsed_registers.pop_back();
-        bytes += arg * 8;
+        bytes += a * 8;
 
         std::string mem = "mem rsp " + bytes;
 
@@ -661,7 +661,7 @@ namespace L2 {
         std::string compareOp = compareVec.back();
         compareVec.pop_back();
 
-        instruction->instruction = dest.name + ' ' + oper + ' ' + source.name + ' ' + compareOp + ' ' + comparitor.name;
+        instruction->instruction = dest->name + ' ' + oper + ' ' + source->name + ' ' + compareOp + ' ' + comparitor->name;
         instruction->arguments.push_back(dest);
         instruction->arguments.push_back(source);
         instruction->arguments.push_back(comparitor);
@@ -712,7 +712,7 @@ namespace L2 {
 
         L2::Arg* arg1 = new L2::Arg();
         arg1->name = instruction->instruction;
-        arg1->type = LABEL;
+        arg1->type = LBL;
         instruction->arguments.push_back(arg1);
 
         instruction->type = LABEL;
@@ -731,7 +731,7 @@ namespace L2 {
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
-        instruction->instruction = dest.name + ' ' + oper;
+        instruction->instruction = dest->name + ' ' + oper;
         instruction->arguments.push_back(dest);
         instruction->operation.push_back(oper);
 
@@ -773,13 +773,13 @@ namespace L2 {
         std::string comparitor = compareVec.back();
         compareVec.pop_back();
 
-        if(label1.name[0] != ':'){
-          label1.insert(0,1,':');
+        if(label1->name[0] != ':'){
+          label1->name.insert(0,1,':');
         }
-        if(label2.name[0] != ':'){
-          label2.insert(0,1,':');
+        if(label2->name[0] != ':'){
+          label2->name.insert(0,1,':');
         }
-        instruction->instruction = "cjump " + dest.name + ' ' + comparitor + ' ' + source.name + ' ' + label2.name + ' ' + label1.name;
+        instruction->instruction = "cjump " + dest->name + ' ' + comparitor + ' ' + source->name + ' ' + label2->name + ' ' + label1->name;
         if(DEBUGGING) printf("Wrote to the inst: %s\n", instruction->instruction.c_str());
         instruction->arguments.push_back(label1);
         instruction->arguments.push_back(label2);
@@ -802,7 +802,7 @@ namespace L2 {
 
         L2::Arg* label = parsed_registers.back();
         parsed_registers.pop_back();
-        instruction->instruction = "goto " + label.name;
+        instruction->instruction = "goto " + label->name;
         instruction->arguments.push_back(label);
         instruction->arguments.push_back(label);
         
@@ -835,17 +835,17 @@ namespace L2 {
         parsed_registers.pop_back();
         L2::Arg* callee = parsed_registers.back();
         //Need to add a new support for handling allowing vars, which will trigger the call when it may be calling a label
-        size_t loc = in.string().find(callee.name);
+        size_t loc = in.string().find(callee->name);
         if(loc != std::string::npos){
           //Checking to see if the callee is actually a label
           if (in.string()[loc-1] == ':'){
             //Found a label
-            callee.name.insert(0,1,':');
+            callee->name.insert(0,1,':');
           }
         }
 
         parsed_registers.pop_back();
-        instruction->instruction = "call " + callee.name + ' ' + args.name;
+        instruction->instruction = "call " + callee->name + ' ' + args->name;
         instruction->arguments.push_back(callee);
         instruction->arguments.push_back(args);
 
@@ -877,7 +877,7 @@ namespace L2 {
         parsed_registers.pop_back();
         L2::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
-        instruction->instruction = dest.name + " @ " + adder.name + ' ' + multer.name + ' ' + num.name;
+        instruction->instruction = dest->name + " @ " + adder->name + ' ' + multer->name + ' ' + num->name;
         instruction->arguments.push_back(dest);
         instruction->arguments.push_back(adder);
         instruction->arguments.push_back(multer);
@@ -979,9 +979,9 @@ namespace L2 {
     static void apply( const Input & in, L2::Program & p){
       if(DEBUGGING) std::cout << "Found a SPILL function " << in.string() << std::endl;
       L2::Function *currentF = p.functions.back();
-      currentF->replaceSpill = (parsed_registers.back().name);
+      currentF->replaceSpill = (parsed_registers.back()->name);
       parsed_registers.pop_back();
-      currentF->toSpill = (parsed_registers.back().name);
+      currentF->toSpill = (parsed_registers.back()->name);
 
     }
   };
