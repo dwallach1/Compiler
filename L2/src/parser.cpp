@@ -27,10 +27,10 @@ namespace L2 {
   /* 
    * Data required to parse
    */ 
-  std::vector<std::string> parsed_registers;
+  std::vector<L2::Arg> parsed_registers;
   std::vector<std::string> assignmentVec;
   std::vector<std::string> compareVec;
-  std::vector<std::string> labelInsts;
+  std::vector<L2::Arg> labelInsts;
   int debugging = 0;
 
   /* 
@@ -459,7 +459,10 @@ namespace L2 {
       else {
         if(DEBUGGING) std::cout << "returning from label " <<  in.string() << std::endl;
         parsed_registers.pop_back(); // get rid of var part of label
-        parsed_registers.push_back(in.string());
+        L2::Arg arg = new L2::Arg;
+        arg.name = in.string();
+        arg.type = LABEL;
+        parsed_registers.push_back(arg);
         labelInsts.push_back(in.string());
       }
     }
@@ -484,13 +487,13 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
 
-        std::string source = parsed_registers.back();
+        L2::Arg source = parsed_registers.back();
         parsed_registers.pop_back();
-        std::string dest = parsed_registers.back();
+        L2::Arg dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
-        instruction->instruction = dest + ' ' + oper + ' ' + source;
+        instruction->instruction = dest.name + ' ' + oper + ' ' + source.name;
         instruction->registers.push_back(dest);
         instruction->registers.push_back(source);
         instruction->operation.push_back(oper);
@@ -509,30 +512,29 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
 
-        std::string source = parsed_registers.back();
+        L2::Arg source = parsed_registers.back();
         parsed_registers.pop_back();
-        std::string dest = parsed_registers.back();
+        L2::Arg dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
 
-        size_t loc = in.string().find(source);
+        size_t loc = in.string().find(source.name);
         if(loc != std::string::npos){
           //Checking to see if the callee is actually a label
           if (in.string()[loc-1] == ':'){
             //Found a label
-            source.insert(0,1,':');
+            source.name.insert(0,1,':');
           }
         }
 
-        instruction->instruction = dest + ' ' + oper + ' ' + source;
+        instruction->instruction = dest.name + ' ' + oper + ' ' + source.name;
         if(DEBUGGING) std::cout << "For the assignment, we wrote: " << instruction->instruction << std::endl;
         instruction->registers.push_back(dest);
         instruction->registers.push_back(source);
         instruction->operation.push_back(oper);
         
         instruction->type = ASSIGN;
-
         currentF->instructions.push_back(instruction);
     }
   };
@@ -545,16 +547,16 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
 
-        std::string source = parsed_registers.back();
+        L2::Arg source = parsed_registers.back();
         parsed_registers.pop_back();
-        std::string dest = parsed_registers.back();
+        L2::Arg dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
-        instruction->instruction = dest + ' ' + oper + ' ' + source;
-        if(source[0] == 's'){
-          instruction->stackArg = true;
-        }
+        instruction->instruction = dest.name + ' ' + oper + ' ' + source.name;
+        // if(source.name[0] == 's'){
+        //   instruction->stackArg = true;
+        // }
         instruction->registers.push_back(dest);
         instruction->registers.push_back(source);
         instruction->operation.push_back(oper);
@@ -573,24 +575,24 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
         
-        std::string source = parsed_registers.back();
+        L2::Arg source = parsed_registers.back();
         parsed_registers.pop_back();
-        std::string dest = parsed_registers.back();
+        L2::Arg dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
 
-        size_t loc = in.string().find(source);
+        size_t loc = in.string().find(source.name);
         if(loc != std::string::npos){
           //Checking to see if the callee is actually a label
           if (in.string()[loc-1] == ':'){
             //Found a label
-            source.insert(0,1,':');
+            source.name.insert(0,1,':');
           }
         }
 
 
-        instruction->instruction = dest + ' ' + oper + ' ' + source;
+        instruction->instruction = dest.name + ' ' + oper + ' ' + source.name;
         instruction->registers.push_back(dest);
         instruction->registers.push_back(source);
         instruction->operation.push_back(oper);
@@ -609,7 +611,11 @@ namespace L2 {
         //getting rid of number in parsed registers and the memory register
         parsed_registers.pop_back();
         parsed_registers.pop_back();
-        parsed_registers.push_back(in.string());
+
+        L2::Arg arg = new L2::Arg();
+        arg.name = in.string();
+        arg.type = MEM;
+        parsed_registers.push_back(arg);
     }
   };
 
@@ -627,7 +633,11 @@ namespace L2 {
         bytes += arg * 8;
 
         std::string mem = "mem rsp " + bytes;
-        parsed_registers.push_back(mem);
+
+        L2::Arg arg = new L2::Arg();
+        arg.name = mem;
+        arg.type = MEM;
+        parsed_registers.push_back(arg);
         //parsed_registers.push_back("stack-arg" + arg);
     }
   };
@@ -640,18 +650,18 @@ namespace L2 {
         L2::Instruction *instruction = new L2::Instruction();
         
 
-        std::string comparitor = parsed_registers.back();
+        L2::Arg comparitor = parsed_registers.back();
         parsed_registers.pop_back();
-        std::string source = parsed_registers.back();
+        L2::Arg source = parsed_registers.back();
         parsed_registers.pop_back();
-        std::string dest = parsed_registers.back();
+        L2::Arg dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
         std::string compareOp = compareVec.back();
         compareVec.pop_back();
 
-        instruction->instruction = dest + ' ' + oper + ' ' + source + ' ' + compareOp + ' ' + comparitor;
+        instruction->instruction = dest.name + ' ' + oper + ' ' + source.name + ' ' + compareOp + ' ' + comparitor.name;
         instruction->registers.push_back(dest);
         instruction->registers.push_back(source);
         instruction->registers.push_back(comparitor);
@@ -672,7 +682,12 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
         int found = 0;
-        instruction->registers.push_back(in.string());
+
+        L2::Arg arg = new L2::Arg();
+        arg.name = in.string();
+        arg.type = LABEL;
+        instruction->registers.push_back(arg);
+
         for(std::string curLabel : labelInsts){
           //finding the which label I need
           if(curLabel.find(in.string()) != std::string::npos){
@@ -695,7 +710,11 @@ namespace L2 {
           if(DEBUGGING) std::cout << "The label WAS found in the vector of labels " <<  in.string() << std::endl;
         }
 
-        instruction->registers.push_back(instruction->instruction);
+        L2::Arg arg1 = new L2::Arg();
+        arg1.name = instruction->instruction;
+        arg1.type = LABEL;
+        instruction->registers.push_back(arg1);
+
         instruction->type = LABEL;
         currentF->instructions.push_back(instruction);
     }
@@ -708,11 +727,11 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
 
-        std::string dest = parsed_registers.back();
+        L2::Arg dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
-        instruction->instruction = dest + ' ' + oper;
+        instruction->instruction = dest.name + ' ' + oper;
         instruction->registers.push_back(dest);
         instruction->operation.push_back(oper);
 
@@ -726,7 +745,11 @@ namespace L2 {
     template< typename Input >
     static void apply( const Input & in, L2::Program & p){
         if(DEBUGGING) std::cout << "Found a var " <<  in.string() << std::endl;
-        parsed_registers.push_back(in.string());
+
+        L2::Arg arg = new L2::Arg();
+        arg.name = in.string();
+        arg.type = VAR;
+        parsed_registers.push_back(arg);
     }
   };
 
@@ -739,24 +762,24 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
         
-        std::string label1 = parsed_registers.back();
+        L2::Arg label1 = parsed_registers.back();
         parsed_registers.pop_back();
-        std::string label2 = parsed_registers.back();
+        L2::Arg label2 = parsed_registers.back();
         parsed_registers.pop_back();
-        std::string source = parsed_registers.back();
+        L2::Arg source = parsed_registers.back();
         parsed_registers.pop_back();
-        std::string dest = parsed_registers.back();
+        L2::Arg dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string comparitor = compareVec.back();
         compareVec.pop_back();
 
-        if(label1[0] != ':'){
+        if(label1.name[0] != ':'){
           label1.insert(0,1,':');
         }
-        if(label2[0] != ':'){
+        if(label2.name[0] != ':'){
           label2.insert(0,1,':');
         }
-        instruction->instruction = "cjump " + dest + ' ' + comparitor + ' ' + source + ' ' + label2 + ' ' + label1;
+        instruction->instruction = "cjump " + dest.name + ' ' + comparitor + ' ' + source.name + ' ' + label2.name + ' ' + label1.name;
         if(DEBUGGING) printf("Wrote to the inst: %s\n", instruction->instruction.c_str());
         instruction->registers.push_back(label1);
         instruction->registers.push_back(label2);
@@ -777,9 +800,9 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
 
-        std::string label = parsed_registers.back();
+        L2::Arg label = parsed_registers.back();
         parsed_registers.pop_back();
-        instruction->instruction = "goto " + label;
+        instruction->instruction = "goto " + label.name;
         instruction->registers.push_back(label);
         instruction->registers.push_back(label);
         
@@ -808,21 +831,21 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
         
-        std::string args = parsed_registers.back();
+        L2::Arg args = parsed_registers.back();
         parsed_registers.pop_back();
-        std::string callee = parsed_registers.back();
+        L2::Arg callee = parsed_registers.back();
         //Need to add a new support for handling allowing vars, which will trigger the call when it may be calling a label
-        size_t loc = in.string().find(callee);
+        size_t loc = in.string().find(callee.name);
         if(loc != std::string::npos){
           //Checking to see if the callee is actually a label
           if (in.string()[loc-1] == ':'){
             //Found a label
-            callee.insert(0,1,':');
+            callee.name.insert(0,1,':');
           }
         }
 
         parsed_registers.pop_back();
-        instruction->instruction = "call " + callee + ' ' + args;
+        instruction->instruction = "call " + callee.name + ' ' + args.name;
         instruction->registers.push_back(callee);
         instruction->registers.push_back(args);
 
@@ -846,15 +869,15 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
         
-        std::string num = parsed_registers.back();
+        L2::Arg num = parsed_registers.back();
         parsed_registers.pop_back();
-        std::string multer = parsed_registers.back();
+        L2::Arg multer = parsed_registers.back();
         parsed_registers.pop_back();
-        std::string adder = parsed_registers.back();
+        L2::Arg adder = parsed_registers.back();
         parsed_registers.pop_back();
-        std::string dest = parsed_registers.back();
+        L2::Arg dest = parsed_registers.back();
         parsed_registers.pop_back();
-        instruction->instruction = dest + " @ " + adder + ' ' + multer + ' ' + num;
+        instruction->instruction = dest.name + " @ " + adder.name + ' ' + multer.name + ' ' + num.name;
         instruction->registers.push_back(dest);
         instruction->registers.push_back(adder);
         instruction->registers.push_back(multer);
@@ -880,7 +903,11 @@ namespace L2 {
     template< typename Input >
     static void apply( const Input & in, L2::Program & p){
       if(DEBUGGING) std::cout << "Found a number " << in.string() << std::endl;
-      parsed_registers.push_back(in.string());
+
+      L2::Arg arg = new L2::Arg();
+      arg.name = in.string();
+      arg.type = NUM;
+      parsed_registers.push_back(arg);
 
     }
   };
@@ -926,12 +953,15 @@ namespace L2 {
     template< typename Input >
     static void apply( const Input & in, L2::Program & p){
       if(DEBUGGING) std::cout << "Found a print allocate or array-error " << in.string() << std::endl;
+      L2::Arg arg = new L2::Arg();
       if(in.string().find("array-error") != std::string::npos){
-        parsed_registers.push_back("array_error");
+        arg.name = "array_error";
       }
       else{
-        parsed_registers.push_back(in.string());
+        arg.name = in.string();
       }
+      arg.type = LABEL;
+      parsed_registers.push_back(arg);
     }
   };
 
@@ -949,9 +979,9 @@ namespace L2 {
     static void apply( const Input & in, L2::Program & p){
       if(DEBUGGING) std::cout << "Found a SPILL function " << in.string() << std::endl;
       L2::Function *currentF = p.functions.back();
-      currentF->replaceSpill = (parsed_registers.back());
+      currentF->replaceSpill = (parsed_registers.back().name);
       parsed_registers.pop_back();
-      currentF->toSpill = (parsed_registers.back());
+      currentF->toSpill = (parsed_registers.back().name);
 
     }
   };

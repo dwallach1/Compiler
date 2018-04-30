@@ -4,7 +4,6 @@
 #include <set>
 
 namespace L2 {
-  struct L2_item;
   struct Variable;
   struct InterferenceGraph;
   struct Instruction;
@@ -27,10 +26,20 @@ namespace L2 {
     LEA
   };
 
-  struct L2_item {
-    std::string labelName;
+  enum ArgType {
+    NUM,
+    MEM,
+    VAR, 
+    LABEL
   };
- 
+
+
+  struct Arg {
+    std::string name;
+    L2::ArgType type;
+  };
+
+
   struct Variable {
       int type;
       std::string name;
@@ -47,10 +56,10 @@ namespace L2 {
     std::string instruction;
     L2::Type type;
     int64_t instNum;
-    bool stackArg;
+    // bool stackArg;
     Instruction* prevInst;
     Instruction* nextInst;
-    std::vector<std::string> registers;
+    std::vector<L2::Arg> arguments;
     std::vector<std::string> operation;
 
     std::vector<std::string> gen;
@@ -59,6 +68,24 @@ namespace L2 {
     std::vector<std::string> in;
     std::vector<std::string> out;
   };
+
+
+  // struct Instruction_AOP : Instruction {
+  //   L2::Arg src;
+  //   L2::Arg dst;
+  //   std::string operation;
+  // };
+
+
+  // struct Instruction_Assign : Instruction_AOP {
+
+  // };
+
+  // struct Instruction_Load : Instruction {
+
+  // }
+
+
 
   struct Function{
     std::string name;

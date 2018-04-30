@@ -34,13 +34,13 @@ namespace L2{
         instatiateVariables(f, iG);
 		for(Instruction* I : f->instructions){
 			for(int i = 0; i < I->registers.size(); i++){
-				L2::Variable* V = findCorrespondingVar(I->registers[i], iG);
+				L2::Variable* V = findCorrespondingVar(I->registers[i].name, iG);
 				//Found a variable
 				if(V){
 					//varFound = true;
 					V->uses.push_back(I);
 					if(I->type == ASSIGN){ 
-						if(I->registers[0] == I->registers[1]){
+						if(I->registers[0].name == I->registers[1].name){
 							break;
 						}
 					}
@@ -63,7 +63,6 @@ namespace L2{
 	void removeIncDecSpaces(L2::Function* f){
 		for(Instruction* I : f->instructions){
 			if(I->type == INC_DEC){
-				if(DEBUG_S) printf("Trying to remove spaces from inst: %s\n", I->instruction.c_str());
 				I->instruction.erase(remove(I->instruction.begin(), I->instruction.end(), ' '), I->instruction.end());
 			}
 		}
@@ -80,8 +79,8 @@ namespace L2{
 				if(Ii->type == CALL){
 					return true;
 				}
-				for(std::string compStr : Ii->registers){
-					if(compStr == f->toSpill){
+				for(Arg compArg : Ii->registers){
+					if(compArg.name == f->toSpill){
 						return false;
 					}
 				}
@@ -102,105 +101,119 @@ namespace L2{
 		printf(")\n");
 	}
 
+
+	void insertLoad(Function* f, std::string replacementString, int idx) {
+		Instruction* newInst = new Instruction();
+		//Load inst
+		newInst->type = LOAD;
+		newInst->instruction = replacementString + " <- "+ "mem rsp " + std::to_string(stackLoc);
+
+		Arg arg = new Arg();
+		arg.name = replacementString;
+		arg.type = MEM;
+
+		Arg arg2 = new Arg();
+		arg2.name = "mem rsp " + std::to_string(stackLoc);
+		arg2.type = MEM;
+
+		newInst->registers.push_back(arg);
+		newInst->registers.push_back(arg2);
+		newInst->operation.push_back("<-");
+
+		f->instructions.insert(idx, newInst);
+	}
+
+	void insertStore(Function* f, std::string replacementString, int idx) {
+		Instruction* newInst = new Instruction();
+		//Store inst
+		newInst1->instruction = "mem rsp " + std::to_string(stackLoc) + " <- "+ replacementString;
+		newInst->type = STORE;
+
+		Arg arg = new Arg();
+		arg.name = "mem rsp " + std::to_string(stackLoc);
+		arg.type = MEM;
+
+		Arg arg2 = new Arg();
+		arg2.name = replacementString;
+		arg2.type = MEM;
+
+		newInst->registers.push_back(arg);
+		newInst->registers.push_back(arg2);
+		newInst->operation.push_back("<-");
+
+		f->instructions.insert(idx, newInst);
+	}
+
+
+
 	void spillVar(L2::Function* f){
 		//Is it a cJump Goto or call
-		bool cJGC;
-		removeIncDecSpaces(f);
-		if(DEBUGGING){
-			printf("Spilling the variable %s\n", f->toSpill.c_str());
-		}
+		bool specialInstruction;
 		
-		if(DEBUGGING) printf("Generating the Uses for every var\n");
+		removeIncDecSpaces(f);
 		generateUsesAndVars(f);
 		generateInstNums(f);
-		if(DEBUGGING) printf("Finding var in the function\n");
+		
 		Variable* V = findVarInFunction(f->toSpill, f);
+		
 		int i = 0;
 		if(V){ 
-			if(DEBUG_S) printf("The Variable is a valid variable\n");
 			f->locals++;
-			if(DEBUG_S) printf("Incrementing F->locals\n");
 			int stackLoc = (f->locals * 8) - 8;
 			int numUses = V->uses.size();
 
-			if(DEBUG_S){
-				printf("Printing Uses in order\n");
-				for(Instruction* str : V->uses){
-					printf("%s\n", str->instruction.c_str());
-				}
-			} 
+		
 			while(V->uses.size() > 0){
-				if(DEBUG_S) printf("The variable currently has %ld uses\n", V->uses.size());
+
 				std::vector<Instruction*>::iterator iter = V->uses.begin();
 				Instruction* I = *iter;
-				cJGC = I->type == CALL || I->type == CJUMP || I->type == GOTO;
-				if(DEBUG_S) printf("Dealing with instruction: %s\n", I->instruction.c_str());
+				specialInstruction = I->type == CALL || I->type == CJUMP || I->type == GOTO;
+
 				int j = 0;
 				std::string replacementString = f->replaceSpill + std::to_string(i);
-				if(DEBUG_S) printf("replacemnet string is: %s", replacementString.c_str());
-				for(std::string curStr : I->registers){
-					if(curStr == f->toSpill){
-						I->registers[j] = replacementString;
+
+				for(Arg curArg : I->registers){
+					if(curArg.name == f->toSpill){
+						I->registers[j].name = replacementString;
 					}
 					
 					I->instruction = std::regex_replace(I->instruction, std::regex(f->toSpill), replacementString);
 					
 					j++;
 				}
-				if(DEBUG_S) printf("The instruction is now: %s\n", I->instruction.c_str());
+
 				std::vector<Instruction*>::iterator iter2;
 				iter2 = f->instructions.begin();
 				bool callInstAhead = callAhead(I, f);
+				
+
+
 				//Last inst
 				if(i == numUses-1 && I->type != LOAD){
-					Instruction* newInst = new Instruction();
-					//Load inst
-					newInst->type = LOAD;
-					newInst->instruction = replacementString + " <- "+ "mem rsp " + std::to_string(stackLoc);
-					newInst->registers.push_back(replacementString);
-					newInst->registers.push_back("mem rsp " + std::to_string(stackLoc));
-					newInst->operation.push_back("<-");
-					if(DEBUG_S) printf("Adding load inst at location %ld\n", I->instNum);
-					f->instructions.insert(iter2 + I->instNum, newInst);
-					if(!callInstAhead && !cJGC ){
+					
+					insertLoad(f, replacementString, iter2 + I->instNum);
+
+					
+					if(!callInstAhead && !specialInstruction ){
 						generateInstNums(f);
 						iter2 = f->instructions.begin();
-						Instruction* newInst1 = new Instruction();
-						newInst1->type = STORE;
-						newInst1->instruction = "mem rsp " + std::to_string(stackLoc) + " <- "+ replacementString;
-						newInst1->registers.push_back("mem rsp " + std::to_string(stackLoc));
-						newInst1->registers.push_back(replacementString);
-						newInst1->operation.push_back("<-");
-						if(DEBUG_S) printf("Adding store inst at location %ld\n",  I->instNum + 1);
-						f->instructions.insert(iter2 + I->instNum + 1, newInst1);
+
+						insertStore(f, replacementString, iter2 + I->instNum);
 					}
 				}
 				//First Inst
-				else if(i == 0 && I->type != STORE && !cJGC){
-					Instruction* newInst = new Instruction();
-					//Store inst
-					newInst->type = STORE;
-					newInst->instruction = "mem rsp " + std::to_string(stackLoc) + " <- "+ replacementString;
-					newInst->registers.push_back("mem rsp " + std::to_string(stackLoc));
-					newInst->registers.push_back(replacementString);
-					newInst->operation.push_back("<-");
-					if(DEBUG_S) printf("Adding store inst at location %ld\n",  I->instNum + 1);
-					f->instructions.insert(iter2 + I->instNum + 1, newInst);
+				else if(i == 0 && I->type != STORE && !specialInstruction){
+					insertStore(f, replacementString, iter2 + I->instNum + 1)
+					
 				}
 
 				//Middle case
 				else{
 				
-					if(I->type != STORE && !cJGC){ 
-						Instruction* newInst1 = new Instruction();
-						//Store inst
-						newInst1->type = STORE;
-						newInst1->instruction = "mem rsp " + std::to_string(stackLoc) + " <- "+ replacementString;
-						newInst1->registers.push_back("mem rsp " + std::to_string(stackLoc));
-						newInst1->registers.push_back(replacementString);
-						newInst1->operation.push_back("<-");
-						if(DEBUG_S) printf("Adding store inst at location %ld\n",  I->instNum + 1);
-						f->instructions.insert(iter2 + I->instNum + 1, newInst1);
+					if(I->type != STORE && !specialInstruction){ 
+
+						insertStore(f, replacementString, iter2 + I->instNum + 1);
+						
 					}
 					
 
@@ -209,15 +222,7 @@ namespace L2{
 					iter2 = f->instructions.begin();
 
 					if(I->type != LOAD){ 
-						Instruction* newInst = new Instruction();
-						//Load inst
-						newInst->type = LOAD;
-						newInst->instruction = replacementString + " <- "+ "mem rsp " + std::to_string(stackLoc);
-						newInst->registers.push_back(replacementString);
-						newInst->registers.push_back("mem rsp " + std::to_string(stackLoc));
-						newInst->operation.push_back("<-");
-						if(DEBUG_S) printf("Adding load inst at location %ld\n", I->instNum);
-						f->instructions.insert(iter2 + I->instNum, newInst);
+						insertLoad(f, replacementString, iter2 + I->instNum);
 					}
 				}
 				int k = 0;

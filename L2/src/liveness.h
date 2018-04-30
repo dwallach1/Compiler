@@ -178,6 +178,7 @@ namespace L2{
         } 
     }
 
+
     void makeClique(std::set<L2::Variable*>* variables) {
         
         for (L2::Variable* V0 : *variables) { 
@@ -216,7 +217,7 @@ namespace L2{
         for(Instruction* I : f->instructions){
 
             // check if x <- y condition           
-            if((I->type != ASSIGN) || (I->type == ASSIGN && (I->registers[1][0] == ':' || std::isdigit(I->registers[1][0])))){ 
+            if ((I->type != ASSIGN) || (I->type == ASSIGN && (I->registers[1].type == LABEL || I->registers[1].type == NUM))) { 
                 
                 std::set<L2::Variable*> result = {};
                 
@@ -240,7 +241,7 @@ namespace L2{
             //Call 
             if(I->type == CALL){
                 std::set<L2::Variable*> result = {};
-                int numArgs = atoi(I->registers[1].c_str());
+                int numArgs = atoi(I->registers[1].name.c_str());
                 getCallInstructionIntersection(instNum, f, &result, numArgs);
                 makeClique(&result);        
             }
@@ -249,7 +250,7 @@ namespace L2{
             if(I->type == AOP && (I->operation[0] == "<<=" || I->operation[0] == ">>=")){
 
                 //If not a digit, then add all registers except for rcx to the interence graph
-                if(!(std::isdigit(I->registers[1][0]))){
+                if(I->registers[1].type != NUM) {
                     std::set<L2::Variable*> result = {};
                     L2::Variable* V = findCorrespondingVar(I->registers[1], iG);
                     result.insert(V);
@@ -327,24 +328,24 @@ namespace L2{
                 //arithmetic
                 case AOP:
 
-                    if(I->registers[1].substr(0, 4) != "mem " && !(std::isdigit(I->registers[1][0]))) {
-                        I->gen.push_back(I->registers[1]);
+                    if(I->registers[1] != MEM && I->registers[1].type != NUM) {
+                        I->gen.push_back(I->registers[1].name);
                     }
-                    if(I->registers[0].substr(0, 4) != "mem " && !(std::isdigit(I->registers[0][0]))) {
-                        I->kill.push_back(I->registers[0]);
-                        I->gen.push_back(I->registers[0]);
+                    if(I->registers[0].type != NUM && I->registers[0].type != NUM) {
+                        I->kill.push_back(I->registers[0].name);
+                        I->gen.push_back(I->registers[0].name);
                     }
 
-                    if(I->registers[1].substr(0, 4) == "mem ") {
-                        std::istringstream iss(I->registers[1]);
+                    if(I->registers[1].type == MEM) {
+                        std::istringstream iss(I->registers[1].name);
                         for(std::string s; iss >> s; )
                             result.push_back(s);
 
                         I->gen.push_back(result[1]);
                     }
 
-                    if(I->registers[0].substr(0, 4) == "mem ") {
-                        std::istringstream iss(I->registers[0]);
+                    if(I->registers[0].type == MEM) {
+                        std::istringstream iss(I->registers[0].name);
                         for(std::string s; iss >> s; )
                             result.push_back(s);
 
@@ -356,13 +357,12 @@ namespace L2{
 
                 //assignment
                 case ASSIGN:
-                    if(I->registers[1][0] != ':' && !(std::isdigit(I->registers[1][0]))) {
-                        I->gen.push_back(I->registers[1] );
-                        if(DEBUGGING) printf("I->reg[1] = %s is going to gen\n", I->registers[1].c_str());
-                    }
-                    I->kill.push_back(I->registers[0]);
-                    if(DEBUGGING) printf("I->Reg[0] = %s is goign to kill\n", I->registers[0].c_str());
                     
+                    if(I->registers[1].type != LABEL && I->registers[1].type != NUM) {
+                        I->gen.push_back(I->registers[1].name);
+                    }
+
+                    I->kill.push_back(I->registers[0].name);                    
                     break;
 
 
@@ -371,10 +371,10 @@ namespace L2{
                     for(std::string s; iss >> s; )
                         result.push_back(s);
 
-                    I->kill.push_back(I->registers[0]);
+                    I->kill.push_back(I->registers[0].name);
 
-                    if(result[3] != "rsp"){
-                        I->gen.push_back(result[3]);
+                    if(result[3].name != "rsp"){
+                        I->gen.push_back(result[3].name);
                     }
                     
                     break;
@@ -382,16 +382,15 @@ namespace L2{
 
                 //store
                 case STORE:
-                    if (I->registers[1][0] != ':' && !(std::isdigit(I->registers[1][0]))) {
-                        I->gen.push_back(I->registers[1]);
+                    if (I->registers[1].type != LABEL && I->registers[1].type != NUM) {
+                        I->gen.push_back(I->registers[1].name);
                     }
-
 
                     for(std::string s; iss >> s; )
                         result.push_back(s);
 
-                    if(result[1] != "rsp"){
-                        I->gen.push_back(result[1]);
+                    if(result[1].name != "rsp"){
+                        I->gen.push_back(result[1].name);
                     }
 
                     break;
@@ -400,13 +399,13 @@ namespace L2{
                 case CJUMP:
 
                     // dest
-                    if (!(std::isdigit(I->registers[3][0]))) {
-                        I->gen.push_back(I->registers[3]);
+                    if (I->registers[3].type != NUM) {
+                        I->gen.push_back(I->registers[3].name);
                     }
 
                     // source
-                    if (!(std::isdigit(I->registers[2][0]))) {
-                        I->gen.push_back(I->registers[2]);
+                    if (I->registers[2].type != NUM) {
+                        I->gen.push_back(I->registers[2].name);
                     }
 
                     break;
@@ -424,14 +423,15 @@ namespace L2{
                 // call    
                 case CALL:
 
-                    if (I->registers[0] != "print" && 
-                        I->registers[0] != "allocate" && 
-                        I->registers[0] != "array_error" && I->registers[0][0] != ':') {
-                        if(DEBUGGING) printf("Pushing the value found in a call inst: %s\n", I->registers[0].c_str());
-                        I->gen.push_back(I->registers[0]);
+                    if (I->registers[0].name != "print" && 
+                        I->registers[0].name != "allocate" && 
+                        I->registers[0].name != "array_error" && 
+                        I->registers[0].type != LABEL) {
+                       
+                        I->gen.push_back(I->registers[0].name);
                     }
                     //This will add the arguments to the gen set. Essentially it is a loop that will add registers in the arguments until it reaches the number in the instruction
-                    for(int q = 0; q < atoi(I->registers[1].c_str()); q++){
+                    for(int q = 0; q < atoi(I->registers[1].name.c_str()); q++){
                         I->gen.push_back(callInstGen[q]);
                     }
 
@@ -441,20 +441,20 @@ namespace L2{
                 // lea
                 case LEA:
 
-                    I->kill.push_back(I->registers[0]);
-                    I->gen.push_back(I->registers[1]);
-                    I->gen.push_back(I->registers[2]);
+                    I->kill.push_back(I->registers[0].name);
+                    I->gen.push_back(I->registers[1].name);
+                    I->gen.push_back(I->registers[2].name);
                     break;
 
                 // compare assign
                 case CMP_ASSIGN:
 
-                    I->kill.push_back(I->registers[0]);
-                    if (!std::isdigit(I->registers[1][0])) {
-                        I->gen.push_back(I->registers[1]);
+                    I->kill.push_back(I->registers[0].name);
+                    if (I->registers[1].type != NUM) {
+                        I->gen.push_back(I->registers[1].name);
                     }
-                    if (!std::isdigit(I->registers[2][0])) {
-                        I->gen.push_back(I->registers[2]);
+                    if (I->registers[2].type != NUM) {
+                        I->gen.push_back(I->registers[2].name);
                     }
                     
                     break;
@@ -462,8 +462,8 @@ namespace L2{
                 // inc/dec
                 case INC_DEC:
 
-                    I->kill.push_back(I->registers[0]);
-                    I->gen.push_back(I->registers[0]);
+                    I->kill.push_back(I->registers[0].name);
+                    I->gen.push_back(I->registers[0].name);
                     break;
 
 
@@ -538,23 +538,17 @@ namespace L2{
         
 
         bool changed = true;
-        int debugIters = 1;
+
         //this will be used to set the next outset for an instruction
         std::vector<std::string> prevINSet = {"r12", "r13", "r14", "r15", "rax", "rbp", "rbx"};
         while (changed) {
-            //This will determine if we are dealing with the very first instruction in order to correctly make the IN set {}
-            int firstInst = 1;
-            if(DEBUGGING){
-                printf("Running Iteration %d\n", debugIters);
-                debugIters++;
-            }
+            
+
             changed = false;
             for (Instruction* I: f->instructions) {
-                if(DEBUGGING) printf("\n-------NEW INST--------\n%s\n", I->instruction.c_str());
-                //Declare the vectortors that will be used for intermediate steps in IN computation
-                //outKill is the  result of OUT[i] - KILL[i]
+               
+
                 std::vector<std::string> outKill = {};
-                //genUoutKill is the Union of outKill and the GEN set. Begins by taking the current gen set
                 std::vector<std::string> genUoutKill = I->gen;
                 
 
@@ -614,14 +608,13 @@ namespace L2{
 
                 //if it is a special cjump or goto instruction, we need to do some shifty stuff
                 if(I->type == CJUMP || I->type == GOTO){
-                    if(DEBUGGING) printf("Found a cjump or goto instruction, now finding its labels\nThe inst: %s\nThe label(s): %s\n%s\n", I->instruction.c_str(), I->registers[0].c_str(), I->registers[1].c_str());
+
                     for(Instruction* ITemp : f->instructions){
                         //label instruction
                         if(ITemp->type == LABEL){
                             //if the label is present in the cjump/goto instruction
-                            if(DEBUGGING) printf("Found a label inst: %s\n", ITemp->instruction.c_str());
-                            if (ITemp->registers[0].find(I->registers[0]) != std::string::npos || ITemp->registers[0].find(I->registers[1]) != std::string::npos){
-                                if(DEBUGGING) printf("Found one of its labels: %s\n", ITemp->registers[0].c_str());
+                            if (ITemp->registers[0].name.find(I->registers[0].name) != std::string::npos || ITemp->registers[0].name.find(I->registers[1].name) != std::string::npos){
+
                                 for(std::string curVal : ITemp->in){
                                     bool found = false;
                                     for(std::string compVal : newOut){
