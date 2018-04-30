@@ -525,7 +525,8 @@ namespace L2 {
           if (in.string()[loc-1] == ':'){
             //Found a label
             source->name.insert(0,1,':');
-          }
+            source->type = LBL;
+         }
         }
 
         instruction->instruction = dest->name + ' ' + oper + ' ' + source->name;
@@ -588,6 +589,7 @@ namespace L2 {
           if (in.string()[loc-1] == ':'){
             //Found a label
             source->name.insert(0,1,':');
+            source->type = LBL;
           }
         }
 
@@ -748,7 +750,7 @@ namespace L2 {
 
         L2::Arg* arg = new L2::Arg();
         arg->name = in.string();
-        arg->type = VAR;
+        arg->type = VAR; 
         parsed_registers.push_back(arg);
     }
   };
@@ -775,9 +777,11 @@ namespace L2 {
 
         if(label1->name[0] != ':'){
           label1->name.insert(0,1,':');
+          label1->type = LBL;
         }
         if(label2->name[0] != ':'){
           label2->name.insert(0,1,':');
+          label2->type = LBL;
         }
         instruction->instruction = "cjump " + dest->name + ' ' + comparitor + ' ' + source->name + ' ' + label2->name + ' ' + label1->name;
         if(DEBUGGING) printf("Wrote to the inst: %s\n", instruction->instruction.c_str());
@@ -841,7 +845,8 @@ namespace L2 {
           if (in.string()[loc-1] == ':'){
             //Found a label
             callee->name.insert(0,1,':');
-          }
+            callee->type = LBL;
+         }
         }
 
         parsed_registers.pop_back();

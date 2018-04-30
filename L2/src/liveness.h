@@ -41,11 +41,9 @@ namespace L2{
 
     
     void printInterferenceGraph(L2::InterferenceGraph* iG){
-        for(L2::Variable* V : iG->variables){
-            if (V->name[0] == ':') { continue; }
+        for(L2::Variable* V : iG->variables){ 
             printf("%s", V->name.c_str());
             for(std::string E : V->edges){
-                if (E[0] == ':') { continue; }
                 printf(" %s", E.c_str());
             }
             printf("\n");
@@ -64,20 +62,24 @@ namespace L2{
             
             // add all instruction variables from in set
             for(std::string curIn : I->in){
+                //printf("from in %s\n", curIn.c_str());
                 vars.insert(curIn);
             }
             // add all instruction variables from out set
             for(std::string curOut : I->out){
+               // printf("from out %s\n", curOut.c_str());
                 vars.insert(curOut);
             }
             // add all instruction variables from kill set
             for(std::string curKill : I->kill){
+                //printf("from kill %s\n", curKill.c_str());
                 vars.insert(curKill);
             } 
         }
         
         // now we have all variable names, instiate new Variable objects for them
         for(std::string curVar : vars){
+            //printf("instatiating newVar: %s\n", curVar.c_str());
             L2::Variable* newVar = new L2::Variable();
             newVar->name = curVar;
             newVar->edges = {};
@@ -471,7 +473,7 @@ namespace L2{
 
                 default:
                     break;
-            }
+            } 
         }
     }
 
@@ -625,7 +627,7 @@ namespace L2{
                                         }
                                     }
                                     if(!found){
-                                        //Add the new variable to the newOut set
+                                        //Add the new variable to the newOut set 
                                         newOut.push_back(curVal);
                                     }
                                 }
