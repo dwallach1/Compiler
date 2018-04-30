@@ -42,8 +42,10 @@ namespace L2{
     
     void printInterferenceGraph(L2::InterferenceGraph* iG){
         for(L2::Variable* V : iG->variables){
+            if (V->name[0] == ':') { continue; }
             printf("%s", V->name.c_str());
             for(std::string E : V->edges){
+                if (E[0] == ':') { continue; }
                 printf(" %s", E.c_str());
             }
             printf("\n");

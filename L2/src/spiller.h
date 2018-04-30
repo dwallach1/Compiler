@@ -191,32 +191,25 @@ namespace L2{
 				//Last inst
 				if(i == numUses-1 && I->type != LOAD){
 					
-					insertLoad(f, replacementString, iter2 + I->instNum, stackLoc);
+					insertLoad(f, replacementString, iter2 + I->instNum, stackLoc); 
 
-					
 					if(!callInstAhead && !specialInstruction ){
 						generateInstNums(f);
 						iter2 = f->instructions.begin();
-
-						insertStore(f, replacementString, iter2 + I->instNum, stackLoc);
+						insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);
 					}
 				}
 				//First Inst
 				else if(i == 0 && I->type != STORE && !specialInstruction){
-					insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);
-					
+					insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);	
 				}
-
 				//Middle case
 				else{
-				
+	
 					if(I->type != STORE && !specialInstruction){ 
-
-						insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);
-						
+						insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);	
 					}
 					
-
 					generateInstNums(f);
 
 					iter2 = f->instructions.begin();
