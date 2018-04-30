@@ -34,13 +34,13 @@ namespace L2{
         instatiateVariables(f, iG);
 		for(Instruction* I : f->instructions){
 			for(int i = 0; i < I->arguments.size(); i++){
-				L2::Variable* V = findCorrespondingVar(I->arguments[i].name, iG);
+				L2::Variable* V = findCorrespondingVar(I->arguments[i]->name, iG);
 				//Found a variable
 				if(V){
 					//varFound = true;
 					V->uses.push_back(I);
 					if(I->type == ASSIGN){ 
-						if(I->arguments[0].name == I->arguments[1].name){
+						if(I->arguments[0]->name == I->arguments[1]->name){
 							break;
 						}
 					}
@@ -79,7 +79,7 @@ namespace L2{
 				if(Ii->type == CALL){
 					return true;
 				}
-				for(Arg compArg : Ii->arguments){
+				for(Arg* compArg : Ii->arguments){
 					if(compArg.name == f->toSpill){
 						return false;
 					}
@@ -172,9 +172,9 @@ namespace L2{
 				int j = 0;
 				std::string replacementString = f->replaceSpill + std::to_string(i);
 
-				for(Arg curArg : I->arguments){
+				for(Arg* curArg : I->arguments){
 					if(curArg.name == f->toSpill){
-						I->arguments[j].name = replacementString;
+						I->arguments[j]->name = replacementString;
 					}
 					
 					I->instruction = std::regex_replace(I->instruction, std::regex(f->toSpill), replacementString);

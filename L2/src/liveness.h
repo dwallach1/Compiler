@@ -105,7 +105,7 @@ namespace L2{
             if(i < instNum){
                 // find corresponding variable and add it into the before set
                 for(int j = 0; j < f->instructions[i]->arguments.size(); j++){
-                    Variable* V = findCorrespondingVar(f->instructions[i]->arguments[j].name, f->interferenceGraph);
+                    Variable* V = findCorrespondingVar(f->instructions[i]->arguments[j]->name, f->interferenceGraph);
                     if(V != NULL){
                        beforeSet.insert(V); 
                     } 
@@ -123,7 +123,7 @@ namespace L2{
                 }
                 // otherwise find the corresponding variable and insert into the after set
                 for(int j = 0; j < f->instructions[i]->arguments.size(); j++){
-                    Variable* V = findCorrespondingVar(f->instructions[i]->arguments[j].name, f->interferenceGraph);
+                    Variable* V = findCorrespondingVar(f->instructions[i]->arguments[j]->name, f->interferenceGraph);
                     if(V != NULL){
                        afterSet.insert(V); 
                     }
@@ -217,7 +217,7 @@ namespace L2{
         for(Instruction* I : f->instructions){
 
             // check if x <- y condition           
-            if ((I->type != ASSIGN) || (I->type == ASSIGN && (I->arguments[1].type == LBL || I->arguments[1].type == NUM))) { 
+            if ((I->type != ASSIGN) || (I->type == ASSIGN && (I->arguments[1]->type == LBL || I->arguments[1]->type == NUM))) { 
                 
                 std::set<L2::Variable*> result = {};
                 
@@ -241,7 +241,7 @@ namespace L2{
             //Call 
             if(I->type == CALL){
                 std::set<L2::Variable*> result = {};
-                int numArgs = atoi(I->arguments[1].name.c_str());
+                int numArgs = atoi(I->arguments[1]->name.c_str());
                 getCallInstructionIntersection(instNum, f, &result, numArgs);
                 makeClique(&result);        
             }
@@ -250,9 +250,9 @@ namespace L2{
             if(I->type == AOP && (I->operation[0] == "<<=" || I->operation[0] == ">>=")){
 
                 //If not a digit, then add all registers except for rcx to the interence graph
-                if(I->arguments[1].type != NUM) {
+                if(I->arguments[1]->type != NUM) {
                     std::set<L2::Variable*> result = {};
-                    L2::Variable* V = findCorrespondingVar(I->arguments[1].name, iG);
+                    L2::Variable* V = findCorrespondingVar(I->arguments[1]->name, iG);
                     result.insert(V);
                     for(std::string s : allRegs){
                         if(s != "rcx"){
@@ -328,24 +328,24 @@ namespace L2{
                 //arithmetic
                 case AOP:
 
-                    if(I->arguments[1].type != MEM && I->arguments[1].type != NUM) {
-                        I->gen.push_back(I->arguments[1].name);
+                    if(I->arguments[1]->type != MEM && I->arguments[1]->type != NUM) {
+                        I->gen.push_back(I->arguments[1]->name);
                     }
-                    if(I->arguments[0].type != NUM && I->arguments[0].type != NUM) {
-                        I->kill.push_back(I->arguments[0].name);
-                        I->gen.push_back(I->arguments[0].name);
+                    if(I->arguments[0]->type != NUM && I->arguments[0]->type != NUM) {
+                        I->kill.push_back(I->arguments[0]->name);
+                        I->gen.push_back(I->arguments[0]->name);
                     }
 
-                    if(I->arguments[1].type == MEM) {
-                        std::istringstream iss(I->arguments[1].name);
+                    if(I->arguments[1]->type == MEM) {
+                        std::istringstream iss(I->arguments[1]->name);
                         for(std::string s; iss >> s; )
                             result.push_back(s);
 
                         I->gen.push_back(result[1]);
                     }
 
-                    if(I->arguments[0].type == MEM) {
-                        std::istringstream iss(I->arguments[0].name);
+                    if(I->arguments[0]->type == MEM) {
+                        std::istringstream iss(I->arguments[0]->name);
                         for(std::string s; iss >> s; )
                             result.push_back(s);
 
@@ -358,11 +358,11 @@ namespace L2{
                 //assignment
                 case ASSIGN:
                     
-                    if(I->arguments[1].type != LBL && I->arguments[1].type != NUM) {
-                        I->gen.push_back(I->arguments[1].name);
+                    if(I->arguments[1]->type != LBL && I->arguments[1]->type != NUM) {
+                        I->gen.push_back(I->arguments[1]->name);
                     }
 
-                    I->kill.push_back(I->arguments[0].name);                    
+                    I->kill.push_back(I->arguments[0]->name);                    
                     break;
 
 
@@ -371,7 +371,7 @@ namespace L2{
                     for(std::string s; iss >> s; )
                         result.push_back(s);
 
-                    I->kill.push_back(I->arguments[0].name);
+                    I->kill.push_back(I->arguments[0]->name);
 
                     if(result[3] != "rsp"){
                         I->gen.push_back(result[3]);
@@ -382,8 +382,8 @@ namespace L2{
 
                 //store
                 case STORE:
-                    if (I->arguments[1].type != LBL && I->arguments[1].type != NUM) {
-                        I->gen.push_back(I->arguments[1].name);
+                    if (I->arguments[1]->type != LBL && I->arguments[1]->type != NUM) {
+                        I->gen.push_back(I->arguments[1]->name);
                     }
 
                     for(std::string s; iss >> s; )
@@ -399,13 +399,13 @@ namespace L2{
                 case CJUMP:
 
                     // dest
-                    if (I->arguments[3].type != NUM) {
-                        I->gen.push_back(I->arguments[3].name);
+                    if (I->arguments[3]->type != NUM) {
+                        I->gen.push_back(I->arguments[3]->name);
                     }
 
                     // source
-                    if (I->arguments[2].type != NUM) {
-                        I->gen.push_back(I->arguments[2].name);
+                    if (I->arguments[2]->type != NUM) {
+                        I->gen.push_back(I->arguments[2]->name);
                     }
 
                     break;
@@ -423,15 +423,15 @@ namespace L2{
                 // call    
                 case CALL:
 
-                    if (I->arguments[0].name != "print" && 
-                        I->arguments[0].name != "allocate" && 
-                        I->arguments[0].name != "array_error" && 
-                        I->arguments[0].type != LBL) {
+                    if (I->arguments[0]->name != "print" && 
+                        I->arguments[0]->name != "allocate" && 
+                        I->arguments[0]->name != "array_error" && 
+                        I->arguments[0]->type != LBL) {
                        
-                        I->gen.push_back(I->arguments[0].name);
+                        I->gen.push_back(I->arguments[0]->name);
                     }
                     //This will add the arguments to the gen set. Essentially it is a loop that will add registers in the arguments until it reaches the number in the instruction
-                    for(int q = 0; q < atoi(I->arguments[1].name.c_str()); q++){
+                    for(int q = 0; q < atoi(I->arguments[1]->name.c_str()); q++){
                         I->gen.push_back(callInstGen[q]);
                     }
 
@@ -441,20 +441,20 @@ namespace L2{
                 // lea
                 case LEA:
 
-                    I->kill.push_back(I->arguments[0].name);
-                    I->gen.push_back(I->arguments[1].name);
-                    I->gen.push_back(I->arguments[2].name);
+                    I->kill.push_back(I->arguments[0]->name);
+                    I->gen.push_back(I->arguments[1]->name);
+                    I->gen.push_back(I->arguments[2]->name);
                     break;
 
                 // compare assign
                 case CMP_ASSIGN:
 
-                    I->kill.push_back(I->arguments[0].name);
-                    if (I->arguments[1].type != NUM) {
-                        I->gen.push_back(I->arguments[1].name);
+                    I->kill.push_back(I->arguments[0]->name);
+                    if (I->arguments[1]->type != NUM) {
+                        I->gen.push_back(I->arguments[1]->name);
                     }
-                    if (I->arguments[2].type != NUM) {
-                        I->gen.push_back(I->arguments[2].name);
+                    if (I->arguments[2]->type != NUM) {
+                        I->gen.push_back(I->arguments[2]->name);
                     }
                     
                     break;
@@ -462,8 +462,8 @@ namespace L2{
                 // inc/dec
                 case INC_DEC:
 
-                    I->kill.push_back(I->arguments[0].name);
-                    I->gen.push_back(I->arguments[0].name);
+                    I->kill.push_back(I->arguments[0]->name);
+                    I->gen.push_back(I->arguments[0]->name);
                     break;
 
 
@@ -613,7 +613,7 @@ namespace L2{
                         //label instruction
                         if(ITemp->type == LABEL){
                             //if the label is present in the cjump/goto instruction
-                            if (ITemp->arguments[0].name.find(I->arguments[0].name) != std::string::npos || ITemp->arguments[0].name.find(I->arguments[1].name) != std::string::npos){
+                            if (ITemp->arguments[0]->name.find(I->arguments[0]->name) != std::string::npos || ITemp->arguments[0]->name.find(I->arguments[1]->name) != std::string::npos){
 
                                 for(std::string curVal : ITemp->in){
                                     bool found = false;
