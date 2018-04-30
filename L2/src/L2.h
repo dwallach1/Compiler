@@ -30,7 +30,7 @@ namespace L2 {
     NUM,
     MEM,
     VAR, 
-    LABEL
+    LBL
   };
 
 

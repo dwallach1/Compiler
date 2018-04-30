@@ -33,14 +33,14 @@ namespace L2{
         if(DEBUGGING) printf("instatiateVariables Time\n");
         instatiateVariables(f, iG);
 		for(Instruction* I : f->instructions){
-			for(int i = 0; i < I->registers.size(); i++){
-				L2::Variable* V = findCorrespondingVar(I->registers[i].name, iG);
+			for(int i = 0; i < I->arguments.size(); i++){
+				L2::Variable* V = findCorrespondingVar(I->arguments[i].name, iG);
 				//Found a variable
 				if(V){
 					//varFound = true;
 					V->uses.push_back(I);
 					if(I->type == ASSIGN){ 
-						if(I->registers[0].name == I->registers[1].name){
+						if(I->arguments[0].name == I->arguments[1].name){
 							break;
 						}
 					}
@@ -79,7 +79,7 @@ namespace L2{
 				if(Ii->type == CALL){
 					return true;
 				}
-				for(Arg compArg : Ii->registers){
+				for(Arg compArg : Ii->arguments){
 					if(compArg.name == f->toSpill){
 						return false;
 					}
@@ -102,43 +102,43 @@ namespace L2{
 	}
 
 
-	void insertLoad(Function* f, std::string replacementString, int idx) {
+	void insertLoad(Function* f, std::string replacementString, int idx, int stackLoc) {
 		Instruction* newInst = new Instruction();
 		//Load inst
 		newInst->type = LOAD;
 		newInst->instruction = replacementString + " <- "+ "mem rsp " + std::to_string(stackLoc);
 
-		Arg arg = new Arg();
+		L2::Arg arg = new L2::Arg();
 		arg.name = replacementString;
 		arg.type = MEM;
 
-		Arg arg2 = new Arg();
+		L2::Arg arg2 = new L2::Arg();
 		arg2.name = "mem rsp " + std::to_string(stackLoc);
 		arg2.type = MEM;
 
-		newInst->registers.push_back(arg);
-		newInst->registers.push_back(arg2);
+		newInst->arguments.push_back(arg);
+		newInst->arguments.push_back(arg2);
 		newInst->operation.push_back("<-");
 
 		f->instructions.insert(idx, newInst);
 	}
 
-	void insertStore(Function* f, std::string replacementString, int idx) {
+	void insertStore(Function* f, std::string replacementString, int idx, int stackLoc) {
 		Instruction* newInst = new Instruction();
 		//Store inst
-		newInst1->instruction = "mem rsp " + std::to_string(stackLoc) + " <- "+ replacementString;
+		newInst->instruction = "mem rsp " + std::to_string(stackLoc) + " <- "+ replacementString;
 		newInst->type = STORE;
 
-		Arg arg = new Arg();
+		L2::Arg arg = new L2::Arg();
 		arg.name = "mem rsp " + std::to_string(stackLoc);
 		arg.type = MEM;
 
-		Arg arg2 = new Arg();
+		L2::Arg arg2 = new L2::Arg();
 		arg2.name = replacementString;
 		arg2.type = MEM;
 
-		newInst->registers.push_back(arg);
-		newInst->registers.push_back(arg2);
+		newInst->arguments.push_back(arg);
+		newInst->arguments.push_back(arg2);
 		newInst->operation.push_back("<-");
 
 		f->instructions.insert(idx, newInst);
@@ -172,9 +172,9 @@ namespace L2{
 				int j = 0;
 				std::string replacementString = f->replaceSpill + std::to_string(i);
 
-				for(Arg curArg : I->registers){
+				for(Arg curArg : I->arguments){
 					if(curArg.name == f->toSpill){
-						I->registers[j].name = replacementString;
+						I->arguments[j].name = replacementString;
 					}
 					
 					I->instruction = std::regex_replace(I->instruction, std::regex(f->toSpill), replacementString);
@@ -191,19 +191,19 @@ namespace L2{
 				//Last inst
 				if(i == numUses-1 && I->type != LOAD){
 					
-					insertLoad(f, replacementString, iter2 + I->instNum);
+					insertLoad(f, replacementString, iter2 + I->instNum. stackLoc);
 
 					
 					if(!callInstAhead && !specialInstruction ){
 						generateInstNums(f);
 						iter2 = f->instructions.begin();
 
-						insertStore(f, replacementString, iter2 + I->instNum);
+						insertStore(f, replacementString, iter2 + I->instNum, stackLoc);
 					}
 				}
 				//First Inst
 				else if(i == 0 && I->type != STORE && !specialInstruction){
-					insertStore(f, replacementString, iter2 + I->instNum + 1)
+					insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc)
 					
 				}
 
@@ -212,7 +212,7 @@ namespace L2{
 				
 					if(I->type != STORE && !specialInstruction){ 
 
-						insertStore(f, replacementString, iter2 + I->instNum + 1);
+						insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);
 						
 					}
 					
@@ -222,7 +222,7 @@ namespace L2{
 					iter2 = f->instructions.begin();
 
 					if(I->type != LOAD){ 
-						insertLoad(f, replacementString, iter2 + I->instNum);
+						insertLoad(f, replacementString, iter2 + I->instNum, stackLoc);
 					}
 				}
 				int k = 0;

@@ -461,7 +461,7 @@ namespace L2 {
         parsed_registers.pop_back(); // get rid of var part of label
         L2::Arg arg = new L2::Arg;
         arg.name = in.string();
-        arg.type = LABEL;
+        arg.type = LBL;
         parsed_registers.push_back(arg);
         labelInsts.push_back(in.string());
       }
@@ -494,8 +494,8 @@ namespace L2 {
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
         instruction->instruction = dest.name + ' ' + oper + ' ' + source.name;
-        instruction->registers.push_back(dest);
-        instruction->registers.push_back(source);
+        instruction->arguments.push_back(dest);
+        instruction->arguments.push_back(source);
         instruction->operation.push_back(oper);
 
         if(DEBUGGING) printf("Pushing back the instruction: %s\n", instruction->instruction.c_str());
@@ -530,8 +530,8 @@ namespace L2 {
 
         instruction->instruction = dest.name + ' ' + oper + ' ' + source.name;
         if(DEBUGGING) std::cout << "For the assignment, we wrote: " << instruction->instruction << std::endl;
-        instruction->registers.push_back(dest);
-        instruction->registers.push_back(source);
+        instruction->arguments.push_back(dest);
+        instruction->arguments.push_back(source);
         instruction->operation.push_back(oper);
         
         instruction->type = ASSIGN;
@@ -557,8 +557,8 @@ namespace L2 {
         // if(source.name[0] == 's'){
         //   instruction->stackArg = true;
         // }
-        instruction->registers.push_back(dest);
-        instruction->registers.push_back(source);
+        instruction->arguments.push_back(dest);
+        instruction->arguments.push_back(source);
         instruction->operation.push_back(oper);
         
         instruction->type = LOAD;
@@ -593,8 +593,8 @@ namespace L2 {
 
 
         instruction->instruction = dest.name + ' ' + oper + ' ' + source.name;
-        instruction->registers.push_back(dest);
-        instruction->registers.push_back(source);
+        instruction->arguments.push_back(dest);
+        instruction->arguments.push_back(source);
         instruction->operation.push_back(oper);
         
 
@@ -662,9 +662,9 @@ namespace L2 {
         compareVec.pop_back();
 
         instruction->instruction = dest.name + ' ' + oper + ' ' + source.name + ' ' + compareOp + ' ' + comparitor.name;
-        instruction->registers.push_back(dest);
-        instruction->registers.push_back(source);
-        instruction->registers.push_back(comparitor);
+        instruction->arguments.push_back(dest);
+        instruction->arguments.push_back(source);
+        instruction->arguments.push_back(comparitor);
         instruction->operation.push_back(oper);
         instruction->operation.push_back(compareOp);
         
@@ -685,8 +685,8 @@ namespace L2 {
 
         L2::Arg arg = new L2::Arg();
         arg.name = in.string();
-        arg.type = LABEL;
-        instruction->registers.push_back(arg);
+        arg.type = LBL;
+        instruction->arguments.push_back(arg);
 
         for(std::string curLabel : labelInsts){
           //finding the which label I need
@@ -713,7 +713,7 @@ namespace L2 {
         L2::Arg arg1 = new L2::Arg();
         arg1.name = instruction->instruction;
         arg1.type = LABEL;
-        instruction->registers.push_back(arg1);
+        instruction->arguments.push_back(arg1);
 
         instruction->type = LABEL;
         currentF->instructions.push_back(instruction);
@@ -732,7 +732,7 @@ namespace L2 {
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
         instruction->instruction = dest.name + ' ' + oper;
-        instruction->registers.push_back(dest);
+        instruction->arguments.push_back(dest);
         instruction->operation.push_back(oper);
 
         instruction->type = INC_DEC;
@@ -781,10 +781,10 @@ namespace L2 {
         }
         instruction->instruction = "cjump " + dest.name + ' ' + comparitor + ' ' + source.name + ' ' + label2.name + ' ' + label1.name;
         if(DEBUGGING) printf("Wrote to the inst: %s\n", instruction->instruction.c_str());
-        instruction->registers.push_back(label1);
-        instruction->registers.push_back(label2);
-        instruction->registers.push_back(source);
-        instruction->registers.push_back(dest);
+        instruction->arguments.push_back(label1);
+        instruction->arguments.push_back(label2);
+        instruction->arguments.push_back(source);
+        instruction->arguments.push_back(dest);
         instruction->operation.push_back(comparitor);
 
         instruction->type = CJUMP;
@@ -803,8 +803,8 @@ namespace L2 {
         L2::Arg label = parsed_registers.back();
         parsed_registers.pop_back();
         instruction->instruction = "goto " + label.name;
-        instruction->registers.push_back(label);
-        instruction->registers.push_back(label);
+        instruction->arguments.push_back(label);
+        instruction->arguments.push_back(label);
         
         
         instruction->type = GOTO;
@@ -846,8 +846,8 @@ namespace L2 {
 
         parsed_registers.pop_back();
         instruction->instruction = "call " + callee.name + ' ' + args.name;
-        instruction->registers.push_back(callee);
-        instruction->registers.push_back(args);
+        instruction->arguments.push_back(callee);
+        instruction->arguments.push_back(args);
 
         instruction->type = CALL;
         currentF->instructions.push_back(instruction);
@@ -878,10 +878,10 @@ namespace L2 {
         L2::Arg dest = parsed_registers.back();
         parsed_registers.pop_back();
         instruction->instruction = dest.name + " @ " + adder.name + ' ' + multer.name + ' ' + num.name;
-        instruction->registers.push_back(dest);
-        instruction->registers.push_back(adder);
-        instruction->registers.push_back(multer);
-        instruction->registers.push_back(num);
+        instruction->arguments.push_back(dest);
+        instruction->arguments.push_back(adder);
+        instruction->arguments.push_back(multer);
+        instruction->arguments.push_back(num);
         instruction->operation.push_back("@");
 
         instruction->type = LEA;
@@ -960,7 +960,7 @@ namespace L2 {
       else{
         arg.name = in.string();
       }
-      arg.type = LABEL;
+      arg.type = LBL;
       parsed_registers.push_back(arg);
     }
   };
