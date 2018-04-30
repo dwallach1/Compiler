@@ -102,19 +102,19 @@ namespace L2{
 	}
 
 
-	void insertLoad(Function* f, std::string replacementString, int idx, int stackLoc) {
+	void insertLoad(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc) {
 		Instruction* newInst = new Instruction();
 		//Load inst
 		newInst->type = LOAD;
 		newInst->instruction = replacementString + " <- "+ "mem rsp " + std::to_string(stackLoc);
 
-		L2::Arg arg = new L2::Arg();
-		arg.name = replacementString;
-		arg.type = MEM;
+		L2::Arg* arg = new L2::Arg();
+		arg->name = replacementString;
+		arg->type = MEM;
 
-		L2::Arg arg2 = new L2::Arg();
-		arg2.name = "mem rsp " + std::to_string(stackLoc);
-		arg2.type = MEM;
+		L2::Arg* arg2 = new L2::Arg();
+		arg2->name = "mem rsp " + std::to_string(stackLoc);
+		arg2->type = MEM;
 
 		newInst->arguments.push_back(arg);
 		newInst->arguments.push_back(arg2);
@@ -129,13 +129,13 @@ namespace L2{
 		newInst->instruction = "mem rsp " + std::to_string(stackLoc) + " <- "+ replacementString;
 		newInst->type = STORE;
 
-		L2::Arg arg = new L2::Arg();
-		arg.name = "mem rsp " + std::to_string(stackLoc);
-		arg.type = MEM;
+		L2::Arg* arg = new L2::Arg();
+		arg->name = "mem rsp " + std::to_string(stackLoc);
+		arg->type = MEM;
 
-		L2::Arg arg2 = new L2::Arg();
-		arg2.name = replacementString;
-		arg2.type = MEM;
+		L2::Arg* arg2 = new L2::Arg();
+		arg2->name = replacementString;
+		arg2->type = MEM;
 
 		newInst->arguments.push_back(arg);
 		newInst->arguments.push_back(arg2);
@@ -191,7 +191,7 @@ namespace L2{
 				//Last inst
 				if(i == numUses-1 && I->type != LOAD){
 					
-					insertLoad(f, replacementString, iter2 + I->instNum. stackLoc);
+					insertLoad(f, replacementString, iter2 + I->instNum, stackLoc);
 
 					
 					if(!callInstAhead && !specialInstruction ){

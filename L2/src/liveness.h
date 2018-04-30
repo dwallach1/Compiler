@@ -105,7 +105,7 @@ namespace L2{
             if(i < instNum){
                 // find corresponding variable and add it into the before set
                 for(int j = 0; j < f->instructions[i]->arguments.size(); j++){
-                    Variable* V = findCorrespondingVar(f->instructions[i]->arguments[j], f->interferenceGraph);
+                    Variable* V = findCorrespondingVar(f->instructions[i]->arguments[j].name, f->interferenceGraph);
                     if(V != NULL){
                        beforeSet.insert(V); 
                     } 
@@ -123,7 +123,7 @@ namespace L2{
                 }
                 // otherwise find the corresponding variable and insert into the after set
                 for(int j = 0; j < f->instructions[i]->arguments.size(); j++){
-                    Variable* V = findCorrespondingVar(f->instructions[i]->arguments[j], f->interferenceGraph);
+                    Variable* V = findCorrespondingVar(f->instructions[i]->arguments[j].name, f->interferenceGraph);
                     if(V != NULL){
                        afterSet.insert(V); 
                     }
@@ -252,7 +252,7 @@ namespace L2{
                 //If not a digit, then add all registers except for rcx to the interence graph
                 if(I->arguments[1].type != NUM) {
                     std::set<L2::Variable*> result = {};
-                    L2::Variable* V = findCorrespondingVar(I->arguments[1], iG);
+                    L2::Variable* V = findCorrespondingVar(I->arguments[1].name, iG);
                     result.insert(V);
                     for(std::string s : allRegs){
                         if(s != "rcx"){
@@ -328,7 +328,7 @@ namespace L2{
                 //arithmetic
                 case AOP:
 
-                    if(I->arguments[1] != MEM && I->arguments[1].type != NUM) {
+                    if(I->arguments[1].type != MEM && I->arguments[1].type != NUM) {
                         I->gen.push_back(I->arguments[1].name);
                     }
                     if(I->arguments[0].type != NUM && I->arguments[0].type != NUM) {
@@ -373,8 +373,8 @@ namespace L2{
 
                     I->kill.push_back(I->arguments[0].name);
 
-                    if(result[3].name != "rsp"){
-                        I->gen.push_back(result[3].name);
+                    if(result[3] != "rsp"){
+                        I->gen.push_back(result[3]);
                     }
                     
                     break;
@@ -389,8 +389,8 @@ namespace L2{
                     for(std::string s; iss >> s; )
                         result.push_back(s);
 
-                    if(result[1].name != "rsp"){
-                        I->gen.push_back(result[1].name);
+                    if(result[1] != "rsp"){
+                        I->gen.push_back(result[1]);
                     }
 
                     break;

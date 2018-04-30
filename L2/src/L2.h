@@ -59,7 +59,7 @@ namespace L2 {
     // bool stackArg;
     Instruction* prevInst;
     Instruction* nextInst;
-    std::vector<L2::Arg> arguments;
+    std::vector<L2::Arg *> arguments;
     std::vector<std::string> operation;
 
     std::vector<std::string> gen;

@@ -459,9 +459,9 @@ namespace L2 {
       else {
         if(DEBUGGING) std::cout << "returning from label " <<  in.string() << std::endl;
         parsed_registers.pop_back(); // get rid of var part of label
-        L2::Arg arg = new L2::Arg;
-        arg.name = in.string();
-        arg.type = LBL;
+        L2::Arg* arg = new L2::Arg;
+        arg->name = in.string();
+        arg->type = LBL;
         parsed_registers.push_back(arg);
         labelInsts.push_back(in.string());
       }
@@ -487,9 +487,9 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
 
-        L2::Arg source = parsed_registers.back();
+        L2::Arg* source = parsed_registers.back();
         parsed_registers.pop_back();
-        L2::Arg dest = parsed_registers.back();
+        L2::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
@@ -512,9 +512,9 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
 
-        L2::Arg source = parsed_registers.back();
+        L2::Arg* source = parsed_registers.back();
         parsed_registers.pop_back();
-        L2::Arg dest = parsed_registers.back();
+        L2::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
@@ -547,9 +547,9 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
 
-        L2::Arg source = parsed_registers.back();
+        L2::Arg* source = parsed_registers.back();
         parsed_registers.pop_back();
-        L2::Arg dest = parsed_registers.back();
+        L2::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
@@ -575,9 +575,9 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
         
-        L2::Arg source = parsed_registers.back();
+        L2::Arg* source = parsed_registers.back();
         parsed_registers.pop_back();
-        L2::Arg dest = parsed_registers.back();
+        L2::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
@@ -612,9 +612,9 @@ namespace L2 {
         parsed_registers.pop_back();
         parsed_registers.pop_back();
 
-        L2::Arg arg = new L2::Arg();
-        arg.name = in.string();
-        arg.type = MEM;
+        L2::Arg* arg = new L2::Arg();
+        arg->name = in.string();
+        arg->type = MEM;
         parsed_registers.push_back(arg);
     }
   };
@@ -634,9 +634,9 @@ namespace L2 {
 
         std::string mem = "mem rsp " + bytes;
 
-        L2::Arg arg = new L2::Arg();
-        arg.name = mem;
-        arg.type = MEM;
+        L2::Arg* arg = new L2::Arg();
+        arg->name = mem;
+        arg->type = MEM;
         parsed_registers.push_back(arg);
         //parsed_registers.push_back("stack-arg" + arg);
     }
@@ -650,11 +650,11 @@ namespace L2 {
         L2::Instruction *instruction = new L2::Instruction();
         
 
-        L2::Arg comparitor = parsed_registers.back();
+        L2::Arg* comparitor = parsed_registers.back();
         parsed_registers.pop_back();
-        L2::Arg source = parsed_registers.back();
+        L2::Arg* source = parsed_registers.back();
         parsed_registers.pop_back();
-        L2::Arg dest = parsed_registers.back();
+        L2::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
@@ -683,9 +683,9 @@ namespace L2 {
         L2::Instruction *instruction = new L2::Instruction();
         int found = 0;
 
-        L2::Arg arg = new L2::Arg();
-        arg.name = in.string();
-        arg.type = LBL;
+        L2::Arg* arg = new L2::Arg();
+        arg->name = in.string();
+        arg->type = LBL;
         instruction->arguments.push_back(arg);
 
         for(std::string curLabel : labelInsts){
@@ -710,9 +710,9 @@ namespace L2 {
           if(DEBUGGING) std::cout << "The label WAS found in the vector of labels " <<  in.string() << std::endl;
         }
 
-        L2::Arg arg1 = new L2::Arg();
-        arg1.name = instruction->instruction;
-        arg1.type = LABEL;
+        L2::Arg* arg1 = new L2::Arg();
+        arg1->name = instruction->instruction;
+        arg1->type = LABEL;
         instruction->arguments.push_back(arg1);
 
         instruction->type = LABEL;
@@ -727,7 +727,7 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
 
-        L2::Arg dest = parsed_registers.back();
+        L2::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
@@ -746,9 +746,9 @@ namespace L2 {
     static void apply( const Input & in, L2::Program & p){
         if(DEBUGGING) std::cout << "Found a var " <<  in.string() << std::endl;
 
-        L2::Arg arg = new L2::Arg();
-        arg.name = in.string();
-        arg.type = VAR;
+        L2::Arg* arg = new L2::Arg();
+        arg->name = in.string();
+        arg->type = VAR;
         parsed_registers.push_back(arg);
     }
   };
@@ -762,13 +762,13 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
         
-        L2::Arg label1 = parsed_registers.back();
+        L2::Arg* label1 = parsed_registers.back();
         parsed_registers.pop_back();
-        L2::Arg label2 = parsed_registers.back();
+        L2::Arg* label2 = parsed_registers.back();
         parsed_registers.pop_back();
-        L2::Arg source = parsed_registers.back();
+        L2::Arg* source = parsed_registers.back();
         parsed_registers.pop_back();
-        L2::Arg dest = parsed_registers.back();
+        L2::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string comparitor = compareVec.back();
         compareVec.pop_back();
@@ -800,7 +800,7 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
 
-        L2::Arg label = parsed_registers.back();
+        L2::Arg* label = parsed_registers.back();
         parsed_registers.pop_back();
         instruction->instruction = "goto " + label.name;
         instruction->arguments.push_back(label);
@@ -831,9 +831,9 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
         
-        L2::Arg args = parsed_registers.back();
+        L2::Arg* args = parsed_registers.back();
         parsed_registers.pop_back();
-        L2::Arg callee = parsed_registers.back();
+        L2::Arg* callee = parsed_registers.back();
         //Need to add a new support for handling allowing vars, which will trigger the call when it may be calling a label
         size_t loc = in.string().find(callee.name);
         if(loc != std::string::npos){
@@ -869,13 +869,13 @@ namespace L2 {
         L2::Function *currentF = p.functions.back();
         L2::Instruction *instruction = new L2::Instruction();
         
-        L2::Arg num = parsed_registers.back();
+        L2::Arg* num = parsed_registers.back();
         parsed_registers.pop_back();
-        L2::Arg multer = parsed_registers.back();
+        L2::Arg* multer = parsed_registers.back();
         parsed_registers.pop_back();
-        L2::Arg adder = parsed_registers.back();
+        L2::Arg* adder = parsed_registers.back();
         parsed_registers.pop_back();
-        L2::Arg dest = parsed_registers.back();
+        L2::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
         instruction->instruction = dest.name + " @ " + adder.name + ' ' + multer.name + ' ' + num.name;
         instruction->arguments.push_back(dest);
@@ -904,9 +904,9 @@ namespace L2 {
     static void apply( const Input & in, L2::Program & p){
       if(DEBUGGING) std::cout << "Found a number " << in.string() << std::endl;
 
-      L2::Arg arg = new L2::Arg();
-      arg.name = in.string();
-      arg.type = NUM;
+      L2::Arg* arg = new L2::Arg();
+      arg->name = in.string();
+      arg->type = NUM;
       parsed_registers.push_back(arg);
 
     }
@@ -953,14 +953,14 @@ namespace L2 {
     template< typename Input >
     static void apply( const Input & in, L2::Program & p){
       if(DEBUGGING) std::cout << "Found a print allocate or array-error " << in.string() << std::endl;
-      L2::Arg arg = new L2::Arg();
+      L2::Arg* arg = new L2::Arg();
       if(in.string().find("array-error") != std::string::npos){
-        arg.name = "array_error";
+        arg->name = "array_error";
       }
       else{
-        arg.name = in.string();
+        arg->name = in.string();
       }
-      arg.type = LBL;
+      arg->type = LBL;
       parsed_registers.push_back(arg);
     }
   };
