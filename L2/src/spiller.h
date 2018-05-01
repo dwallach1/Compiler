@@ -184,40 +184,62 @@ namespace L2{
 
 				std::vector<Instruction*>::iterator iter2;
 				iter2 = f->instructions.begin();
-				bool callInstAhead = callAhead(I, f);
+				
+				for(std::string g : I->gen){
+					if(g == V->name){
+						insertLoad(f, replacementString, iter2 + I->instNum, stackLoc);
+						generateInstNums(f);
+						iter2 = f->instructions.begin();
+						break;
+					}
+				}
+				if(I->type == LOAD || I->type == ASSIGN || I->type == AOP || I->type == INC_DEC || I->type == CMP_ASSIGN || I->type == LEA){
+					if(I->kill[0] == V->name){
+						insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);
+						generateInstNums(f);
+					}
+				}
+
+
 				
 
 
-				//Last inst
-				if(i == numUses-1 && I->type != LOAD){
-					
-					insertLoad(f, replacementString, iter2 + I->instNum, stackLoc); 
+				//bool callInstAhead = callAhead(I, f);
+				
 
-					if(!callInstAhead && !specialInstruction ){
-						generateInstNums(f);
-						iter2 = f->instructions.begin();
-						insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);
-					}
-				}
-				//First Inst
-				else if(i == 0 && I->type != STORE && !specialInstruction){
-					insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);	
-				}
-				//Middle case
-				else{
+
+
+
+				// //Last inst
+				// if(i == numUses-1 && I->type != LOAD){
+					
+				// 	insertLoad(f, replacementString, iter2 + I->instNum, stackLoc); 
+
+				// 	if(!callInstAhead && !specialInstruction ){
+				// 		generateInstNums(f);
+				// 		iter2 = f->instructions.begin();
+				// 		insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);
+				// 	}
+				// }
+				// //First Inst
+				// else if(i == 0 && I->type != STORE && !specialInstruction){
+				// 	insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);	
+				// }
+				// //Middle case
+				// else{
 	
-					if(I->type != STORE && !specialInstruction){ 
-						insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);	
-					}
+				// 	if(I->type != STORE && !specialInstruction){ 
+				// 		insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);	
+				// 	}
 					
-					generateInstNums(f);
+				// 	generateInstNums(f);
 
-					iter2 = f->instructions.begin();
+				// 	iter2 = f->instructions.begin();
 
-					if(I->type != LOAD){ 
-						insertLoad(f, replacementString, iter2 + I->instNum, stackLoc);
-					}
-				}
+				// 	if(I->type != LOAD){ 
+				// 		insertLoad(f, replacementString, iter2 + I->instNum, stackLoc);
+				// 	}
+				// }
 				int k = 0;
 				std::vector<Instruction*> newUses = {};
 				for(Instruction* I : V->uses){

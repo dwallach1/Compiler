@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <map>
 #include <fstream>
 #include <cstdio>
 #include <stdlib.h>
@@ -8,15 +9,145 @@
 #define DEBUG_S 0
 
 
-std::vector<std::string> allRegs = {"r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15", "rax", "rbx", "rbp", "rcx", "rdi", "rdx", "rsi"};
+std::vector<std::string> allRegs = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi", "r12", "r13", "r14", "r15", "rbp", "rbx"};
 std::vector<std::string> callInstKill = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi"};
 std::vector<std::string> callInstGen = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 std::vector<std::string> calleeSaveRegs = {"r12", "r13", "r14", "r15", "rbx", "rbp"};
 
-
 using namespace std;
 
 namespace L2{    
+std::map<L2::Color, int> colorToRegMap = {{R10, 0}, {R11, 1}, {R8, 2}, {R9, 3}, {RAX, 4}, {RCX, 5}, {RDI, 6}, {RDX, 7}, {RSI, 8}, {R12, 9}, {R13, 10}, {R14, 11}, {R15, 12}, {RBP, 13}, {RBX, 14}, {NO_COLOR, 15} };
+std::map<int, L2::Color> regToColorMap = {{0, R10}, {1, R11}, {2, R8}, {3, R9}, {4, RAX}, {5, RCX}, {6, RDI}, {7, RDX}, {8, RSI}, {9, R12}, {10, R13}, {11, R14}, {12, R15}, {13, RBP}, {14, RBX}, {15, NO_COLOR} };
+
+void linkInstructionPointers(L2::Function* f);
+L2::Variable* findCorrespondingVar(std::string name, L2::InterferenceGraph* iG);
+void spillVar(L2::Function* f);
+
+    void colorRegisters(Function* f){
+        for(std::string curReg : allRegs){
+            Variable* curVar = findCorrespondingVar(curReg, f->interferenceGraph);
+            if(curVar){
+                for(int i = 0; i < 15; i++){
+                    if(curReg == allRegs[i]){
+                        curVar->color = regToColorMap[i];
+                    }
+                }
+            }
+        }
+    }
+
+    void generateStack(Function* f, std::vector<Variable*>* stack){
+        for(Variable* v : f->interferenceGraph->variables){
+            //Not a register
+            if(std::find(allRegs.begin(), allRegs.end(), v->name) == allRegs.end()){
+                v->color = NO_COLOR;
+                for(int i = 0; i < 15; i++){
+                    v->aliveColors[i] = true;
+                }
+                v->aliveColors[15] = false;
+                stack->push_back(v);
+            }
+        }
+    }
+
+    bool assignColor(Variable* v, Function* f){
+        for(std::string e : v->edges){
+            Variable* curVar = findCorrespondingVar(e, f->interferenceGraph);
+            if(curVar){
+                v->aliveColors[colorToRegMap[curVar->color]] = false;
+            }
+        }
+        for(int i = 0; i < 15; i++){
+            if(v->aliveColors[i]){
+                v->color = regToColorMap[i];
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void colorVariables(Function* f){
+        //Color the registers because it won't change
+        colorRegisters(f);
+        std::vector<Variable*> stack;
+        bool done = false;
+        bool assigned = false;
+        std::vector<std::string> calleeSavesInUse = {};
+        while(!done){
+            done = true;
+            calleeSavesInUse = {};
+            stack = {};
+            generateStack(f, &stack);
+            for(Variable* V : stack){
+                assigned = assignColor(V, f);
+                if(assigned){
+                    //Callee Save
+                    if(colorToRegMap[V->color] > colorToRegMap[RSI]){
+                        calleeSavesInUse.push_back(allRegs[colorToRegMap[V->color] ]);
+                    }
+                }
+                //spill
+                else{
+                    f->toSpill = V->name;
+                    f->replaceSpill = V->name + "S_P_I_L_L";
+                    spillVar(f);
+                    done = false;
+                    break;
+                }
+            }
+        }
+        int offset = f->locals * 8;
+        for(std::string str : calleeSavesInUse){
+            f->locals++;
+            offset += 8;
+            
+            std::vector<Instruction*>::iterator iter;
+            Instruction* newInst = new Instruction();
+            //Store inst
+            newInst->instruction = "mem rsp " + std::to_string(offset) + " <- "+ str;
+            newInst->type = STORE;
+    
+            L2::Arg* arg = new L2::Arg();
+            arg->name = "mem rsp " + std::to_string(offset);
+            arg->type = MEM;
+    
+            L2::Arg* arg2 = new L2::Arg();
+            arg2->name = str;
+            arg2->type = MEM;
+    
+            newInst->arguments.push_back(arg);
+            newInst->arguments.push_back(arg2);
+            newInst->operation.push_back("<-");
+            iter = f->instructions.begin();
+            f->instructions.insert(iter, newInst);
+
+
+            Instruction* newInst1 = new Instruction();
+            //Load inst
+            newInst1->type = LOAD;
+            newInst1->instruction = str + " <- "+ "mem rsp " + std::to_string(offset);
+    
+            L2::Arg* arg11 = new L2::Arg();
+            arg11->name = str;
+            arg11->type = MEM;
+    
+            L2::Arg* arg22 = new L2::Arg();
+            arg22->name = "mem rsp " + std::to_string(offset);
+            arg22->type = MEM;
+    
+            newInst1->arguments.push_back(arg11);
+            newInst1->arguments.push_back(arg22);
+            newInst1->operation.push_back("<-");
+    
+            f->instructions.push_back(newInst1);
+
+            linkInstructionPointers(f);
+
+
+        }
+
+    }
 
     /*
      *

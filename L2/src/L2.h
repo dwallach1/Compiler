@@ -26,6 +26,25 @@ namespace L2 {
     LEA
   };
 
+  enum Color {
+    RDI,
+    RSI,
+    RDX,
+    RCX,
+    R8,
+    R9,
+    RAX,
+    R10,
+    R11,
+    R12,
+    R13,
+    R14,
+    R15,
+    RBP,
+    RBX,
+    NO_COLOR
+  };
+
   enum ArgType {
     NUM,
     MEM,
@@ -45,6 +64,8 @@ namespace L2 {
       std::string name;
       std::set<std::string> edges;
       std::vector<L2::Instruction*> uses;
+      L2::Color color;
+      bool aliveColors[16];
   };
   
   struct InterferenceGraph {
