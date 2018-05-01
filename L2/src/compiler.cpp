@@ -110,6 +110,7 @@ int main(
      * Parse the L2 program.
      */
     p = L2::parse_file(argv[optind]);
+    if(DEBUGGING) printf("Running the entire L2c compiler\n");
   }
 
   /*
@@ -168,6 +169,17 @@ int main(
    * Generate the code.
    */
   if (enable_code_generator){
+    for(auto f : p.functions){
+      bool done = false;
+      while(!done){
+        done = true;
+        L2::computeLivenessAnalysis(&p, f);
+        generateInterferenceGraph(f);
+        done = colorVariables(f);
+      }
+    }
+
+    
     L2::L2_generate_code(p);
   }
 

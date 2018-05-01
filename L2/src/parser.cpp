@@ -561,6 +561,16 @@ namespace L2 {
         instruction->arguments.push_back(dest);
         instruction->arguments.push_back(source);
         instruction->operation.push_back(oper);
+        if(source->type == MEM){ 
+          std::string regInMem;
+          for(int i = 4; source->name[i] != ' '; i++){
+            regInMem.append(source->name.substr(i,1));
+          }
+          L2::Arg* newArg = new L2::Arg();
+          newArg->name = regInMem;
+          newArg->type = MEM;
+          instruction->arguments.push_back(newArg);
+        }
         
         instruction->type = LOAD;
         currentF->instructions.push_back(instruction);
@@ -597,6 +607,14 @@ namespace L2 {
         instruction->instruction = dest->name + ' ' + oper + ' ' + source->name;
         instruction->arguments.push_back(dest);
         instruction->arguments.push_back(source);
+        std::string regInMem;
+        for(int i = 4; dest->name[i] != ' '; i++){
+          regInMem.append(dest->name.substr(i,1));
+        }
+        L2::Arg* newArg = new L2::Arg();
+        newArg->name = regInMem;
+        newArg->type = MEM;
+        instruction->arguments.push_back(newArg);
         instruction->operation.push_back(oper);
         
 

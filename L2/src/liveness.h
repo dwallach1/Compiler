@@ -4,6 +4,7 @@
 #include <map>
 #include <fstream>
 #include <cstdio>
+#include <regex>
 #include <stdlib.h>
 #define DEBUGGING 0
 #define DEBUG_S 0
@@ -23,6 +24,7 @@ std::map<int, L2::Color> regToColorMap = {{0, R10}, {1, R11}, {2, R8}, {3, R9}, 
 void linkInstructionPointers(L2::Function* f);
 L2::Variable* findCorrespondingVar(std::string name, L2::InterferenceGraph* iG);
 void spillVar(L2::Function* f);
+void generateUsesAndVars(L2::Function* f);
 
     void colorRegisters(Function* f){
         for(std::string curReg : allRegs){
@@ -58,45 +60,87 @@ void spillVar(L2::Function* f);
                 v->aliveColors[colorToRegMap[curVar->color]] = false;
             }
         }
+        if(DEBUG_S){
+            printf("The available colors are: \n");
+            for(int i = 0 ; i < 15; i++){
+                if(v->aliveColors[i]){
+                    printf("%s ", allRegs[i].c_str());
+                }
+            }
+            printf("\n");
+        }
         for(int i = 0; i < 15; i++){
             if(v->aliveColors[i]){
                 v->color = regToColorMap[i];
+                if(DEBUG_S) printf("Assigning color %s to var %s\n", allRegs[colorToRegMap[v->color]].c_str(), v->name.c_str());
                 return true;
             }
         }
         return false;
     }
 
-    void colorVariables(Function* f){
+    void submitColorChanges(Function* f){
+        for(Variable* V : f->interferenceGraph->variables){
+            if(std::find(allRegs.begin(), allRegs.end(), V->name) == allRegs.end()){
+
+                for(Instruction* I : V->uses){
+                    I->instruction.append(" ");
+                        if(DEBUG_S) printf("Changing Instruction (Replacing %s with %s): %s\n", V->name.c_str(), allRegs[colorToRegMap[V->color] ].c_str() ,I->instruction.c_str());
+                        //std::size_t found = I->instruction.find(V->name);
+                        I->instruction = std::regex_replace(I->instruction, std::regex(V->name + " "), allRegs[colorToRegMap[V->color]] + " ");
+                        if(DEBUG_S) printf("Instruction is now: %s\n", I->instruction.c_str());
+                }
+            }
+        }
+    }
+
+    void generateUses(L2::Function* f){
+        for(Instruction* I : f->instructions){
+            for(int i = 0; i < I->arguments.size(); i++){
+                L2::Variable* V = findCorrespondingVar(I->arguments[i]->name, f->interferenceGraph);
+                //Found a variable
+                if(V){
+                    //varFound = true;
+                    V->uses.push_back(I);
+                    if(I->type == ASSIGN){ 
+                        if(I->arguments[0]->name == I->arguments[1]->name){
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    bool colorVariables(Function* f){
         //Color the registers because it won't change
         colorRegisters(f);
         std::vector<Variable*> stack;
         bool done = false;
         bool assigned = false;
         std::vector<std::string> calleeSavesInUse = {};
-        while(!done){
-            done = true;
-            calleeSavesInUse = {};
-            stack = {};
-            generateStack(f, &stack);
-            for(Variable* V : stack){
-                assigned = assignColor(V, f);
-                if(assigned){
-                    //Callee Save
-                    if(colorToRegMap[V->color] > colorToRegMap[RSI]){
-                        calleeSavesInUse.push_back(allRegs[colorToRegMap[V->color] ]);
-                    }
-                }
-                //spill
-                else{
-                    f->toSpill = V->name;
-                    f->replaceSpill = V->name + "S_P_I_L_L";
-                    spillVar(f);
-                    done = false;
-                    break;
-                }
-            }
-        }
+       
+         calleeSavesInUse = {};
+         stack = {};
+         generateStack(f, &stack);
+         for(Variable* V : stack){
+             assigned = assignColor(V, f);
+             if(assigned){
+                 //Callee Save
+                 if(colorToRegMap[V->color] > colorToRegMap[RSI]){
+                     calleeSavesInUse.push_back(allRegs[colorToRegMap[V->color] ]);
+                 }
+             }
+             //spill
+             else{
+                 f->toSpill = V->name;
+                 f->replaceSpill = V->name + "S_P_I_L_L";
+                 if(DEBUG_S) printf("Attempting to spill\n");
+                 spillVar(f);
+                 return false;
+             }
+         }
+        
         int offset = f->locals * 8;
         for(std::string str : calleeSavesInUse){
             f->locals++;
@@ -146,6 +190,10 @@ void spillVar(L2::Function* f);
 
 
         }
+        if(DEBUG_S) printf("Submitting Color Changes\n");
+        generateUses(f);
+        submitColorChanges(f);
+        return true;
 
     }
 

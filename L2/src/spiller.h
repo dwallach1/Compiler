@@ -9,7 +9,7 @@
 #include <algorithm>
 
 #define DEBUGGING 0
-#define DEBUG_S 0
+
 
 
 namespace L2{
