@@ -7,7 +7,7 @@
 #include <regex>
 #include <stdlib.h>
 #define DEBUGGING 0
-#define DEBUG_S 0
+#define DEBUG_S 1
 
 
 std::vector<std::string> allRegs = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi", "r12", "r13", "r14", "r15", "rbp", "rbx"};
@@ -26,6 +26,7 @@ void linkInstructionPointers(L2::Function* f);
 L2::Variable* findCorrespondingVar(std::string name, L2::InterferenceGraph* iG);
 void spillVar(L2::Function* f);
 void generateUsesAndVars(L2::Function* f);
+void generateUses(L2::Function* f);
 void insertLoad(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc);
 void insertStore(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc);
 void removeIncDecSpaces(L2::Function* f);
@@ -49,7 +50,7 @@ void removeIncDecSpaces(L2::Function* f);
                 int bytes = f->locals * 8;
                 int a = atoi(I->arguments[2]->name.c_str());
                 bytes += a;
-                if (DEBUG_S) printf("a is %d\n", a);
+                if (DEBUGGING) printf("a is %d\n", a);
                 I->instruction = std::regex_replace(I->instruction, std::regex("stack-arg [0-9]+"), "mem rsp " + std::to_string(bytes));
             }
         }
@@ -65,11 +66,11 @@ void removeIncDecSpaces(L2::Function* f);
 
         for (Instruction* I : f->instructions) {
             if (I->type == CALL) {
-                if (DEBUG_S) printf("found a CALL\n");
+                if (DEBUGGING) printf("found a CALL\n");
                 
                 if (!incremented) {
                     f->locals += regs.size();
-                    if (DEBUG_S) printf("size of regs is : %ld\n", regs.size());
+                    if (DEBUGGING) printf("size of regs is : %ld\n", regs.size());
                     incremented = true;
                 }
 
@@ -81,18 +82,18 @@ void removeIncDecSpaces(L2::Function* f);
             i = 0;
             for (std::string r : regs) {
                     idx = f->instructions.begin() + I->instNum;
-                    if (DEBUG_S) printf("adding insert store inst\n");
+                    if (DEBUGGING) printf("adding insert store inst\n");
                     insertStore(f, r, idx, (curLocals * 8) + (i * 8));
-                    if (DEBUG_S) printf("linking inst pointers\n");
+                    if (DEBUGGING) printf("linking inst pointers\n");
                     linkInstructionPointers(f);
 
-                    if (DEBUG_S) printf("adding insert load inst\n");
+                    if (DEBUGGING) printf("adding insert load inst\n");
                     idx = f->instructions.begin() + I->instNum + 1;
                     insertLoad(f, r, idx, (curLocals * 8) + (i * 8));
-                    if (DEBUG_S) printf("linking inst pointers\n");
+                    if (DEBUGGING) printf("linking inst pointers\n");
                     linkInstructionPointers(f);
 
-                    if (DEBUG_S) printf("added reg!\n");
+                    if (DEBUGGING) printf("added reg!\n");
                     
                     i++;
             }
@@ -102,14 +103,14 @@ void removeIncDecSpaces(L2::Function* f);
 
 
     void colorRegisters(Function* f){
-        //if (DEBUG_S) printf("Coloring registers:\n");
+        //if (DEBUGGING) printf("Coloring registers:\n");
         for(std::string curReg : allRegs){
             Variable* curVar = findCorrespondingVar(curReg, f->interferenceGraph);
             if(curVar){
                 for(int i = 0; i < 15; i++){
                     if(curReg == allRegs[i]){
                         curVar->color = regToColorMap[i];
-                        //if (DEBUG_S) printf("%s -> %s\n", curReg.c_str(), allRegs[i].c_str());
+                        //if (DEBUGGING) printf("%s -> %s\n", curReg.c_str(), allRegs[i].c_str());
                     }
                 }
             }
@@ -135,11 +136,11 @@ void removeIncDecSpaces(L2::Function* f);
         for(std::string e : v->edges){
             Variable* curVar = findCorrespondingVar(e, f->interferenceGraph);
             if(curVar){
-                if (DEBUG_S) printf("Marking bit %d false for %s -> %s\n", colorToRegMap[curVar->color], v->name.c_str(), curVar->name.c_str());
+                if (DEBUGGING) printf("Marking bit %d false for %s -> %s\n", colorToRegMap[curVar->color], v->name.c_str(), curVar->name.c_str());
                 v->aliveColors[colorToRegMap[curVar->color]] = false;
             }
         }
-        if(DEBUG_S){
+        if(DEBUGGING){
             printf("The available colors for (%s) are: \n", v->name.c_str());
             for(int i = 0 ; i < 15; i++){
                 if(v->aliveColors[i]){
@@ -151,7 +152,7 @@ void removeIncDecSpaces(L2::Function* f);
         for(int i = 0; i < 15; i++){
             if(v->aliveColors[i]){
                 v->color = regToColorMap[i];
-                if(DEBUG_S) printf("Assigning color %s to var %s\n", allRegs[colorToRegMap[v->color]].c_str(), v->name.c_str());
+                if(DEBUGGING) printf("Assigning color %s to var %s\n", allRegs[colorToRegMap[v->color]].c_str(), v->name.c_str());
                 return true;
             }
         }
@@ -159,28 +160,29 @@ void removeIncDecSpaces(L2::Function* f);
     }
 
     void submitColorChanges(Function* f){
+
         for(Variable* V : f->interferenceGraph->variables){
+            if (DEBUG_S) printf("submitting COlor changes for %s\n", V->name.c_str());
             if(std::find(allRegs.begin(), allRegs.end(), V->name) == allRegs.end()){
 
                 for(Instruction* I : V->uses){
                     I->instruction.append(" ");
-                        if(DEBUG_S) printf("Changing Instruction (Replacing %s with %s): %s\n", V->name.c_str(), allRegs[colorToRegMap[V->color] ].c_str() ,I->instruction.c_str());
-                        //std::size_t found = I->instruction.find(V->name);
-                        std::string i = " " + I->instruction;
+                        if(DEBUGGING) printf("Changing Instruction (Replacing %s with %s): %s\n", V->name.c_str(), allRegs[colorToRegMap[V->color] ].c_str() ,I->instruction.c_str());
+                        std::string i = " " + I->instruction + " ";
                         I->instruction = std::regex_replace(i, std::regex(" " + V->name + " "), " " + allRegs[colorToRegMap[V->color]] + " ");
-                        if(DEBUG_S) printf("Instruction is now: %s\n", I->instruction.c_str());
+                        if(DEBUGGING) printf("Instruction is now: %s\n", I->instruction.c_str());
                 }
             }
         }
     }
 
     void generateUses(L2::Function* f){
+
         for(Instruction* I : f->instructions){
             for(int i = 0; i < I->arguments.size(); i++){
                 L2::Variable* V = findCorrespondingVar(I->arguments[i]->name, f->interferenceGraph);
                 //Found a variable
                 if(V){
-                    //varFound = true;
                     V->uses.push_back(I);
                     if(I->type == ASSIGN){ 
                         if(I->arguments[0]->name == I->arguments[1]->name){
@@ -209,7 +211,7 @@ void removeIncDecSpaces(L2::Function* f);
              if(assigned){
                  //Callee Save
                  if(colorToRegMap[V->color] > colorToRegMap[RSI]){
-                    if (DEBUG_S) printf("adding callee saved: %s\n", allRegs[colorToRegMap[V->color]].c_str());
+                    if (DEBUGGING) printf("adding callee saved: %s\n", allRegs[colorToRegMap[V->color]].c_str());
                      calleeSavesInUse.push_back(allRegs[colorToRegMap[V->color] ]);
                  } else {
                     callerSavesInUse.insert(allRegs[colorToRegMap[V->color] ]);
@@ -219,7 +221,7 @@ void removeIncDecSpaces(L2::Function* f);
              else{
                  f->toSpill = V->name;
                  f->replaceSpill = V->name + "S_P_I_L_L";
-                 if(DEBUG_S) printf("Attempting to spill %s\n", V->name.c_str());
+                 if(DEBUGGING) printf("Attempting to spill %s\n", V->name.c_str());
                  spillVar(f);
                  return false;
              }
@@ -227,7 +229,7 @@ void removeIncDecSpaces(L2::Function* f);
         
         int offset = f->locals * 8;
         for(std::string str : calleeSavesInUse){
-            if (DEBUG_S) printf("adding load and store instructions for a callee saved reg\n");
+            if (DEBUGGING) printf("adding load and store instructions for a callee saved reg\n");
             f->locals++;
             offset += 8;
             
@@ -244,12 +246,12 @@ void removeIncDecSpaces(L2::Function* f);
 
 
         if (callerSavesInUse.size()){
-            if (DEBUG_S) printf("calling callersave\n");
+            if (DEBUGGING) printf("calling callersave\n");
             handleCallInstructions(f, callerSavesInUse);
-            if (DEBUG_S) printf("handled callersave\n");
+            if (DEBUGGING) printf("handled callersave\n");
         }
 
-        if(DEBUG_S) printf("Submitting Color Changes\n");
+        if(DEBUGGING) printf("Submitting Color Changes\n");
         generateUses(f);
         submitColorChanges(f);
         removeIncDecSpaces(f);
@@ -302,7 +304,7 @@ void removeIncDecSpaces(L2::Function* f);
             
             // add all instruction variables from in set
             for(std::string curIn : I->in){
-                //printf("from in %s\n", curIn.c_str());
+                // printf("from in %s\n", curIn.c_str());
                 vars.insert(curIn);
             }
             // add all instruction variables from out set
@@ -315,6 +317,7 @@ void removeIncDecSpaces(L2::Function* f);
                 //printf("from kill %s\n", curKill.c_str());
                 vars.insert(curKill);
             } 
+
         }
         
         // now we have all variable names, instiate new Variable objects for them
@@ -499,7 +502,7 @@ void removeIncDecSpaces(L2::Function* f);
             switch(I->type){
                 //arithmetic
                 case AOP:
-                    if (DEBUG_S) printf("added a AOP: %s\n", I->instruction.c_str());  
+                    if (DEBUGGING) printf("added a AOP: %s\n", I->instruction.c_str());  
                     if(I->arguments[1]->type != MEM && I->arguments[1]->type != NUM) {
                         I->gen.push_back(I->arguments[1]->name);
                     }
@@ -535,7 +538,7 @@ void removeIncDecSpaces(L2::Function* f);
                     }
 
                     I->kill.push_back(I->arguments[0]->name);      
-                    if (DEBUG_S) printf("added a assignmentn: %s\n", I->instruction.c_str());              
+                    if (DEBUGGING) printf("added a assignmentn: %s\n", I->instruction.c_str());              
                     break;
 
 
@@ -551,19 +554,19 @@ void removeIncDecSpaces(L2::Function* f);
                         I->gen.push_back(result[3]);
                     }
 
-                    if (DEBUG_S) printf("added a load: %s\n", I->instruction.c_str());
+                    if (DEBUGGING) printf("added a load: %s\n", I->instruction.c_str());
                     
                     break;
 
                
                 case STACKARG:
                     I->kill.push_back(I->arguments[0]->name);
-                    if (DEBUG_S) printf("added %s to kill set (STACKARG)\n", I->kill[0].c_str());
+                    if (DEBUGGING) printf("added %s to kill set (STACKARG)\n", I->kill[0].c_str());
                     break;
 
                 //store
                 case STORE:
-                    if (DEBUG_S) printf("added a STORE: %s\n", I->instruction.c_str());  
+                    if (DEBUGGING) printf("added a STORE: %s\n", I->instruction.c_str());  
                     if (I->arguments[1]->type != LBL && I->arguments[1]->type != NUM) {
                         I->gen.push_back(I->arguments[1]->name);
                     }
@@ -579,7 +582,7 @@ void removeIncDecSpaces(L2::Function* f);
 
                 // cjump
                 case CJUMP:
-                    if (DEBUG_S) printf("added a CJUMP: %s\n", I->instruction.c_str());  
+                    if (DEBUGGING) printf("added a CJUMP: %s\n", I->instruction.c_str());  
                     // dest
                     if (I->arguments[3]->type != NUM) {
                         I->gen.push_back(I->arguments[3]->name);
@@ -594,7 +597,7 @@ void removeIncDecSpaces(L2::Function* f);
 
                 // goto    
                 case GOTO:
-                    if (DEBUG_S) printf("added a GOTO: %s\n", I->instruction.c_str());  
+                    if (DEBUGGING) printf("added a GOTO: %s\n", I->instruction.c_str());  
 
                     break;
 
@@ -604,7 +607,7 @@ void removeIncDecSpaces(L2::Function* f);
 
                 // call    
                 case CALL:
-                    if (DEBUG_S) printf("added a CALL: %s\n", I->instruction.c_str());  
+                    if (DEBUGGING) printf("added a CALL: %s\n", I->instruction.c_str());  
                     // I->gen = callInstGen;
                 
                     if (I->arguments[0]->name != "print" && 
@@ -625,7 +628,7 @@ void removeIncDecSpaces(L2::Function* f);
 
                 // lea
                 case LEA:
-                    if (DEBUG_S) printf("added a LEA: %s\n", I->instruction.c_str());  
+                    if (DEBUGGING) printf("added a LEA: %s\n", I->instruction.c_str());  
                     I->kill.push_back(I->arguments[0]->name);
                     I->gen.push_back(I->arguments[1]->name);
                     I->gen.push_back(I->arguments[2]->name);
@@ -633,7 +636,7 @@ void removeIncDecSpaces(L2::Function* f);
 
                 // compare assign
                 case CMP_ASSIGN:
-                    if (DEBUG_S) printf("added a CMP_ASSIGN: %s\n", I->instruction.c_str());  
+                    if (DEBUGGING) printf("added a CMP_ASSIGN: %s\n", I->instruction.c_str());  
                     I->kill.push_back(I->arguments[0]->name);
                     if (I->arguments[1]->type != NUM) {
                         I->gen.push_back(I->arguments[1]->name);
@@ -646,14 +649,14 @@ void removeIncDecSpaces(L2::Function* f);
 
                 // inc/dec
                 case INC_DEC:
-                    if (DEBUG_S) printf("added a INC_DEC: %s\n", I->instruction.c_str());  
+                    if (DEBUGGING) printf("added a INC_DEC: %s\n", I->instruction.c_str());  
                     I->kill.push_back(I->arguments[0]->name);
                     I->gen.push_back(I->arguments[0]->name);
                     break;
 
 
                 default:
-                    if (DEBUG_S) printf("going to default for %s\n", I->instruction.c_str());
+                    if (DEBUGGING) printf("going to default for %s\n", I->instruction.c_str());
                     break;
             } 
         }
