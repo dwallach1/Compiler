@@ -12,7 +12,7 @@
 
 #include <L2.h>
 #include <parser.h>
-#define DEBUGGING 1
+#define DEBUGGING 0
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
@@ -553,6 +553,10 @@ namespace L2 {
         L2::Arg* source = parsed_registers.back();
         parsed_registers.pop_back();
 
+        L2::Arg* num = new L2::Arg();
+        num = parsed_registers.back();
+        parsed_registers.pop_back();
+
         L2::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
@@ -574,10 +578,9 @@ namespace L2 {
         }
         
         if (source->type == S_ARG) { 
-          L2::Arg* num = parsed_registers.back();
-          parsed_registers.pop_back();
+         
           instruction->arguments.push_back(num);
-
+          if (DEBUGGING) printf("assigning instruction to STACKARG\n");
           instruction->type == STACKARG; 
         }
         else { instruction->type = LOAD; }
@@ -596,6 +599,7 @@ namespace L2 {
         
         L2::Arg* source = parsed_registers.back();
         parsed_registers.pop_back();
+
         L2::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();

@@ -482,6 +482,7 @@ void removeIncDecSpaces(L2::Function* f);
                     break;
 
 
+
                 // load
                 case LOAD:
                     for(std::string s; iss >> s; )
@@ -495,6 +496,11 @@ void removeIncDecSpaces(L2::Function* f);
                     
                     break;
 
+               
+                case STACKARG:
+                    I->kill.push_back(I->arguments[0]->name);
+                    if (DEBUG_S) printf("added %s to kill set (STACKARG)\n", I->kill[0].c_str());
+                    break;
 
                 //store
                 case STORE:
@@ -544,11 +550,12 @@ void removeIncDecSpaces(L2::Function* f);
                         I->arguments[0]->name != "allocate" && 
                         I->arguments[0]->name != "array_error" && 
                         I->arguments[0]->type != LBL) {
-                       
+
                         I->gen.push_back(I->arguments[0]->name);
                     }
                     //This will add the arguments to the gen set. Essentially it is a loop that will add registers in the arguments until it reaches the number in the instruction
                     for(int q = 0; q < atoi(I->arguments[1]->name.c_str()); q++){
+                        if (q == 6) break;
                         I->gen.push_back(callInstGen[q]);
                     }
 

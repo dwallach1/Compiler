@@ -175,9 +175,11 @@ int main(
       bool done = false;
       while(!done){
         done = true;
+        if (DEBUGGING) printf("computing livenes Analysis\n");
         L2::computeLivenessAnalysis(&p, f);
+        if (DEBUGGING) printf("generating interferenceGraph\n");
         generateInterferenceGraph(f);
-        if (DEBUGGING) printInterferenceGraph(f->interferenceGraph);
+        //if (DEBUGGING) printInterferenceGraph(f->interferenceGraph);
         done = colorVariables(f);
         if (!done) {
           for (L2::Instruction* I : f->instructions) {
