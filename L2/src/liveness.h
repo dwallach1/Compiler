@@ -7,7 +7,7 @@
 #include <regex>
 #include <stdlib.h>
 #define DEBUGGING 0
-#define DEBUG_S 1
+#define DEBUG_S 0
 
 
 std::vector<std::string> allRegs = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi", "r12", "r13", "r14", "r15", "rbp", "rbx"};
@@ -53,6 +53,51 @@ void removeIncDecSpaces(L2::Function* f);
                 I->instruction = std::regex_replace(I->instruction, std::regex("stack-arg [0-9]+"), "mem rsp " + std::to_string(bytes));
             }
         }
+    }
+
+    void handleCallInstructions(Function* f, std::set<std::string> regs) {
+        std::vector<Instruction*>::iterator idx;
+        int curLocals = f->locals;
+        int i = 0;
+        bool incremented = false;
+
+        std::vector<Instruction*> calls = {};
+
+        for (Instruction* I : f->instructions) {
+            if (I->type == CALL) {
+                if (DEBUG_S) printf("found a CALL\n");
+                
+                if (!incremented) {
+                    f->locals += regs.size();
+                    if (DEBUG_S) printf("size of regs is : %ld\n", regs.size());
+                    incremented = true;
+                }
+
+                calls.push_back(I);
+            }
+        }
+
+        for (Instruction* I : calls) {
+            i = 0;
+            for (std::string r : regs) {
+                    idx = f->instructions.begin() + I->instNum;
+                    if (DEBUG_S) printf("adding insert store inst\n");
+                    insertStore(f, r, idx, (curLocals * 8) + (i * 8));
+                    if (DEBUG_S) printf("linking inst pointers\n");
+                    linkInstructionPointers(f);
+
+                    if (DEBUG_S) printf("adding insert load inst\n");
+                    idx = f->instructions.begin() + I->instNum + 1;
+                    insertLoad(f, r, idx, (curLocals * 8) + (i * 8));
+                    if (DEBUG_S) printf("linking inst pointers\n");
+                    linkInstructionPointers(f);
+
+                    if (DEBUG_S) printf("added reg!\n");
+                    
+                    i++;
+            }
+        }
+
     }
 
 
@@ -154,8 +199,9 @@ void removeIncDecSpaces(L2::Function* f);
         bool done = false;
         bool assigned = false;
         std::vector<std::string> calleeSavesInUse = {};
+        std::set<std::string> callerSavesInUse = {};
        
-         calleeSavesInUse = {};
+         // calleeSavesInUse = {};
          stack = {};
          generateStack(f, &stack);
          for(Variable* V : stack){
@@ -165,6 +211,8 @@ void removeIncDecSpaces(L2::Function* f);
                  if(colorToRegMap[V->color] > colorToRegMap[RSI]){
                     if (DEBUG_S) printf("adding callee saved: %s\n", allRegs[colorToRegMap[V->color]].c_str());
                      calleeSavesInUse.push_back(allRegs[colorToRegMap[V->color] ]);
+                 } else {
+                    callerSavesInUse.insert(allRegs[colorToRegMap[V->color] ]);
                  }
              }
              //spill
@@ -192,9 +240,15 @@ void removeIncDecSpaces(L2::Function* f);
             insertLoad(f, str, iter, offset);
 
             linkInstructionPointers(f);
-
-
         }
+
+
+        if (callerSavesInUse.size()){
+            if (DEBUG_S) printf("calling callersave\n");
+            handleCallInstructions(f, callerSavesInUse);
+            if (DEBUG_S) printf("handled callersave\n");
+        }
+
         if(DEBUG_S) printf("Submitting Color Changes\n");
         generateUses(f);
         submitColorChanges(f);
@@ -411,6 +465,7 @@ void removeIncDecSpaces(L2::Function* f);
         if(size == 1){
             f->instructions[0]->prevInst = NULL;
             f->instructions[0]->nextInst = NULL;
+            f->instructions[0]->instNum = 0;
             return;
         }
         for (int i = 0; i < size; ++i)
@@ -431,6 +486,7 @@ void removeIncDecSpaces(L2::Function* f);
                 f->instructions[i]->prevInst = f->instructions[i-1];
                 f->instructions[i]->nextInst = NULL;
             }
+            f->instructions[i]->instNum = i;
         }
     }
 
@@ -440,7 +496,6 @@ void removeIncDecSpaces(L2::Function* f);
         for(Instruction* I : f->instructions) {
             std::istringstream iss(I->instruction);
             std::vector<std::string> result;
-            printf("genkill for %s\n", I->instruction.c_str());
             switch(I->type){
                 //arithmetic
                 case AOP:
