@@ -68,26 +68,6 @@ namespace L2{
 		}
 	}
 
-	bool callAhead(Instruction* I, Function* f){
-		bool found = false;
-		for(Instruction* Ii : f->instructions){
-			if(Ii == I){
-				found = true;
-				continue;
-			}
-			if(found){
-				if(Ii->type == CALL){
-					return true;
-				}
-				for(Arg* compArg : Ii->arguments){
-					if(compArg->name == f->toSpill){
-						return false;
-					}
-				}
-			}
-		}
-		return false;
-	}
 
 	void printNewSpill(Function* f){
 
@@ -145,10 +125,7 @@ namespace L2{
 	}
 
 
-
 	void spillVar(L2::Function* f){
-		//Is it a cJump Goto or call
-		bool specialInstruction;
 		
 		removeIncDecSpaces(f);
 		generateUsesAndVars(f);
@@ -167,7 +144,6 @@ namespace L2{
 
 				std::vector<Instruction*>::iterator iter = V->uses.begin();
 				Instruction* I = *iter;
-				specialInstruction = I->type == CALL || I->type == CJUMP || I->type == GOTO;
 
 				int j = 0;
 				std::string replacementString = f->replaceSpill + std::to_string(i);
@@ -193,62 +169,22 @@ namespace L2{
 						break;
 					}
 				}
+				iter2 = f->instructions.begin();
 				if(I->type == LOAD || I->type == ASSIGN || I->type == AOP || I->type == INC_DEC || I->type == CMP_ASSIGN || I->type == LEA){
 					if(I->kill[0] == V->name){
 						insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);
 						generateInstNums(f);
+						iter2 = f->instructions.begin();
 					}
 				}
 
 
 				
-
-
-				//bool callInstAhead = callAhead(I, f);
-				
-
-
-
-
-				// //Last inst
-				// if(i == numUses-1 && I->type != LOAD){
-					
-				// 	insertLoad(f, replacementString, iter2 + I->instNum, stackLoc); 
-
-				// 	if(!callInstAhead && !specialInstruction ){
-				// 		generateInstNums(f);
-				// 		iter2 = f->instructions.begin();
-				// 		insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);
-				// 	}
-				// }
-				// //First Inst
-				// else if(i == 0 && I->type != STORE && !specialInstruction){
-				// 	insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);	
-				// }
-				// //Middle case
-				// else{
-	
-				// 	if(I->type != STORE && !specialInstruction){ 
-				// 		insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);	
-				// 	}
-					
-				// 	generateInstNums(f);
-
-				// 	iter2 = f->instructions.begin();
-
-				// 	if(I->type != LOAD){ 
-				// 		insertLoad(f, replacementString, iter2 + I->instNum, stackLoc);
-				// 	}
-				// }
 				int k = 0;
 				std::vector<Instruction*> newUses = {};
 				for(Instruction* I : V->uses){
-					if (k){
-						newUses.push_back(I);
-					}
-					else{
-						k++;
-					}
+					if (k) {   newUses.push_back(I);   }
+					else   {   k++;				 	   }
 				}
 				
 				V->uses = newUses;

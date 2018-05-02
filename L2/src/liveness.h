@@ -7,7 +7,7 @@
 #include <regex>
 #include <stdlib.h>
 #define DEBUGGING 0
-#define DEBUG_S 0
+#define DEBUG_S 1
 
 
 std::vector<std::string> allRegs = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi", "r12", "r13", "r14", "r15", "rbp", "rbx"};
@@ -21,6 +21,7 @@ namespace L2{
 std::map<L2::Color, int> colorToRegMap = {{R10, 0}, {R11, 1}, {R8, 2}, {R9, 3}, {RAX, 4}, {RCX, 5}, {RDI, 6}, {RDX, 7}, {RSI, 8}, {R12, 9}, {R13, 10}, {R14, 11}, {R15, 12}, {RBP, 13}, {RBX, 14}, {NO_COLOR, 15} };
 std::map<int, L2::Color> regToColorMap = {{0, R10}, {1, R11}, {2, R8}, {3, R9}, {4, RAX}, {5, RCX}, {6, RDI}, {7, RDX}, {8, RSI}, {9, R12}, {10, R13}, {11, R14}, {12, R15}, {13, RBP}, {14, RBX}, {15, NO_COLOR} };
 
+void printInterferenceGraph(L2::InterferenceGraph* iG);
 void linkInstructionPointers(L2::Function* f);
 L2::Variable* findCorrespondingVar(std::string name, L2::InterferenceGraph* iG);
 void spillVar(L2::Function* f);
@@ -28,17 +29,32 @@ void generateUsesAndVars(L2::Function* f);
 void insertLoad(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc);
 void insertStore(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc);
 
+    /*
+     *
+     *
+     *
+     *  COLOR VARIABLES 
+     *
+     *
+     *
+     *
+     *
+     */
+
     void colorRegisters(Function* f){
+        //if (DEBUG_S) printf("Coloring registers:\n");
         for(std::string curReg : allRegs){
             Variable* curVar = findCorrespondingVar(curReg, f->interferenceGraph);
             if(curVar){
                 for(int i = 0; i < 15; i++){
                     if(curReg == allRegs[i]){
                         curVar->color = regToColorMap[i];
+                        //if (DEBUG_S) printf("%s -> %s\n", curReg.c_str(), allRegs[i].c_str());
                     }
                 }
             }
         }
+        printf("\n");
     }
 
     void generateStack(Function* f, std::vector<Variable*>* stack){
@@ -49,7 +65,7 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
                 for(int i = 0; i < 15; i++){
                     v->aliveColors[i] = true;
                 }
-                v->aliveColors[15] = false;
+                //v->aliveColors[15] = false;
                 stack->push_back(v);
             }
         }
@@ -59,11 +75,12 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
         for(std::string e : v->edges){
             Variable* curVar = findCorrespondingVar(e, f->interferenceGraph);
             if(curVar){
+                if (DEBUG_S) printf("Marking bit %d false for %s -> %s\n", colorToRegMap[curVar->color], v->name.c_str(), curVar->name.c_str());
                 v->aliveColors[colorToRegMap[curVar->color]] = false;
             }
         }
         if(DEBUG_S){
-            printf("The available colors are: \n");
+            printf("The available colors for (%s) are: \n", v->name.c_str());
             for(int i = 0 ; i < 15; i++){
                 if(v->aliveColors[i]){
                     printf("%s ", allRegs[i].c_str());
@@ -130,6 +147,7 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
              if(assigned){
                  //Callee Save
                  if(colorToRegMap[V->color] > colorToRegMap[RSI]){
+                    if (DEBUG_S) printf("adding callee saved: %s\n", allRegs[colorToRegMap[V->color]].c_str());
                      calleeSavesInUse.push_back(allRegs[colorToRegMap[V->color] ]);
                  }
              }
@@ -137,7 +155,7 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
              else{
                  f->toSpill = V->name;
                  f->replaceSpill = V->name + "S_P_I_L_L";
-                 if(DEBUG_S) printf("Attempting to spill\n");
+                 if(DEBUG_S) printf("Attempting to spill %s\n", V->name.c_str());
                  spillVar(f);
                  return false;
              }
@@ -145,6 +163,7 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
         
         int offset = f->locals * 8;
         for(std::string str : calleeSavesInUse){
+            if (DEBUG_S) printf("adding load and store instructions for a callee saved reg\n");
             f->locals++;
             offset += 8;
             
@@ -322,13 +341,19 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
                 regsToAdd.erase(position);
             }
         }
+
+
+        if(DEBUG_S) printf("making a clique with:\n");
         // insert all necessary variables and registers to make a clique
         for(std::string r : regsToAdd){
+
             Variable* V = findCorrespondingVar(r, f->interferenceGraph);
             if(V != NULL){
                 result->insert(V);
+                if (DEBUG_S) printf("%s | ", V->name.c_str());
             } 
         } 
+        if (DEBUG_S) printf("\n");
     }
 
 

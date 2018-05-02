@@ -18,7 +18,7 @@
 #include <code_generator.h>
 
 
-#define DEBUGGING 0
+#define DEBUGGING 1
 
 using namespace std;
 
@@ -170,11 +170,14 @@ int main(
    */
   if (enable_code_generator){
     for(auto f : p.functions){
+      if (DEBUGGING) printf("Generating abstractions for function: %s\n", f->name.c_str());
+
       bool done = false;
       while(!done){
         done = true;
         L2::computeLivenessAnalysis(&p, f);
         generateInterferenceGraph(f);
+        //if (DEBUGGING) printInterferenceGraph(f->interferenceGraph);
         done = colorVariables(f);
       }
     }
