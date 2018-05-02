@@ -7,7 +7,7 @@
 #include <regex>
 #include <stdlib.h>
 #define DEBUGGING 0
-#define DEBUG_S 1
+#define DEBUG_S 0
 
 
 std::vector<std::string> allRegs = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi", "r12", "r13", "r14", "r15", "rbp", "rbx"};
@@ -28,6 +28,7 @@ void spillVar(L2::Function* f);
 void generateUsesAndVars(L2::Function* f);
 void insertLoad(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc);
 void insertStore(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc);
+void removeIncDecSpaces(L2::Function* f);
 
     /*
      *
@@ -40,6 +41,19 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
      *
      *
      */
+
+    void handleStackArgs(Function* f) {
+
+        for (Instruction* I : f->instructions) {
+            if (I->type == STACKARG) {
+                int bytes = f->locals * 8;
+                int a = atoi(I->arguments[2]->name.c_str());
+                bytes += a * 8;
+                I->instruction = std::regex_replace(I->instruction, std::regex("stack-arg [0-9]+"), "mem rsp " + bytes);
+            }
+        }
+    }
+
 
     void colorRegisters(Function* f){
         //if (DEBUG_S) printf("Coloring registers:\n");
@@ -65,7 +79,7 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
                 for(int i = 0; i < 15; i++){
                     v->aliveColors[i] = true;
                 }
-                //v->aliveColors[15] = false;
+                v->aliveColors[15] = false;
                 stack->push_back(v);
             }
         }
@@ -106,7 +120,8 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
                     I->instruction.append(" ");
                         if(DEBUG_S) printf("Changing Instruction (Replacing %s with %s): %s\n", V->name.c_str(), allRegs[colorToRegMap[V->color] ].c_str() ,I->instruction.c_str());
                         //std::size_t found = I->instruction.find(V->name);
-                        I->instruction = std::regex_replace(I->instruction, std::regex(V->name + " "), allRegs[colorToRegMap[V->color]] + " ");
+                        std::string i = " " + I->instruction;
+                        I->instruction = std::regex_replace(i, std::regex(" " + V->name + " "), " " + allRegs[colorToRegMap[V->color]] + " ");
                         if(DEBUG_S) printf("Instruction is now: %s\n", I->instruction.c_str());
                 }
             }
@@ -182,6 +197,8 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
         if(DEBUG_S) printf("Submitting Color Changes\n");
         generateUses(f);
         submitColorChanges(f);
+        removeIncDecSpaces(f);
+        handleStackArgs(f);
         return true;
 
     }
@@ -256,104 +273,28 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
     }
 
     void addToEdgeSet(Variable* V, std::vector<std::string> vec){
-        if (std::find(vec.begin(), vec.end(), V->name) != vec.end()){
-            for (std::string curVal : vec) {
-                if (curVal != V->name) {
-                    V->edges.insert(curVal);
+        for (std::string s : vec) {
+            if (s == V->name){
+                for (std::string curVal : vec) {
+                    if (curVal != V->name) {
+                        V->edges.insert(curVal);
+                    }
                 }
             }
+
         }
+        
     }
 
-
-    void getCallInstructionIntersection(int instNum, L2::Function* f, std::set<L2::Variable*>* result, int numArgs){
-        std::set<L2::Variable*> beforeSet = {};
-        std::set<L2::Variable*> afterSet = {};
-        *result = {};
-
-        
-        for(int i = 0; i < f->instructions.size(); i++){
-            // build the before set
-            if(i < instNum){
-                // find corresponding variable and add it into the before set
-                for(int j = 0; j < f->instructions[i]->arguments.size(); j++){
-                    Variable* V = findCorrespondingVar(f->instructions[i]->arguments[j]->name, f->interferenceGraph);
-                    if(V != NULL){
-                       beforeSet.insert(V); 
-                    } 
-                }
-                // if theres another call instruction before instNum, we restart b/c we were out of scope
-                if(f->instructions[i]->type == CALL){
-                    beforeSet = {};
-                }
-            }
-            // build the after set
-            else if(i > instNum){
-                // if theres another call instruction after instNum, break out --> we're done
-                if(f->instructions[i]->type == CALL){
-                    break;
-                }
-                // otherwise find the corresponding variable and insert into the after set
-                for(int j = 0; j < f->instructions[i]->arguments.size(); j++){
-                    Variable* V = findCorrespondingVar(f->instructions[i]->arguments[j]->name, f->interferenceGraph);
-                    if(V != NULL){
-                       afterSet.insert(V); 
+    void addToEdgeSetOneWay(Variable* V, std::vector<std::string> vec){
+        for (std::string s : vec) {
+                for (std::string curVal : vec) {
+                    if (curVal != V->name) {
+                        V->edges.insert(curVal);
                     }
                 }
-            }
         }
         
-        // find the intersection of the before and after call instruction sets    
-        set_intersection(beforeSet.begin(), beforeSet.end(), afterSet.begin(), afterSet.end(), std::inserter(*result, result->begin()));
-       
-    
-        std::vector<std::string> regsToAdd = {};
-        // depending on the intersection of the before and after set, we build the set that we want to make a clique 
-        if (result->size() == 0) {
-            regsToAdd = calleeSaveRegs;
-            for(L2::Variable* V : beforeSet){
-                bool found = 0;
-                for(std::string curStr : allRegs){
-                    if(curStr == V->name){
-                        found = true;
-                    }
-                }
-                // only add it to the callee saved registers if the var itself is not a register
-                if(!found){
-                    regsToAdd.push_back(V->name);
-                }
-            }
-        }
-        // otherwise, we need to add all registers
-        else { regsToAdd = allRegs; }
-        
-        // remove argument registers for each one used in a call 
-        for(int i = 0; i < numArgs; i++){
-            std::vector<std::string>::iterator position = std::find(regsToAdd.begin(), regsToAdd.end(), callInstGen[i]);
-            if(position != regsToAdd.end()){
-                regsToAdd.erase(position);
-            }
-        }
-        // remove callee-saved registers for each one used in function's local variables
-        for(int i= 0; i < f->locals; i++){
-            std::vector<std::string>::iterator position = std::find(regsToAdd.begin(), regsToAdd.end(), calleeSaveRegs[i]);
-            if(position != regsToAdd.end()){
-                regsToAdd.erase(position);
-            }
-        }
-
-
-        if(DEBUG_S) printf("making a clique with:\n");
-        // insert all necessary variables and registers to make a clique
-        for(std::string r : regsToAdd){
-
-            Variable* V = findCorrespondingVar(r, f->interferenceGraph);
-            if(V != NULL){
-                result->insert(V);
-                if (DEBUG_S) printf("%s | ", V->name.c_str());
-            } 
-        } 
-        if (DEBUG_S) printf("\n");
     }
 
 
@@ -378,52 +319,50 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
         for(L2::Variable* V : iG->variables){ 
             std::string curVar = V->name;
             
-            //Add all registers to Edge set if it is a reg
-            addToEdgeSet(V, allRegs);
+
+            //Make clique of all registers
+            std::set<L2::Variable*> regVars = {};
+            for (std::string r : allRegs) {
+                Variable* V = findCorrespondingVar(r, f->interferenceGraph);
+                if (V) { regVars.insert(V); }
+            }
+            makeClique(&regVars);
             
+
             for(Instruction* I : f->instructions){
                 // addToEdgeSet checks to see if the variable is in the given vector
                 // if it is, then it adds its elements to its edge set
                 addToEdgeSet(V, I->in);
-                addToEdgeSet(V, I->out);       
+                addToEdgeSet(V, I->out);
+
+       
             }
         }
 
 
         //Link the kill sets and out sets
-        int instNum = 0;
         for(Instruction* I : f->instructions){
 
             // check if x <- y condition           
             if ((I->type != ASSIGN) || (I->type == ASSIGN && (I->arguments[1]->type == LBL || I->arguments[1]->type == NUM))) { 
                 
-                std::set<L2::Variable*> result = {};
-                
+                std::vector<std::string> r;            
+  
                 // for each variable in the kill sets, link to variables in the out sets
                 for(std::string curVar : I->kill){
-                    //Grab the correpsonding variable
-                    L2::Variable* V = findCorrespondingVar(curVar, iG);
-                    if (V){
-                        result.insert(V);
+                    r = {};
+                    L2::Variable* V = findCorrespondingVar(curVar, f->interferenceGraph);
+
+                    for(std::string curOut : I->out){
+                        r.push_back(curOut);
                     }
-                }
-                for(std::string curOut : I->out){
-                    L2::Variable* V = findCorrespondingVar(curOut, iG);
-                    if (V){
-                        result.insert(V);
-                    }
-                }
-                makeClique(&result);
-            }     
-            
-            //Call 
-            if(I->type == CALL){
-                std::set<L2::Variable*> result = {};
-                int numArgs = atoi(I->arguments[1]->name.c_str());
-                getCallInstructionIntersection(instNum, f, &result, numArgs);
-                makeClique(&result);        
+                    
+                    addToEdgeSetOneWay(V, r);
+
+
+                }     
             }
-    
+                
             //Shift
             if(I->type == AOP && (I->operation[0] == "<<=" || I->operation[0] == ">>=")){
 
@@ -442,8 +381,7 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
                     makeClique(&result); 
                 }
             }
-            instNum++;
-        }        
+        }       
     }
 
     /*
@@ -595,12 +533,13 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
 
                 // return 
                 case RET:
-                    //I->gen.push_back("rsp");
                     break;
 
                 // call    
                 case CALL:
 
+                    // I->gen = callInstGen;
+                
                     if (I->arguments[0]->name != "print" && 
                         I->arguments[0]->name != "allocate" && 
                         I->arguments[0]->name != "array_error" && 

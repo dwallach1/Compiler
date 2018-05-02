@@ -152,7 +152,7 @@ namespace L2{
 					if(curArg->name == f->toSpill){
 						I->arguments[j]->name = replacementString;
 					}
-					
+
 					I->instruction = std::regex_replace(I->instruction, std::regex(f->toSpill), replacementString);
 					
 					j++;

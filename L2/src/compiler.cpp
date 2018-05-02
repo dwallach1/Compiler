@@ -18,7 +18,7 @@
 #include <code_generator.h>
 
 
-#define DEBUGGING 1
+#define DEBUGGING 0
 
 using namespace std;
 
@@ -177,8 +177,19 @@ int main(
         done = true;
         L2::computeLivenessAnalysis(&p, f);
         generateInterferenceGraph(f);
-        //if (DEBUGGING) printInterferenceGraph(f->interferenceGraph);
+        if (DEBUGGING) printInterferenceGraph(f->interferenceGraph);
         done = colorVariables(f);
+        if (!done) {
+          for (L2::Instruction* I : f->instructions) {
+            I->gen = {};
+            I->kill = {};
+            I->in = {};
+            I->out = {};
+            f->toSpill = "";
+            f->replaceSpill = "";
+            f->interferenceGraph->variables = {};
+          }
+        }
       }
     }
 

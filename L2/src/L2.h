@@ -23,7 +23,8 @@ namespace L2 {
     GOTO,
     RET,
     CALL,
-    LEA
+    LEA,
+    STACKARG
   };
 
   enum Color {
@@ -49,7 +50,8 @@ namespace L2 {
     NUM,
     MEM,
     VAR, 
-    LBL
+    LBL,
+    S_ARG
   };
 
 

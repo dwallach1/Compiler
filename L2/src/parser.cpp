@@ -12,7 +12,7 @@
 
 #include <L2.h>
 #include <parser.h>
-#define DEBUGGING 0
+#define DEBUGGING 1
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
@@ -540,6 +540,8 @@ namespace L2 {
     }
   };
 
+
+
   template<> struct action < load > {
     template< typename Input >
     static void apply( const Input & in, L2::Program & p){
@@ -550,14 +552,13 @@ namespace L2 {
 
         L2::Arg* source = parsed_registers.back();
         parsed_registers.pop_back();
+
         L2::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
         std::string oper = assignmentVec.back();
         assignmentVec.pop_back();
         instruction->instruction = dest->name + ' ' + oper + ' ' + source->name;
-        // if(source.name[0] == 's'){
-        //   instruction->stackArg = true;
-        // }
+ 
         instruction->arguments.push_back(dest);
         instruction->arguments.push_back(source);
         instruction->operation.push_back(oper);
@@ -572,7 +573,14 @@ namespace L2 {
           instruction->arguments.push_back(newArg);
         }
         
-        instruction->type = LOAD;
+        if (source->type == S_ARG) { 
+          L2::Arg* num = parsed_registers.back();
+          parsed_registers.pop_back();
+          instruction->arguments.push_back(num);
+
+          instruction->type == STACKARG; 
+        }
+        else { instruction->type = LOAD; }
         currentF->instructions.push_back(instruction);
         if(DEBUGGING) printf("Writing load as: %s\n", instruction->instruction.c_str());
     }
@@ -643,22 +651,13 @@ namespace L2 {
     template< typename Input >
     static void apply( const Input & in, L2::Program & p){
         if(DEBUGGING) std::cout << "Found a stackArg " << in.string() << std::endl;
-        L2::Function *currentF = p.functions.back();
-        L2::Instruction *instruction = new L2::Instruction();
-        instruction->instruction = in.string();
 
-        int bytes = 8 * currentF->locals;
-        int a = atoi(parsed_registers.back()->name.c_str());
-        parsed_registers.pop_back();
-        bytes += a * 8;
 
-        std::string mem = "mem rsp " + bytes;
-
+      
         L2::Arg* arg = new L2::Arg();
-        arg->name = mem;
-        arg->type = MEM;
+        arg->name = in.string();
+        arg->type = S_ARG;
         parsed_registers.push_back(arg);
-        //parsed_registers.push_back("stack-arg" + arg);
     }
   };
 
