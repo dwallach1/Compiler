@@ -12,6 +12,7 @@ namespace L2 {
   struct DataFlowResult;
 
   enum Type {
+    STACKARG,
     AOP,
     ASSIGN,
     LOAD,
@@ -23,8 +24,7 @@ namespace L2 {
     GOTO,
     RET,
     CALL,
-    LEA,
-    STACKARG
+    LEA
   };
 
   enum Color {

@@ -7,7 +7,7 @@
 #include <regex>
 #include <stdlib.h>
 #define DEBUGGING 0
-#define DEBUG_S 0
+#define DEBUG_S 1
 
 
 std::vector<std::string> allRegs = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi", "r12", "r13", "r14", "r15", "rbp", "rbx"};
@@ -48,8 +48,9 @@ void removeIncDecSpaces(L2::Function* f);
             if (I->type == STACKARG) {
                 int bytes = f->locals * 8;
                 int a = atoi(I->arguments[2]->name.c_str());
-                bytes += a * 8;
-                I->instruction = std::regex_replace(I->instruction, std::regex("stack-arg [0-9]+"), "mem rsp " + bytes);
+                bytes += a;
+                if (DEBUG_S) printf("a is %d\n", a);
+                I->instruction = std::regex_replace(I->instruction, std::regex("stack-arg [0-9]+"), "mem rsp " + std::to_string(bytes));
             }
         }
     }
@@ -439,11 +440,11 @@ void removeIncDecSpaces(L2::Function* f);
         for(Instruction* I : f->instructions) {
             std::istringstream iss(I->instruction);
             std::vector<std::string> result;
-
+            printf("genkill for %s\n", I->instruction.c_str());
             switch(I->type){
                 //arithmetic
                 case AOP:
-
+                    if (DEBUG_S) printf("added a AOP: %s\n", I->instruction.c_str());  
                     if(I->arguments[1]->type != MEM && I->arguments[1]->type != NUM) {
                         I->gen.push_back(I->arguments[1]->name);
                     }
@@ -478,7 +479,8 @@ void removeIncDecSpaces(L2::Function* f);
                         I->gen.push_back(I->arguments[1]->name);
                     }
 
-                    I->kill.push_back(I->arguments[0]->name);                    
+                    I->kill.push_back(I->arguments[0]->name);      
+                    if (DEBUG_S) printf("added a assignmentn: %s\n", I->instruction.c_str());              
                     break;
 
 
@@ -493,6 +495,8 @@ void removeIncDecSpaces(L2::Function* f);
                     if(result[3] != "rsp"){
                         I->gen.push_back(result[3]);
                     }
+
+                    if (DEBUG_S) printf("added a load: %s\n", I->instruction.c_str());
                     
                     break;
 
@@ -504,6 +508,7 @@ void removeIncDecSpaces(L2::Function* f);
 
                 //store
                 case STORE:
+                    if (DEBUG_S) printf("added a STORE: %s\n", I->instruction.c_str());  
                     if (I->arguments[1]->type != LBL && I->arguments[1]->type != NUM) {
                         I->gen.push_back(I->arguments[1]->name);
                     }
@@ -519,7 +524,7 @@ void removeIncDecSpaces(L2::Function* f);
 
                 // cjump
                 case CJUMP:
-
+                    if (DEBUG_S) printf("added a CJUMP: %s\n", I->instruction.c_str());  
                     // dest
                     if (I->arguments[3]->type != NUM) {
                         I->gen.push_back(I->arguments[3]->name);
@@ -534,6 +539,7 @@ void removeIncDecSpaces(L2::Function* f);
 
                 // goto    
                 case GOTO:
+                    if (DEBUG_S) printf("added a GOTO: %s\n", I->instruction.c_str());  
 
                     break;
 
@@ -543,7 +549,7 @@ void removeIncDecSpaces(L2::Function* f);
 
                 // call    
                 case CALL:
-
+                    if (DEBUG_S) printf("added a CALL: %s\n", I->instruction.c_str());  
                     // I->gen = callInstGen;
                 
                     if (I->arguments[0]->name != "print" && 
@@ -564,7 +570,7 @@ void removeIncDecSpaces(L2::Function* f);
 
                 // lea
                 case LEA:
-
+                    if (DEBUG_S) printf("added a LEA: %s\n", I->instruction.c_str());  
                     I->kill.push_back(I->arguments[0]->name);
                     I->gen.push_back(I->arguments[1]->name);
                     I->gen.push_back(I->arguments[2]->name);
@@ -572,7 +578,7 @@ void removeIncDecSpaces(L2::Function* f);
 
                 // compare assign
                 case CMP_ASSIGN:
-
+                    if (DEBUG_S) printf("added a CMP_ASSIGN: %s\n", I->instruction.c_str());  
                     I->kill.push_back(I->arguments[0]->name);
                     if (I->arguments[1]->type != NUM) {
                         I->gen.push_back(I->arguments[1]->name);
@@ -585,13 +591,14 @@ void removeIncDecSpaces(L2::Function* f);
 
                 // inc/dec
                 case INC_DEC:
-
+                    if (DEBUG_S) printf("added a INC_DEC: %s\n", I->instruction.c_str());  
                     I->kill.push_back(I->arguments[0]->name);
                     I->gen.push_back(I->arguments[0]->name);
                     break;
 
 
                 default:
+                    if (DEBUG_S) printf("going to default for %s\n", I->instruction.c_str());
                     break;
             } 
         }
