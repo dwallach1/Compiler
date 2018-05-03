@@ -297,17 +297,16 @@ void removeIncDecSpaces(L2::Function* f);
         for(std::string str : calleeSavesInUse){
             if (DEBUGGING) printf("adding load and store instructions for a callee saved reg\n");
             f->locals++;
-            offset += 8;
-            
             std::vector<Instruction*>::iterator iter;
 
             iter = f->instructions.begin();
             insertStore(f, str, iter, offset);
 
-            iter = f->instructions.end();
+            iter = f->instructions.end() - 1;
             insertLoad(f, str, iter, offset);
 
             linkInstructionPointers(f);
+            offset += 8;
         }
 
 
@@ -506,8 +505,8 @@ void removeIncDecSpaces(L2::Function* f);
                     }
 
                     tempClique.insert(V);
-                    //makeClique(&tempClique);
-                    addToEdgeSetOneWay(V, r);
+                    makeClique(&tempClique);
+                    //addToEdgeSetOneWay(V, r);
 
 
                 }     
