@@ -145,6 +145,9 @@ namespace L2{
 			if (DEBUG_SP) printf("found var %s\n", V->name.c_str());
 			f->locals++;
 			int stackLoc = (f->locals * 8) - 8;
+			// if (f->arguments > 6) {
+			// 	stackLoc += (f->arguments - 6) * 8;
+			// }
 			int numUses = V->uses.size();
 
 		

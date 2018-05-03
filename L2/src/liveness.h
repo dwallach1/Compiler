@@ -62,41 +62,53 @@ void removeIncDecSpaces(L2::Function* f);
         int i = 0;
         bool incremented = false;
 
-        std::vector<Instruction*> calls = {};
+        std::vector<Instruction*> calls_store = {};
+        std::vector<Instruction*> calls_load = {};
 
         for (Instruction* I : f->instructions) {
             if (I->type == CALL) {
                 if (DEBUGGING) printf("found a CALL\n");
-                
+                if (I->arguments[0]->type == PAA) { calls_load.push_back(I); }
                 if (!incremented) {
                     f->locals += regs.size();
                     if (DEBUGGING) printf("size of regs is : %ld\n", regs.size());
                     incremented = true;
                 }
 
-                calls.push_back(I);
+                calls_store.push_back(I);
+            }
+            else if (I->type == STORE && I->arguments[0]->name == "mem rsp -8") {
+
+                for (Instruction* i : f->instructions) {
+                    if (i->type == LABEL) {
+                        if (DEBUG_S) printf("comparing %s -> %s\n", i->instruction.c_str(), I->arguments[1]->name.c_str());
+                        if (i->instruction == I->arguments[1]->name) {
+                            calls_load.push_back(i);
+                        }
+                    }
+                }
+                
             }
         }
-        if (DEBUGGING) printf("handiling call instruction\n");
-        for (Instruction* I : calls) {
+
+        for (Instruction* I : calls_store) {
             i = 0;
             for (std::string r : regs) {
-                    idx = f->instructions.begin() + I->instNum;
-                    if (DEBUGGING) printf("adding insert store inst\n");
                     
+                    idx = f->instructions.begin() + I->instNum;                    
                     insertStore(f, r, idx, (curLocals * 8) + (i * 8));
-                    if (DEBUGGING) printf("linking inst pointers\n");
-                    linkInstructionPointers(f);
+                    linkInstructionPointers(f);    
+                    i++;
+            }
+        }
 
-                    if (DEBUGGING) printf("adding insert load inst\n");
+        for (Instruction* I : calls_load) {
+            i = 0;
+            for (std::string r : regs) {
+                    
                     idx = f->instructions.begin() + I->instNum + 1;
-                    
                     insertLoad(f, r, idx, (curLocals * 8) + (i * 8));
-                    if (DEBUGGING) printf("linking inst pointers\n");
-                    linkInstructionPointers(f);
-
-                    if (DEBUGGING) printf("added reg!\n");
-                    
+                    linkInstructionPointers(f);                    
                     i++;
             }
         }

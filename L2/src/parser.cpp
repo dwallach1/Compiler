@@ -986,7 +986,7 @@ namespace L2 {
       else{
         arg->name = in.string();
       }
-      arg->type = LBL;
+      arg->type = PAA;
       parsed_registers.push_back(arg);
     }
   };
