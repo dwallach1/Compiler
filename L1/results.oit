@@ -1,0 +1,4075 @@
+g++  -o ./bin/L1 obj/compiler.o obj/parser.o obj/code_generator.o
+../scripts/test.sh L1 L1c
+00.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 1001 
+returning from call call print 1
+returning from return_inst  return
+  Passed
+~/Compiler/L1/tests
+01.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 43
+    
+returning from call call print 1
+returning from return_inst 
+    return
+  Passed
+~/Compiler/L1/tests
+02.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 9
+    
+returning from arithmetic rdi += 11
+returning from arithmetic 
+    rdi -= 1
+returning from call 
+    call print 1
+returning from return_inst 
+    return
+  Passed
+~/Compiler/L1/tests
+03.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 5
+    
+returning from assignment rsi <- 3
+    
+returning from call call allocate 2
+returning from assignment 
+    rdi <- rax
+    
+returning from call call print 1
+returning from return_inst 
+    return
+  Passed
+~/Compiler/L1/tests
+04.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 4
+        
+returning from label :encode_ret
+returning from store mem rsp -8 <- :encode_ret
+returning from label :encode
+returning from call 
+        call :encode 1
+returning from label :encode_ret
+returning from label_inst 
+        :encode_ret
+returning from assignment 
+        rdi <- rax
+        
+returning from call call print 1
+returning from return_inst 
+        return
+returning from arithmetic rdi <<= 1
+returning from arithmetic 
+        	rdi += 1
+returning from assignment 
+	        rax <- rdi
+       		
+returning from return_inst return
+  Passed
+~/Compiler/L1/tests
+05.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from arithmetic rdi >>= 1
+returning from assignment 
+        rax <- rdi
+        
+returning from return_inst return
+returning from assignment rdi <- 11
+        
+returning from label :decode_ret
+returning from store mem rsp -8 <- :decode_ret
+returning from label :decode
+returning from call 
+        call :decode 1
+returning from label :decode_ret
+returning from label_inst 
+        :decode_ret
+returning from assignment 
+        rdi <- rax
+        
+returning from call call print 1
+returning from return_inst 
+        return
+  Passed
+~/Compiler/L1/tests
+06.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from arithmetic rdi <<= 1
+returning from arithmetic 
+        rdi += 1
+returning from assignment 
+        rax <- rdi
+        
+returning from return_inst return
+returning from assignment rdi <- 7
+        
+returning from assignment rsi <- 5
+        
+returning from call call allocate 2
+returning from load  //// allocates array
+
+        rdi <- mem rax 0
+returning from label :encode_ret
+returning from store 
+        mem rsp -8 <- :encode_ret
+returning from label :encode
+returning from call 
+        call :encode 1
+returning from label :encode_ret
+returning from label_inst  //// encodes array size
+        :encode_ret
+returning from assignment 
+
+        rdi <- rax
+        
+returning from call call print 1
+returning from return_inst  //// prints out array size
+        return
+  Failed
+~/Compiler/L1/tests
+07.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from store mem rsp 0 <- rsi
+returning from assignment 
+        rsi <- 1
+        
+returning from call call allocate 2
+returning from assignment 
+
+        ////initialize counters
+        rdi <- rax
+        
+returning from arithmetic rdi += 8
+returning from load 
+        rcx <- mem rax 0
+returning from assignment 
+	rdx <- rcx
+	
+returning from load r8 <- mem rsp 0
+returning from label :loop
+returning from label_inst 
+
+        :loop
+returning from label :done
+returning from label :more
+returning from label :more
+returning from label_inst 
+
+	:more
+returning from assignment 
+	rsi <- rdx
+	
+returning from arithmetic rsi -= rcx
+returning from arithmetic 
+	rsi *= r8
+returning from arithmetic 
+	rsi *= 2
+returning from arithmetic 
+	rsi += 1
+returning from store 
+	mem rdi 0 <- rsi
+returning from arithmetic 
+	rcx -= 1
+returning from arithmetic 
+	rdi += 8
+returning from label :loop
+returning from label :done
+returning from label_inst 
+
+	:done
+returning from return_inst 
+	return
+returning from load rcx <- mem rdi 0
+returning from arithmetic 
+		rdi += 8
+returning from load 
+		rax <- mem rdi 0
+returning from label :max_loop
+returning from label_inst 
+
+		:max_loop
+returning from label :max_done
+returning from label :max_more
+returning from label :max_more
+returning from label_inst 
+		
+		:max_more
+returning from load 
+		rdx <- mem rdi 0
+returning from arithmetic 
+		rcx -= 1
+returning from arithmetic 
+		rdi += 8
+returning from label :replace
+returning from label :max_loop
+returning from label :replace
+returning from label_inst 
+		
+		:replace
+returning from assignment 
+		rax <- rdx
+		
+returning from label :max_loop
+returning from label :max_done
+returning from label_inst 
+		:max_done
+returning from return_inst 
+		return
+returning from assignment rdi <- 13
+        
+returning from assignment rsi <- 7
+        
+returning from label :fill_ret1
+returning from store mem rsp -8 <- :fill_ret1
+returning from label :fill_mult
+returning from call 
+        call :fill_mult 2
+returning from label :fill_ret1
+returning from label_inst 
+        
+	:fill_ret1
+returning from assignment 
+        rdi <- rax
+	
+returning from label :max_ret
+returning from store mem rsp -8 <- :max_ret
+returning from label :max
+returning from call 
+	call :max 1
+returning from label :max_ret
+returning from label_inst 
+	:max_ret
+returning from assignment 
+
+	rdi <- rax
+	
+returning from call call print 1
+returning from return_inst 
+        return
+  Failed
+~/Compiler/L1/tests
+08.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from label :ret
+returning from store mem rsp -8 <- :ret
+returning from label :swap
+returning from call 
+	call :swap 0
+returning from label :ret
+returning from label_inst 
+	:ret
+returning from return_inst 
+	return
+returning from assignment rdi <- 7
+        
+returning from assignment rsi <- 21
+	
+returning from assignment rax <- rsi
+        
+returning from assignment rsi <- rdi
+        
+returning from assignment rdi <- rax
+	
+returning from store mem rsp 0 <- rsi
+returning from call 
+        call print 1
+returning from load 
+        rdi <- mem rsp 0
+returning from call 
+        call print 1
+returning from return_inst 
+        return
+  Passed
+~/Compiler/L1/tests
+09.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rsi <- 1
+        
+returning from call call allocate 2
+returning from assignment 
+
+        ////initialize counters
+        rdi <- rax
+        
+returning from arithmetic rdi += 8
+returning from load 
+        rcx <- mem rax 0
+returning from assignment 
+	rdx <- rcx
+
+        
+returning from label :loop
+returning from label_inst :loop
+returning from label :done
+returning from label :more
+returning from label :more
+returning from label_inst 
+
+	:more
+returning from assignment 
+	rsi <- rdx
+	
+returning from arithmetic rsi -= rcx
+returning from arithmetic 
+	rsi *= 2
+returning from arithmetic 
+	rsi += 1
+returning from store 
+	mem rdi 0 <- rsi
+returning from arithmetic 
+	rcx -= 1
+returning from arithmetic 
+	rdi += 8
+returning from label :loop
+returning from label :done
+returning from label_inst 
+
+	:done
+returning from return_inst 
+	return
+returning from assignment rdi <- 13
+        
+returning from label :fill_ret
+returning from store mem rsp -8 <- :fill_ret
+returning from label :fill_seq
+returning from call 
+        call :fill_seq 1
+returning from label :fill_ret
+returning from label_inst 
+        :fill_ret
+returning from assignment 
+        rdi <- rax
+        
+returning from call call print 1
+returning from return_inst 
+        return
+  Failed
+~/Compiler/L1/tests
+10.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment r9 <- 13
+  
+returning from label :true
+returning from label :false
+returning from label :true
+returning from label_inst 
+  :true
+returning from assignment 
+  rdi <- 1
+  
+returning from label :print
+returning from label :false
+returning from label_inst 
+  :false
+returning from assignment 
+  rdi <- 3
+  
+returning from label :print
+returning from label_inst :print
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+tests/10.L1.out.tmp tests/10.L1.out differ: byte 1, line 1
+  Failed
+~/Compiler/L1/tests
+11.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from label :test2
+returning from label :test1
+returning from label_inst 
+  :test1
+returning from assignment 
+  rdi <- 1
+  
+returning from call call print 1
+returning from return_inst 
+  return
+returning from label :test2
+returning from label_inst 
+  :test2
+returning from label :test1
+  Passed
+~/Compiler/L1/tests
+12.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 3
+  
+returning from arithmetic rdi += 1
+returning from arithmetic 
+  rdi -= 1
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+13.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 3
+  
+returning from arithmetic rdi <<= 3
+returning from arithmetic 
+  rdi >>= 3
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+14.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment r8 <- 23
+  
+returning from assignment r9 <- 23
+  
+returning from arithmetic r8 *= 2
+returning from arithmetic 
+  r9 <<= 1
+returning from compare_assign 
+  rdi <- r8 = r9
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+15.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 7
+  
+returning from arithmetic rdi &= -1
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+16.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 1
+  
+returning from assignment rsi <- 3
+  
+returning from label :ret
+returning from store mem rsp -8 <- :ret
+returning from label :print2
+returning from call 
+  call :print2 2
+returning from label :ret
+returning from label_inst 
+  :ret
+returning from return_inst 
+  return
+returning from store mem rsp 0 <- rsi
+returning from call 
+  call print 1
+returning from load 
+  rdi <- mem rsp 0
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+17.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from label :ret
+returning from store mem rsp -8 <- :ret
+returning from label :printa
+returning from call 
+  call :printa 0
+returning from label :ret
+returning from label_inst 
+  :ret
+returning from return_inst 
+  return
+returning from assignment rdi <- 1
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+18.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from return_inst return
+  Passed
+~/Compiler/L1/tests
+19.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 3
+  
+returning from label :true
+returning from label :false
+returning from label :true
+returning from label_inst 
+  :true
+returning from assignment 
+  rdi <- 1
+  
+returning from label :false
+returning from label_inst :false
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+1d_arr.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 301 // rdi is first arg,
+  
+returning from assignment rsi <- 101 // rsi is the second arg, 
+  
+returning from call call allocate 2
+returning from assignment 
+  rdi <- rax // rax is the result 
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+1.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from store mem rsp 0 <- 1
+returning from label :loop
+returning from label_inst 
+  :loop
+returning from load 
+  rdi <- mem rsp 0
+returning from label :ret1
+returning from store 
+  mem rsp -8 <- :ret1
+returning from label :add1
+returning from call 
+  call :add1 1
+returning from label :ret1
+returning from label_inst 
+  :ret1
+returning from label :return
+returning from label :next
+returning from label :next
+returning from label_inst 
+  :next
+returning from store 
+  mem rsp 0 <- rax
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from label :loop
+returning from label :return
+returning from label_inst 
+  :return
+returning from return_inst 
+  return
+returning from assignment rax <- rdi
+  
+returning from arithmetic rax += 2
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+20.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 3
+  
+returning from label :true
+returning from label :false
+returning from label :true
+returning from label_inst 
+  :true
+returning from assignment 
+  rdi <- 1
+  
+returning from label :false
+returning from label_inst :false
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+22.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 5
+  
+returning from assignment rsi <- 1
+  
+returning from call call allocate 2
+returning from assignment 
+  rdi <- 5
+  
+returning from assignment rsi <- rax
+  
+returning from call call allocate 2
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+23.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 1
+  
+returning from assignment rsi <- 2
+  
+returning from assignment rdx <- 3
+  
+returning from assignment rcx <- 4
+  
+returning from assignment r8 <- 5
+  
+returning from assignment r9 <- 6
+  
+returning from store mem rsp -16 <- 7
+returning from store 
+  mem rsp -24 <- 8
+returning from label :ret
+returning from store 
+  mem rsp -8 <- :ret
+returning from label :big
+returning from call 
+  call :big 8
+returning from label :ret
+returning from label_inst 
+  :ret
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+returning from arithmetic rdi -= rsi
+returning from arithmetic 
+  rdi -= rdx
+returning from arithmetic 
+  rdi -= rcx
+returning from arithmetic 
+  rdi -= r8
+returning from arithmetic 
+  rdi -= r9
+returning from load 
+  r8 <- mem rsp 16
+returning from arithmetic 
+  rdi -= r8
+returning from load 
+  r8 <- mem rsp 8
+returning from arithmetic 
+  rdi -= r8
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from store 
+  mem rsp 0 <- rdi
+returning from call 
+  call print 1
+returning from load 
+  rax <- mem rsp 0
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+24.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from store mem rsp 0 <- r12
+returning from store 
+  mem rsp 8 <- r13
+returning from assignment 
+  r12 <- 8
+  
+returning from assignment r13 <- 9
+
+  
+returning from compare_assign rdi <- r12 < r13
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+  rdi <- r13 < r12
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+  rdi <- r12 <= r13
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+  rdi <- r12 = r13
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+
+  rdi <- r12 < 9
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+  rdi <- r13 < 8
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+  rdi <- r12 <= 9
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+  rdi <- r12 = 9
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+  rdi <- 8 < r13
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+  rdi <- 9 < r12
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+  rdi <- 8 <= r13
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+  rdi <- 8 = r13
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+  rdi <- 8 < 9
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+  rdi <- 9 < 8
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+  rdi <- 8 <= 9
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from compare_assign 
+
+  rdi <- 8 = 9
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from load 
+
+  r12 <- mem rsp 0
+returning from load 
+  r13 <- mem rsp 8
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+27.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 5
+  
+returning from label :derp
+returning from call 
+  call print 1
+returning from label :derp
+returning from label_inst 
+  :derp
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+28.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rcx <- 1
+  
+returning from arithmetic rcx <<= rcx
+returning from arithmetic 
+  rcx += 1
+returning from assignment 
+  rdi <- rcx
+  
+returning from call call print 1
+returning from assignment 
+
+  rcx <- 1
+  
+returning from arithmetic rcx <<= 1
+returning from arithmetic 
+  rcx += 1
+returning from assignment 
+  rdi <- rcx
+  
+returning from call call print 1
+returning from assignment 
+
+  rcx <- 1
+  
+returning from arithmetic rcx >>= rcx
+returning from arithmetic 
+  rcx += 1
+returning from assignment 
+  rdi <- rcx
+  
+returning from call call print 1
+returning from assignment 
+
+  rcx <- 1
+  
+returning from arithmetic rcx >>= 1
+returning from arithmetic 
+  rcx += 1
+returning from assignment 
+  rdi <- rcx
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+29.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rsi <- 1001
+  
+returning from assignment rdi <- 999
+  
+returning from label :true
+returning from label :false
+returning from label :true
+returning from label_inst 
+  :true
+returning from assignment 
+  rdi <- 3
+  
+returning from call call print 1
+returning from label :done
+returning from label :false
+returning from label_inst 
+  :false
+returning from assignment 
+  rdi <- 1
+  
+returning from call call print 1
+returning from label :done
+returning from label_inst 
+  :done
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+2d_arr.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 5
+  
+returning from assignment rsi <- 7
+  
+returning from call call allocate 2
+returning from store 
+  mem rax 8 <- 11
+returning from store 
+  mem rax 16 <- 13
+returning from assignment 
+  rdi <- 7
+  
+returning from assignment rsi <- rax
+  
+returning from call call allocate 2
+returning from assignment  // at the same array 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+2.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 1
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+30.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rsi <- 999
+  
+returning from assignment rdi <- 1001
+  
+returning from label :true
+returning from label :false
+returning from label :true
+returning from label_inst 
+  :true
+returning from assignment 
+  rdi <- 3
+  
+returning from call call print 1
+returning from label :done
+returning from label :false
+returning from label_inst 
+  :false
+returning from assignment 
+  rdi <- 1
+  
+returning from call call print 1
+returning from label :done
+returning from label_inst 
+  :done
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+31.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rsi <- 999
+  
+returning from assignment rdi <- 999
+  
+returning from label :true
+returning from label :false
+returning from label :true
+returning from label_inst 
+  :true
+returning from assignment 
+  rdi <- 3
+  
+returning from call call print 1
+returning from label :done
+returning from label :false
+returning from label_inst 
+  :false
+returning from assignment 
+  rdi <- 1
+  
+returning from call call print 1
+returning from label :done
+returning from label_inst 
+  :done
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+32.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rsi <- 999
+  
+returning from assignment rdi <- 1001
+  
+returning from label :true
+returning from label :false
+returning from label :true
+returning from label_inst 
+  :true
+returning from assignment 
+  rdi <- 3
+  
+returning from call call print 1
+returning from label :done
+returning from label :false
+returning from label_inst 
+  :false
+returning from assignment 
+  rdi <- 1
+  
+returning from call call print 1
+returning from label :done
+returning from label_inst 
+  :done
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+33.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 1 
+returning from call call print 1
+returning from return_inst  return
+  Passed
+~/Compiler/L1/tests
+34.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 3 
+returning from label :ret
+returning from store mem rsp -8 <- :ret
+returning from label :f
+returning from call  call :f 0
+returning from label :ret
+returning from label_inst  :ret
+returning from return_inst  return
+returning from call call print 1
+returning from return_inst  return
+  Passed
+~/Compiler/L1/tests
+35.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from label :f
+returning from assignment rax <- :f 
+returning from label :ret
+returning from store mem rsp -8 <- :ret
+returning from call  call rax 0
+returning from label :ret
+returning from label_inst  :ret
+returning from return_inst  return
+returning from assignment rdi <- 3 
+returning from call call print 1
+returning from return_inst  return
+  Passed
+~/Compiler/L1/tests
+36.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 2
+  
+returning from assignment r10 <- 1
+  
+returning from compare_assign rax <- rax < r10
+returning from assignment 
+  rcx <- 0
+  
+returning from label :then
+returning from label :else
+returning from label :then
+returning from label_inst 
+  :then
+returning from assignment 
+  rdi <- 3
+  
+returning from call call print 1
+returning from label :done
+returning from label :else
+returning from label_inst 
+  :else
+returning from assignment 
+  rdi <- 1
+  
+returning from call call print 1
+returning from label :done
+returning from label_inst 
+  :done
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+37.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 1
+  
+returning from assignment r10 <- 2
+  
+returning from compare_assign rax <- rax < r10
+returning from assignment 
+  rcx <- 1
+  
+returning from label :then
+returning from label :else
+returning from label :then
+returning from label_inst 
+  :then
+returning from assignment 
+  rdi <- 3
+  
+returning from call call print 1
+returning from label :done
+returning from label :else
+returning from label_inst 
+  :else
+returning from assignment 
+  rdi <- 1
+  
+returning from call call print 1
+returning from label :done
+returning from label_inst 
+  :done
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+38.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from store mem rsp 0 <- r12
+returning from assignment 
+  r12 <- 4
+  
+returning from assignment rax <- 1
+  
+returning from label :top
+returning from label_inst :top
+returning from label :done
+returning from label :cont
+returning from label :cont
+returning from label_inst 
+  :cont
+returning from assignment 
+  rdi <- 3
+  
+returning from assignment rsi <- rax
+  
+returning from call call allocate 2
+returning from arithmetic 
+  r12 -= 1
+returning from label :top
+returning from label :done
+returning from label_inst 
+  :done
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from load 
+  r12 <- mem rsp 0
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+39.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from label :ret1
+returning from store mem rsp -8 <- :ret1
+returning from label :f
+returning from call 
+  call :f 0
+returning from label :ret1
+returning from label_inst 
+  :ret1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+returning from store mem rsp 0 <- 3
+returning from label :ret2
+returning from store 
+  mem rsp -8 <- :ret2
+returning from label :g
+returning from call 
+  call :g 0
+returning from label :ret2
+returning from label_inst 
+  :ret2
+returning from load 
+  rax <- mem rsp 0
+returning from return_inst 
+  return
+returning from return_inst return
+  Failed
+~/Compiler/L1/tests
+3d_arr.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 5
+   
+returning from assignment rsi <- 7
+   
+returning from call call allocate 2
+returning from load 
+   rdi <- mem rax 0
+returning from assignment 
+   rdi <- 5
+   
+returning from assignment rsi <- rax
+   
+returning from call call allocate 2
+returning from assignment 
+   rdi <- 7
+   
+returning from assignment rsi <- rax
+   
+returning from call call allocate 2
+returning from store 
+   mem rsp 8 <- r13
+returning from assignment 
+   r13 <- rax
+   
+returning from assignment rdi <- rax
+   
+returning from call call print 1
+returning from assignment 
+   rdi <- 7
+   
+returning from assignment rsi <- 9
+   
+returning from call call allocate 2
+returning from load 
+   rdi <- mem rax 0
+returning from assignment 
+   rsi <- rax
+   
+returning from call call allocate 2
+returning from store 
+   mem r13 8 <- rax
+returning from assignment  //// change first element
+   rdi <- r13
+   
+returning from call call print 1
+returning from load 
+   r13 <- mem rsp 8
+returning from return_inst 
+   return
+  Failed
+~/Compiler/L1/tests
+3.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from store mem rsp 0 <- r12
+returning from assignment 
+  rdi <- 5
+  
+returning from assignment rsi <- 7
+  
+returning from call call allocate 2
+returning from assignment 
+  r12 <- rax
+  
+returning from store mem r12 8 <- 1
+returning from assignment 
+  rdi <- r12
+  
+returning from call call print 1
+returning from load 
+  r12 <- mem rsp 0
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+40.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from store mem rsp 0 <- rbx
+returning from assignment 
+  rax <- rsp
+  
+returning from assignment rbx <- rax
+  
+returning from label :ret
+returning from store mem rsp -8 <- :ret
+returning from label :f
+returning from call 
+  call :f 0
+returning from label :ret
+returning from label_inst 
+  :ret
+returning from label :lt
+returning from label :ge
+returning from label :lt
+returning from label_inst 
+  :lt
+returning from assignment 
+  rdi <- 3
+  
+returning from call call print 1
+returning from label :done
+returning from label :ge
+returning from label_inst 
+  :ge
+returning from assignment 
+  rdi <- 1
+  
+returning from call call print 1
+returning from label :done
+returning from label_inst 
+  :done
+returning from load 
+  rbx <- mem rsp 0
+returning from return_inst 
+  return
+returning from assignment rax <- rsp 
+returning from return_inst return
+  Failed
+~/Compiler/L1/tests
+41.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 3
+  
+returning from assignment rsi <- 1
+  
+returning from call call allocate 2
+returning from assignment 
+  r10 <- rax
+  
+returning from arithmetic r10 += 4
+returning from label :lt
+returning from label :ge
+returning from label :lt
+returning from label_inst 
+  :lt
+returning from assignment 
+  rdi <- 3
+  
+returning from call call print 1
+returning from label :done
+returning from label :ge
+returning from label_inst 
+  :ge
+returning from assignment 
+  rdi <- 1
+  
+returning from call call print 1
+returning from label :done
+returning from label_inst 
+  :done
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+42.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 1
+  
+returning from assignment rsi <- 1
+  
+returning from call call allocate 2
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+43.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 3
+  
+returning from arithmetic rax *= 4
+returning from arithmetic 
+  rax += rax
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+44.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 3
+  
+returning from arithmetic rax *= 5
+returning from arithmetic 
+  rax += rax
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+45.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 3
+  
+returning from arithmetic rax *= 0
+returning from arithmetic 
+  rax += rax
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+46.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 3
+  
+returning from arithmetic rax *= -3
+returning from arithmetic 
+  rax += rax
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+47.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 1073741824
+  
+returning from arithmetic rax *= -2
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+48.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 9223372036854775807
+  
+returning from arithmetic rax += 1
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+49.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 9223372036854775807
+  
+returning from arithmetic rax += 3
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+4.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from store mem rsp 0 <- r12
+returning from assignment 
+  rdi <- 22
+  
+returning from label :ret1
+returning from store mem rsp -8 <- :ret1
+returning from label :encode
+returning from call 
+  call :encode 1
+returning from label :ret1
+returning from label_inst 
+  :ret1
+returning from assignment 
+  r12 <- rax
+  
+returning from assignment rdi <- rax
+  
+returning from call call print 1
+returning from assignment 
+  rdi <- r12
+  
+returning from label :ret2
+returning from store mem rsp -8 <- :ret2
+returning from label :encode
+returning from call 
+  call :encode 1
+returning from label :ret2
+returning from label_inst 
+  :ret2
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from load 
+  r12 <- mem rsp 0
+returning from return_inst 
+  return
+returning from arithmetic rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from assignment 
+  rax <- rdi
+  
+returning from return_inst return
+  Failed
+~/Compiler/L1/tests
+50.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- -9223372036854775808
+  
+returning from arithmetic rax -= 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+51.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- -9223372036854775808
+  
+returning from arithmetic rax -= 3
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+52.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 3
+  
+returning from label :then
+returning from label :else
+returning from label :then
+returning from label_inst 
+  :then
+returning from assignment 
+  rdi <- 3
+  
+returning from call call print 1
+returning from label :done
+returning from label :else
+returning from label_inst 
+  :else
+returning from assignment 
+  rdi <- 1
+  
+returning from call call print 1
+returning from label :done
+returning from label_inst 
+  :done
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+53.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 3
+  
+returning from label :then
+returning from label :else
+returning from label :then
+returning from label_inst 
+  :then
+returning from assignment 
+  rdi <- 3
+  
+returning from call call print 1
+returning from label :done
+returning from label :else
+returning from label_inst 
+  :else
+returning from assignment 
+  rdi <- 1
+  
+returning from call call print 1
+returning from label :done
+returning from label_inst 
+  :done
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+54.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 3
+  
+returning from label :then
+returning from label :else
+returning from label :then
+returning from label_inst 
+  :then
+returning from assignment 
+  rdi <- 3
+  
+returning from call call print 1
+returning from label :done
+returning from label :else
+returning from label_inst 
+  :else
+returning from assignment 
+  rdi <- 1
+  
+returning from call call print 1
+returning from label :done
+returning from label_inst 
+  :done
+returning from return_inst 
+  return
+tests/54.L1.out.tmp tests/54.L1.out differ: byte 1, line 1
+  Failed
+~/Compiler/L1/tests
+55.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 3
+  
+returning from label :then
+returning from label :else
+returning from label :then
+returning from label_inst 
+  :then
+returning from assignment 
+  rdi <- 3
+  
+returning from call call print 1
+returning from label :done
+returning from label :else
+returning from label_inst 
+  :else
+returning from assignment 
+  rdi <- 1
+  
+returning from call call print 1
+returning from label :done
+returning from label_inst 
+  :done
+returning from return_inst 
+  return
+tests/55.L1.out.tmp tests/55.L1.out differ: byte 1, line 1
+  Failed
+~/Compiler/L1/tests
+56.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from label :then
+returning from label :else
+returning from label :then
+returning from label_inst 
+  :then
+returning from assignment 
+  rdi <- 3
+  
+returning from call call print 1
+returning from label :done
+returning from label :else
+returning from label_inst 
+  :else
+returning from assignment 
+  rdi <- 1
+  
+returning from call call print 1
+returning from label :done
+returning from label_inst 
+  :done
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+57.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 3
+  
+returning from compare_assign r10 <- rax = 3
+returning from arithmetic 
+  r10 += r10
+returning from arithmetic 
+  r10 += 1
+returning from assignment 
+  rdi <- r10
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+58.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 1
+  
+returning from compare_assign r10 <- rax = 3
+returning from arithmetic 
+  r10 += r10
+returning from arithmetic 
+  r10 += 1
+returning from assignment 
+  rdi <- r10
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+59.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 3
+  
+returning from compare_assign r10 <- 1 = rax
+returning from arithmetic 
+  r10 += r10
+returning from arithmetic 
+  r10 += 1
+returning from assignment 
+  rdi <- r10
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+5.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from label :add1
+returning from assignment r10 <- :add1
+  
+returning from label :ret
+returning from store mem rsp -8 <- :ret
+returning from assignment 
+  rdi <- 1
+  
+returning from call call r10 1
+returning from label :ret
+returning from label_inst 
+  :ret
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+returning from assignment rax <- rdi
+  
+returning from arithmetic rax += 2
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+60.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 1
+  
+returning from compare_assign r10 <- 3 = rax
+returning from arithmetic 
+  r10 += r10
+returning from arithmetic 
+  r10 += 1
+returning from assignment 
+  rdi <- r10
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+61.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from compare_assign r10 <- 3 = 1
+returning from arithmetic 
+  r10 += r10
+returning from arithmetic 
+  r10 += 1
+returning from assignment 
+  rdi <- r10
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+62.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from compare_assign r10 <- 1 = 1
+returning from arithmetic 
+  r10 += r10
+returning from arithmetic 
+  r10 += 1
+returning from assignment 
+  rdi <- r10
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+63.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from store mem rsp 0 <- rbx
+returning from assignment 
+  rbx <- 1
+  
+returning from assignment rdi <- rbx
+  
+returning from call call print 1
+returning from assignment 
+  rdi <- rbx
+  
+returning from call call print 1
+returning from load 
+  rbx <- mem rsp 0
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+64.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from store mem rsp 0 <- rbp
+returning from assignment 
+  rbp <- 1
+  
+returning from assignment rdi <- rbp
+  
+returning from call call print 1
+returning from assignment 
+  rdi <- rbp
+  
+returning from call call print 1
+returning from load 
+  rbp <- mem rsp 0
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+65.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from store mem rsp 0 <- r12
+returning from assignment 
+  r12 <- 1
+  
+returning from assignment rdi <- r12
+  
+returning from call call print 1
+returning from assignment 
+  rdi <- r12
+  
+returning from call call print 1
+returning from load 
+  r12 <- mem rsp 0
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+66.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from store mem rsp 0 <- r13
+returning from assignment 
+  r13 <- 1
+  
+returning from assignment rdi <- r13
+  
+returning from call call print 1
+returning from assignment 
+  rdi <- r13
+  
+returning from call call print 1
+returning from load 
+  r13 <- mem rsp 0
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+67.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from store mem rsp 0 <- r14
+returning from assignment 
+  r14 <- 1
+  
+returning from assignment rdi <- r14
+  
+returning from call call print 1
+returning from assignment 
+  rdi <- r14
+  
+returning from call call print 1
+returning from load 
+  r14 <- mem rsp 0
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+68.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from store mem rsp 0 <- r15
+returning from assignment 
+  r15 <- 1
+  
+returning from assignment rdi <- r15
+  
+returning from call call print 1
+returning from assignment 
+  rdi <- r15
+  
+returning from call call print 1
+returning from load 
+  r15 <- mem rsp 0
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+69.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 3
+  
+returning from assignment rsi <- 1
+  
+returning from call call allocate 2
+returning from load 
+  rax <- mem rax 0
+returning from arithmetic 
+  rax += rax
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+6.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 5
+  
+returning from label :encret
+returning from store mem rsp -8 <- :encret
+returning from label :encode
+returning from call 
+  call :encode 1
+returning from label :encret
+returning from label_inst 
+  :encret
+returning from assignment 
+  rdi <- rax
+  
+returning from label :factret
+returning from store mem rsp -8 <- :factret
+returning from label :fact
+returning from call 
+  call :fact 1
+returning from label :factret
+returning from label_inst 
+  :factret
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+returning from label :zero
+returning from label :recur
+returning from label :zero
+returning from label_inst 
+  :zero
+returning from assignment 
+  rax <- 3
+  
+returning from return_inst return
+returning from label :recur
+returning from label_inst 
+  :recur
+returning from store 
+  mem rsp 0 <- rdi
+returning from arithmetic 
+  rdi -= 2
+returning from label :return
+returning from store 
+  mem rsp -8 <- :return
+returning from label :fact
+returning from call 
+  call :fact 1
+returning from label :return
+returning from label_inst 
+  :return
+returning from load 
+  r10 <- mem rsp 0
+returning from arithmetic 
+  r10 >>= 1
+returning from arithmetic 
+  rax >>= 1
+returning from arithmetic 
+  rax *= r10
+returning from arithmetic 
+  rax <<= 1
+returning from arithmetic 
+  rax += 1
+returning from return_inst 
+  return
+returning from arithmetic rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from assignment 
+  rax <- rdi
+  
+returning from return_inst return
+  Failed
+~/Compiler/L1/tests
+70.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- -122
+  
+returning from arithmetic rax *= 2
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+71.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- -1 
+returning from arithmetic rax >>= 1
+returning from assignment  rdi <- rax 
+returning from call call print 1
+returning from return_inst  return
+  Passed
+~/Compiler/L1/tests
+72.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 15 
+returning from arithmetic rax >>= 1
+returning from assignment  rdi <- rax 
+returning from call call print 1
+returning from return_inst  return
+  Passed
+~/Compiler/L1/tests
+73.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- -1
+  
+returning from arithmetic rax <<= 3
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+74.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 4
+  
+returning from arithmetic rax <<= 4
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+75.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 1
+  
+returning from arithmetic rax <<= 63
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+76.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 1
+  
+returning from arithmetic rax <<= 63
+returning from arithmetic 
+  rax >>= 63
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+77.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 4
+  
+returning from arithmetic rax &= 1
+returning from arithmetic 
+  rax *= 2
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+78.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 5
+  
+returning from arithmetic rax &= 1
+returning from arithmetic 
+  rax *= 2
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+79.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rax <- 11
+  
+returning from assignment rdi <- 3
+  
+returning from call call print 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+7.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 3
+  
+returning from assignment rsi <- 5
+  
+returning from call call allocate 2
+returning from load 
+  rdi <- mem rax 0
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+80.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 5
+  
+returning from assignment rsi <- 1
+  
+returning from call call allocate 2
+returning from assignment 
+  rdi <- rax
+  
+returning from assignment rsi <- 17
+  
+returning from call call array-error 2
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+81.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 7
+  
+returning from assignment rsi <- 1
+  
+returning from call call allocate 2
+returning from assignment 
+  rdi <- rax
+  
+returning from assignment rsi <- 19
+  
+returning from call call array-error 2
+returning from assignment 
+  rdi <- 3
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+84.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 1
+  
+returning from assignment rsi <- 2
+  
+returning from assignment rdx <- 3
+  
+returning from assignment rcx <- 4
+  
+returning from assignment r8 <- 5
+  
+returning from assignment r9 <- 6
+  
+returning from label :ret1
+returning from store mem rsp -8 <- :ret1
+returning from label :f
+returning from call 
+  call :f 6
+returning from label :ret1
+returning from label_inst 
+  :ret1
+returning from arithmetic 
+  rax *= 2
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+returning from assignment rax <- 0
+  
+returning from arithmetic rax += rdi
+returning from arithmetic 
+  rax += rsi
+returning from arithmetic 
+  rax += rdx
+returning from arithmetic 
+  rax += rcx
+returning from arithmetic 
+  rax += r8
+returning from arithmetic 
+  rax += r9
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+85.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 1
+  
+returning from assignment rsi <- 2
+  
+returning from assignment rdx <- 3
+  
+returning from assignment rcx <- 4
+  
+returning from assignment r8 <- 5
+  
+returning from assignment r9 <- 6
+  
+returning from store mem rsp -16 <- 7
+returning from store 
+  mem rsp -24 <- 8
+returning from label :ret1
+returning from store 
+  mem rsp -8 <- :ret1
+returning from label :f
+returning from call 
+  call :f 8
+returning from label :ret1
+returning from label_inst 
+  :ret1
+returning from arithmetic 
+  rax *= 2
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+returning from load rax <- mem rsp 8
+returning from return_inst  return
+  Failed
+~/Compiler/L1/tests
+86.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 1
+  
+returning from assignment rsi <- 2
+  
+returning from assignment rdx <- 3
+  
+returning from assignment rcx <- 4
+  
+returning from assignment r8 <- 5
+  
+returning from assignment r9 <- 6
+  
+returning from store mem rsp -16 <- 7
+returning from store 
+  mem rsp -24 <- 8
+returning from label :ret1
+returning from store 
+  mem rsp -8 <- :ret1
+returning from label :f
+returning from call 
+  call :f 8
+returning from label :ret1
+returning from label_inst 
+  :ret1
+returning from arithmetic 
+  rax *= 2
+returning from arithmetic 
+  rax += 1
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+returning from load rax <- mem rsp 0
+returning from return_inst  return
+  Failed
+~/Compiler/L1/tests
+8.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment r8 <- 41
+  
+returning from assignment r9 <- 91
+  
+returning from assignment r10 <- r8
+  
+returning from arithmetic r10 &= r8
+returning from compare_assign 
+  rdi <- r10 <= r8
+returning from compare_assign 
+  r9 <- r10 <= r9
+returning from arithmetic 
+  rdi &= r9
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+9.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment r8 <- 3
+  
+returning from assignment r9 <- 5
+  
+returning from compare_assign rdi <- r8 = r9
+returning from arithmetic 
+  rdi <<= 1
+returning from arithmetic 
+  rdi += 1
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+abs.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- -15
+ 
+returning from label :yes
+returning from label :no
+returning from label :yes
+returning from label_inst 
+ :yes
+returning from assignment 
+ rsi <- 0
+ 
+returning from arithmetic rsi -= rdi
+returning from assignment 
+ rdi <- rsi
+ 
+returning from arithmetic rdi *= 2
+returning from arithmetic 
+ rdi += 1
+returning from call 
+ call print 1
+returning from return_inst 
+ return
+returning from label :no
+returning from label_inst 
+ :no
+returning from arithmetic 
+ rdi *= 2
+returning from arithmetic 
+ rdi += 1
+returning from call 
+ call print 1
+returning from return_inst 
+ return
+tests/abs.L1.out.tmp tests/abs.L1.out differ: byte 1, line 1
+  Failed
+~/Compiler/L1/tests
+add-1.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 3
+    
+returning from arithmetic rdi += 2
+returning from call 
+    call print 1
+returning from return_inst 
+    return
+  Passed
+~/Compiler/L1/tests
+add-2.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- -1
+    
+returning from assignment rsi <- 4
+    
+returning from arithmetic rdi += rsi
+returning from call 
+    call print 1
+returning from return_inst 
+    return
+  Passed
+~/Compiler/L1/tests
+add_4_nums.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from label :add_ret
+returning from store mem rsp -8 <- :add_ret
+returning from assignment 
+	rdi <- 3
+	
+returning from assignment rsi <- 5
+	
+returning from assignment rdx <- 7
+	
+returning from assignment rcx <- 9
+	
+returning from label :add
+returning from call call :add 4
+returning from label :add_ret
+returning from label_inst 
+	:add_ret
+returning from assignment 
+	rdi <- rax
+	
+returning from call call print 1
+returning from return_inst 
+	return
+returning from assignment rax <- 1
+	
+returning from arithmetic rax += rdi
+returning from arithmetic 
+	rax += rsi
+returning from arithmetic 
+	rax += rdx
+returning from arithmetic 
+	rax += rcx
+returning from arithmetic 
+	rax -= 4
+returning from return_inst 
+	return
+  Passed
+~/Compiler/L1/tests
+add_9_nums.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from label :add_ret
+returning from store mem rsp -8 <- :add_ret
+returning from assignment 
+	rdi <- 3
+	
+returning from assignment rsi <- 5
+	
+returning from assignment rdx <- 7
+	
+returning from assignment rcx <- 9
+	
+returning from assignment r8 <- 11
+	
+returning from assignment r9 <- 13
+	
+returning from store mem rsp -16 <- 15
+returning from store 
+	mem rsp -24 <- 17
+returning from store 
+	mem rsp -32 <- 19
+returning from label :add
+returning from call 
+	call :add 9
+returning from label :add_ret
+returning from label_inst 
+	:add_ret
+returning from assignment 
+	rdi <- rax
+	
+returning from call call print 1
+returning from return_inst 
+	return
+returning from assignment rax <- 1
+	
+returning from arithmetic rax += rdi
+returning from arithmetic 
+	rax += rsi
+returning from arithmetic 
+	rax += rdx
+returning from arithmetic 
+	rax += rcx
+returning from arithmetic 
+	rax += r8
+returning from arithmetic 
+	rax += r9
+returning from load 
+	rdi <- mem rsp 16
+returning from arithmetic 
+	rax += rdi
+returning from load 
+	rdi <- mem rsp 8
+returning from arithmetic 
+	rax += rdi
+returning from load 
+	rdi <- mem rsp 0
+returning from arithmetic 
+	rax += rdi
+returning from arithmetic 
+	rax -= 9
+returning from return_inst 
+	return
+  Failed
+~/Compiler/L1/tests
+add-all-regs.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from store mem rsp 0 <- r12
+returning from store 
+    mem rsp 8 <- r13
+returning from store 
+    mem rsp 16 <- r14
+returning from store 
+    mem rsp 24 <- r15
+returning from store 
+    mem rsp 32 <- rbp
+returning from store 
+    mem rsp 40 <- rbx
+returning from assignment 
+    rdi <- 1
+    
+returning from assignment rsi <- 2
+    
+returning from assignment rdx <- 3
+    
+returning from assignment rcx <- 4
+    
+returning from assignment r8 <- 5
+    
+returning from assignment r9 <- 6
+    
+returning from assignment rax <- 7
+    
+returning from assignment rbx <- 8
+    
+returning from assignment rbp <- 9
+    
+returning from assignment r10 <- 10
+    
+returning from assignment r11 <- 11
+    
+returning from assignment r12 <- 12
+    
+returning from assignment r13 <- 13
+    
+returning from assignment r14 <- 14
+    
+returning from assignment r15 <- 15
+    
+returning from arithmetic rsi += rdi
+returning from arithmetic 
+    rdx += rsi
+returning from arithmetic 
+    rcx += rdx
+returning from arithmetic 
+    r8 += rcx
+returning from arithmetic 
+    r9 += r8
+returning from arithmetic 
+    rax += r9
+returning from arithmetic 
+    rbx += rax
+returning from arithmetic 
+    rbp += rbx
+returning from arithmetic 
+    r10 += rbp
+returning from arithmetic 
+    r11 += r10
+returning from arithmetic 
+    r12 += r11
+returning from arithmetic 
+    r13 += r12
+returning from arithmetic 
+    r14 += r13
+returning from arithmetic 
+    r15 += r14
+returning from assignment 
+    rdi <- r15
+    
+returning from arithmetic rdi += 1
+returning from call 
+    call print 1
+returning from load 
+    rbx <- mem rsp 40
+returning from load 
+    rbp <- mem rsp 32
+returning from load 
+    r15 <- mem rsp 24
+returning from load 
+    r14 <- mem rsp 16
+returning from load 
+    r13 <- mem rsp 8
+returning from load 
+    r12 <- mem rsp 0
+returning from return_inst 
+    return
+  Failed
+~/Compiler/L1/tests
+add_args.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 1
+    
+returning from assignment rsi <- 2
+    
+returning from assignment rdx <- 3
+    
+returning from assignment rcx <- 4
+    
+returning from assignment r8 <- 5
+    
+returning from assignment r9 <- 6
+    
+returning from label :add_ret
+returning from store mem rsp -8 <- :add_ret
+returning from label :add_6args
+returning from call 
+    call :add_6args 6
+returning from label :add_ret
+returning from label_inst 
+    :add_ret
+returning from arithmetic 
+    rax <<= 1
+returning from arithmetic 
+    rax += 1
+returning from assignment 
+    rdi <- rax
+    
+returning from call call print 1
+returning from return_inst 
+    return
+returning from assignment rax <- 0
+   
+returning from arithmetic rax += rdi
+returning from arithmetic 
+   rax += rsi
+returning from arithmetic 
+   rax += rdx
+returning from arithmetic 
+   rax += rcx
+returning from arithmetic 
+   rax += r8
+returning from arithmetic 
+   rax += r9
+returning from return_inst 
+   return
+  Passed
+~/Compiler/L1/tests
+add.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 4
+  
+returning from arithmetic rdi += 7
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+algorithm.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 5
+    
+returning from assignment rsi <- 85
+
+    
+returning from label :myfunc_ret
+returning from store mem rsp -8 <- :myfunc_ret
+returning from call 
+    call allocate 2
+returning from label :myfunc_ret
+returning from label_inst 
+    :myfunc_ret
+returning from store 
+    mem rax 16 <- 5
+returning from assignment 
+
+    rdi <- rax
+    
+returning from label :rett
+returning from store mem rsp -8 <- :rett
+returning from label :printArray
+returning from call 
+    call :printArray 1
+returning from label :rett
+returning from label_inst 
+    :rett
+returning from return_inst 
+    return
+returning from assignment rcx <- rdi
+    // array check 
+    
+returning from arithmetic rcx &= 1
+returning from label :isarray
+returning from label :notarray
+returning from label :notarray
+returning from label_inst 
+    :notarray
+returning from assignment 
+    rax <- 0
+    
+returning from return_inst return
+returning from label :isarray
+returning from label_inst 
+
+    :isarray
+returning from assignment  
+    // initialize counter 
+    rsi <- 0
+
+    // get length of array 
+    
+returning from load r8 <- mem rdi 0
+returning from label :forloop
+returning from label_inst 
+
+    // check counter 
+    :forloop
+returning from label :continue
+returning from label :done
+returning from label :continue
+returning from label_inst 
+
+    :continue
+returning from store 
+    mem rsp 0 <- rsi
+returning from store 
+    mem rsp 8 <- rdi
+returning from store 
+    mem rsp 16 <- r8
+returning from label :ret
+returning from store 
+    mem rsp -8 <- :ret
+returning from label :printArrayElement
+returning from call 
+    call :printArrayElement 2
+returning from label :ret
+returning from label_inst 
+    :ret
+returning from load 
+    rsi <- mem rsp 0
+returning from load 
+    rdi <- mem rsp 8
+returning from load 
+    r8 <- mem rsp 16
+returning from inc_dec 
+    rsi++
+returning from label :forloop
+returning from label :done
+returning from label_inst 
+
+    :done
+returning from assignment 
+    rax <- 1
+    
+returning from return_inst return
+returning from store mem rsp 0 <- r12
+returning from store 
+    mem rsp 8 <- r13
+returning from assignment 
+
+    r13 <- rdi
+    
+returning from assignment r12 <- rsi  // rsi input is decoded
+
+    // print the index
+    
+returning from assignment rdi <- r12
+    
+returning from arithmetic rdi <<= 1
+returning from arithmetic 
+    rdi += 1
+returning from call 
+    call print 1
+returning from assignment 
+
+    rdi <- r12
+    
+returning from arithmetic rdi *= 8
+returning from arithmetic 
+    rdi += 8
+returning from arithmetic 
+
+    // encode result and print 
+    rdi <<= 1
+returning from arithmetic 
+    rdi += 1
+returning from assignment 
+    r12 <- rdi
+    
+returning from call call print 1
+returning from arithmetic 
+
+    // get a[i]
+    r12 >>= 1
+returning from arithmetic 
+    r13 += r12
+returning from load 
+    rdi <- mem r13 0
+returning from assignment 
+
+    // check if a[i] is an array
+    r10 <- rdi
+    
+returning from arithmetic r10 &= 1
+returning from label :isarr
+returning from label :notarr
+returning from label :notarr
+returning from label_inst 
+
+    :notarr
+returning from call 
+    call print 1
+returning from label :fnc_ret
+returning from label :isarr
+returning from label_inst 
+
+    :isarr
+returning from label :fnc_ret
+returning from store  
+    mem rsp -8 <- :fnc_ret
+returning from label :printArray
+returning from call 
+    call :printArray 1
+returning from label :fnc_ret
+returning from label_inst 
+
+    :fnc_ret
+returning from load 
+    r12 <- mem rsp 0
+returning from load 
+    r13 <- mem rsp 8
+returning from return_inst 
+    return
+  Failed
+~/Compiler/L1/tests
+allocatederef.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 7
+
+returning from assignment rsi <- 7
+
+returning from call call allocate 2
+returning from load 
+rdi <- mem rax 0
+returning from call 
+call print 1
+returning from return_inst 
+return
+  Passed
+~/Compiler/L1/tests
+allocate.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 5
+
+returning from assignment rsi <- 7
+
+returning from call call allocate 2
+returning from assignment 
+rdi <- rax
+
+returning from call call print 1
+returning from return_inst 
+return
+  Passed
+~/Compiler/L1/tests
+alloc.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 5
+		
+returning from assignment rsi <- 1
+		
+returning from call call allocate 2
+returning from assignment 
+		rsi <- rax
+		
+returning from assignment rdi <- 17
+		
+returning from call call allocate 2
+returning from assignment 
+		rdi <- rax
+		
+returning from call call print 1
+returning from return_inst 
+		return
+returning from arithmetic rdi *= 2
+returning from arithmetic 
+		rdi += 1
+returning from call 
+		call print 1
+returning from return_inst 
+		return
+  Passed
+~/Compiler/L1/tests
+and-1.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 8
+    
+returning from arithmetic rdi -= 1
+returning from arithmetic 
+    rdi &= 3
+returning from call 
+    call print 1
+returning from return_inst 
+    return
+  Passed
+~/Compiler/L1/tests
+and-2.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- -1
+    
+returning from assignment rsi <- 15
+    
+returning from arithmetic rdi &= rsi
+returning from call 
+    call print 1
+returning from return_inst 
+    return
+  Passed
+~/Compiler/L1/tests
+andequal.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 7
+
+returning from arithmetic rdi &= 5
+returning from call 
+call print 1
+returning from return_inst 
+return
+  Passed
+~/Compiler/L1/tests
+aop_and.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 1
+    
+returning from assignment rsi <- 3
+    
+returning from arithmetic rdi &= rsi
+returning from arithmetic 
+    rdi <<= 1
+returning from arithmetic 
+    rdi += 1
+returning from call 
+    call print 1
+returning from assignment 
+    rdi <- 0
+    
+returning from assignment rsi <- 7
+    
+returning from arithmetic rdi &= rsi
+returning from arithmetic 
+    rdi <<= 1
+returning from arithmetic 
+    rdi += 1
+returning from call 
+    call print 1
+returning from return_inst 
+    return
+  Passed
+~/Compiler/L1/tests
+arithmethic0.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 2
+   
+returning from arithmetic rdi += rdi
+returning from arithmetic 
+   rdi *= rdi
+returning from arithmetic 
+   rdi &= rdi
+returning from arithmetic 
+   rdi -= rdi
+returning from arithmetic 
+   rdi <<= 1
+returning from arithmetic 
+   rdi += 1
+returning from call 
+   call print 1
+returning from return_inst 
+   return
+  Passed
+~/Compiler/L1/tests
+arithmethic.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 1
+    
+returning from assignment rsi <- 100
+    
+returning from assignment rdx <- 100
+    
+returning from label :output
+returning from store mem rsp -8 <- :output
+returning from label :gauss_series_sum
+returning from call 
+    call :gauss_series_sum 3
+returning from label :output
+returning from label_inst 
+    :output
+returning from assignment 
+    rdi <- rax
+    
+returning from arithmetic rdi <<= 1
+returning from arithmetic 
+    rdi += 1
+returning from call 
+    call print 1
+returning from return_inst 
+    return
+returning from assignment rax <- rdi
+    
+returning from arithmetic rax += rsi
+returning from arithmetic 
+    rax *= rdx
+returning from arithmetic 
+    rax >>= 1
+returning from return_inst 
+    return
+  Passed
+~/Compiler/L1/tests
+around.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 44
+ 
+returning from assignment rsi <- 8
+ 
+returning from label :f_ret
+returning from store mem rsp -8 <- :f_ret
+returning from label :floor
+returning from call 
+ call :floor 2
+returning from label :f_ret
+returning from label_inst 
+ :f_ret
+returning from assignment 
+ rdi <- rax
+ 
+returning from arithmetic rdi *= 2
+returning from arithmetic 
+ rdi += 1
+returning from call 
+ call print 1
+returning from return_inst 
+ return
+returning from assignment rax <- 0
+
+ 
+returning from label :loop
+returning from label_inst :loop
+returning from label :finish
+returning from label :cont
+returning from label :cont
+returning from label_inst 
+
+ :cont
+returning from arithmetic 
+ rdi -= rsi
+returning from arithmetic 
+ rax += 1
+returning from label :loop
+returning from label :finish
+returning from label_inst 
+
+ :finish
+returning from return_inst 
+ return
+  Passed
+~/Compiler/L1/tests
+array12345.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 11
+ 
+returning from assignment rsi <- 5
+ 
+returning from call call allocate 2
+returning from store 
+ mem rsp 0 <- rax
+returning from assignment 
+ rdi <- rax
+ 
+returning from arithmetic rdi += 8
+returning from store 
+ mem rdi 0 <- 3
+returning from arithmetic 
+ rdi += 8
+returning from store 
+ mem rdi 0 <- 5
+returning from arithmetic 
+ rdi += 8
+returning from store 
+ mem rdi 0 <- 7
+returning from arithmetic 
+ rdi += 8
+returning from store 
+ mem rdi 0 <- 9
+returning from arithmetic 
+ rdi += 8
+returning from store 
+ mem rdi 0 <- 11
+returning from load 
+ rdi <- mem rsp 0
+returning from call 
+ call print 1
+returning from return_inst 
+ return
+  Failed
+~/Compiler/L1/tests
+array12345_setzero.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 11
+ 
+returning from assignment rsi <- 5
+ 
+returning from call call allocate 2
+returning from store 
+ mem rsp 0 <- rax
+returning from assignment 
+ rdi <- rax
+ 
+returning from arithmetic rdi += 8
+returning from store 
+ mem rdi 0 <- 3
+returning from arithmetic 
+ rdi += 8
+returning from store 
+ mem rdi 0 <- 5
+returning from arithmetic 
+ rdi += 8
+returning from store 
+ mem rdi 0 <- 7
+returning from arithmetic 
+ rdi += 8
+returning from store 
+ mem rdi 0 <- 9
+returning from arithmetic 
+ rdi += 8
+returning from store 
+ mem rdi 0 <- 11
+returning from load 
+ rdi <- mem rsp 0
+returning from label :f_ret
+returning from store 
+ mem rsp -8 <- :f_ret
+returning from label :set_zero
+returning from call 
+ call :set_zero 1
+returning from label :f_ret
+returning from label_inst 
+ :f_ret
+returning from load 
+ rdi <- mem rsp 0
+returning from call 
+ call print 1
+returning from return_inst 
+ return
+returning from load rax <- mem rdi 0
+returning from store 
+  mem rsp 0 <- 1
+returning from label :loop
+returning from label_inst 
+  
+  :loop
+returning from arithmetic 
+  rdi += 8
+returning from label :finish
+returning from label :cont
+returning from label :cont
+returning from label_inst 
+
+  :cont
+returning from store 
+  mem rdi 0 <- 1
+returning from arithmetic 
+  rax -= 1
+returning from label :loop
+returning from label :finish
+returning from label_inst 
+
+  :finish
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+array2.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 3
+  
+returning from assignment rsi <- 7
+  
+returning from call call allocate 2
+returning from assignment 
+  rdi <- 5
+  
+returning from assignment rsi <- rax
+  
+returning from store mem rsp 0 <- rax
+returning from call 
+  call allocate 2
+returning from assignment 
+  rdi <- rax
+  
+returning from load rsi <- mem rsp 0
+returning from store 
+  mem rsi 8 <- 9
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+array_init.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 21
+	
+returning from assignment rsi <- 1
+	
+returning from call call allocate 2
+returning from label :for_loop_init_return
+returning from store 
+	mem rsp -8 <- :for_loop_init_return
+returning from assignment 
+	rdi <- rax
+	
+returning from label :for_loop_init
+returning from call call :for_loop_init 1
+returning from label :for_loop_init_return
+returning from label_inst 
+	:for_loop_init_return
+returning from assignment 
+	rdi <- rax
+	
+returning from call call print 1
+returning from return_inst 
+	return
+returning from assignment rax <- rdi
+	
+returning from load rsi <- mem rdi 0
+returning from assignment 
+	rcx <- rdi
+	
+returning from arithmetic rcx += 8
+returning from assignment 
+	rdx <- 0
+	
+returning from label :loop
+returning from label_inst :loop
+returning from label :continue
+returning from label :exit
+returning from label :continue
+returning from label_inst 
+	:continue
+returning from assignment 
+	rdi <- rdx
+	
+returning from arithmetic rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from store 
+	mem rcx 0 <- rdi
+returning from arithmetic 
+	rdx += 1
+returning from arithmetic 
+	rcx += 8
+returning from label :loop
+returning from label :exit
+returning from label_inst 
+	:exit
+returning from return_inst 
+	return
+  Passed
+~/Compiler/L1/tests
+array.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 3
+  
+returning from assignment rsi <- 7
+  
+returning from call call allocate 2
+returning from assignment 
+  rdi <- 5
+  
+returning from assignment rsi <- rax
+  
+returning from call call allocate 2
+returning from assignment 
+  rdi <- rax
+  
+returning from call call print 1
+returning from return_inst 
+  return
+  Failed
+~/Compiler/L1/tests
+arraySize.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 7
+  
+returning from assignment rsi <- 7
+  
+returning from call call allocate 2
+returning from load 
+  rdi <- mem rax 0
+returning from call 
+  call print 1
+returning from return_inst 
+  return
+  Passed
+~/Compiler/L1/tests
+arraytest2.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 1
+ 
+returning from assignment rsi <- 1
+ 
+returning from call call allocate 2
+returning from assignment 
+ rdi <- rax
+ 
+returning from call call print 1
+returning from return_inst 
+ return
+  Passed
+~/Compiler/L1/tests
+arraytest.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 5
+ 
+returning from assignment rsi <- 3
+ 
+returning from call call allocate 2
+returning from assignment 
+ rdi <- 5 
+ 
+returning from assignment rsi <- rax 
+ 
+returning from call call allocate 2
+returning from assignment 
+ rdi <- 5 
+ 
+returning from assignment rsi <- rax 
+ 
+returning from call call allocate 2
+returning from assignment 
+ rdi <- rax
+ 
+returning from call call print 1
+returning from return_inst 
+ return
+  Passed
+~/Compiler/L1/tests
+arr_err_func.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 15
+		
+returning from assignment rsi <- 11
+		
+returning from call call allocate 2
+returning from store 
+		mem rsp 0 <- rax
+returning from load 
+
+		rdi <- mem rsp 0
+returning from assignment 
+		rsi <- 6
+		
+returning from label :ret1
+returning from store mem rsp -8 <- :ret1
+returning from label :check
+returning from call 
+		call :check 2
+returning from label :ret1
+returning from label_inst 
+		:ret1
+returning from load 
+
+		rdi <- mem rsp 0
+returning from assignment 
+		rsi <- 7
+		
+returning from label :ret2
+returning from store mem rsp -8 <- :ret2
+returning from label :check
+returning from call 
+		call :check 2
+returning from label :ret2
+returning from label_inst 
+		:ret2
+returning from load 
+
+		rdi <- mem rsp 0
+returning from assignment 
+		rsi <- 8
+		
+returning from label :ret3
+returning from store mem rsp -8 <- :ret3
+returning from label :check
+returning from call 
+		call :check 2
+returning from label :ret3
+returning from label_inst 
+		:ret3
+returning from load 
+
+		rdi <- mem rsp 0
+returning from assignment 
+		rsi <- 9
+		
+returning from label :ret4
+returning from store mem rsp -8 <- :ret4
+returning from label :check
+returning from call 
+		call :check 2
+returning from label :ret4
+returning from label_inst 
+		:ret4
+returning from load 
+
+		rdi <- mem rsp 0
+returning from assignment 
+		rsi <- 10
+		
+returning from label :ret5
+returning from store mem rsp -8 <- :ret5
+returning from label :check
+returning from call 
+		call :check 2
+returning from label :ret5
+returning from label_inst 
+		:ret5
+returning from return_inst 
+
+		return
+returning from load rax <- mem rdi 0
+returning from label :bad
+returning from label :good
+returning from label :bad
+returning from label_inst 
+		:bad
+returning from arithmetic 
+		rsi *= 2
+returning from arithmetic 
+		rsi += 1
+returning from call 
+		call array-error 2
+returning from label :good
+returning from label_inst 
+		:good
+returning from return_inst 
+		return
+  Failed
+~/Compiler/L1/tests
+arr_err.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 15
+		
+returning from assignment rsi <- 11
+		
+returning from call call allocate 2
+returning from assignment 
+		rsi <- 123
+		
+returning from assignment rdi <- rax
+		
+returning from call call array-error 2
+returning from return_inst 
+		return
+  Failed
+~/Compiler/L1/tests
+assign3.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 7
+
+returning from call call print 1
+returning from return_inst 
+return
+  Passed
+~/Compiler/L1/tests
+basic_arithmetic_literal.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 5
+	
+returning from arithmetic rdi += 10
+returning from call 
+	call print 1
+returning from assignment 
+
+	rdi <- 11
+	
+returning from arithmetic rdi -= 4
+returning from call 
+	call print 1
+returning from assignment 
+
+	rdi <- 5
+	
+returning from arithmetic rdi -= 10
+returning from call 
+	call print 1
+returning from return_inst 
+	
+	return
+  Passed
+~/Compiler/L1/tests
+basic_arithmetic_register.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 5
+	
+returning from assignment rsi <- 11
+	
+returning from arithmetic rdi += rsi
+returning from arithmetic 
+	rdi -= 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rdi <- 11
+	
+returning from assignment rsi <- 5
+	
+returning from arithmetic rdi -= rsi
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rdi <- 5
+	
+returning from assignment rsi <- 11
+	
+returning from arithmetic rdi -= rsi
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from return_inst 
+	
+	return
+  Passed
+~/Compiler/L1/tests
+basic_bitwise_literal.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 3855
+	
+returning from arithmetic rdi &= 12480
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+	
+	rdi <- 3855
+	
+returning from arithmetic rdi &= 3
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from return_inst 
+	
+	return
+  Passed
+~/Compiler/L1/tests
+basic_bitwise_register.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 3855
+	
+returning from assignment rsi <- 12480
+	
+returning from arithmetic rdi &= rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+	
+	rdi <- 3855
+	
+returning from assignment rsi <- 3
+	
+returning from arithmetic rdi &= rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from return_inst 
+	
+	return
+  Passed
+~/Compiler/L1/tests
+basiccall.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rdi <- 7
+
+returning from assignment rsi <- 9
+
+returning from label :funct_ret
+returning from store mem rsp -8 <- :funct_ret
+returning from label :funct
+returning from call 
+call :funct 2
+returning from label :funct_ret
+returning from label_inst 
+:funct_ret
+returning from assignment 
+rdi <- rax
+
+returning from call call print 1
+returning from return_inst 
+return
+returning from assignment rax <- rsi
+	
+returning from return_inst return
+  Passed
+~/Compiler/L1/tests
+basic_compare_lit_lit.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from compare_assign rdi <- 3 < 5
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from compare_assign 
+
+	rdi <- 5 < 3
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from compare_assign 
+
+	rdi <- 4 <= 4
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from compare_assign 
+
+	rdi <- 3 <= 5
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from compare_assign 
+
+	rdi <- 5 <= 3
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from compare_assign 
+	
+	rdi <- 4 = 4
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from compare_assign 
+	
+	rdi <- 3 = 5
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from return_inst 
+	return
+  Passed
+~/Compiler/L1/tests
+basic_compare_lit_reg.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rsi <- 5
+	
+returning from compare_assign rdi <- 3 < rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 3
+	
+returning from compare_assign rdi <- 5 < rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 4
+	
+returning from compare_assign rdi <- 4 <= rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 5
+	
+returning from compare_assign rdi <- 3 <= rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 3
+	
+returning from compare_assign rdi <- 5 <= rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+	
+	rsi <- 4
+	
+returning from compare_assign rdi <- 4 = rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+	
+	rsi <- 5
+	
+returning from compare_assign rdi <- 3 = rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from return_inst 
+	return
+tests/basic_compare_lit_reg.L1.out.tmp tests/basic_compare_lit_reg.L1.out differ: byte 1, line 1
+  Failed
+~/Compiler/L1/tests
+basic_compare_reg_lit.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rsi <- 3
+	
+returning from compare_assign rdi <- rsi < 5
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 5
+	
+returning from compare_assign rdi <- rsi < 3
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 4
+	
+returning from compare_assign rdi <- rsi <= 4
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 3
+	
+returning from compare_assign rdi <- rsi <= 5
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 5
+	
+returning from compare_assign rdi <- rsi <= 3
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+	
+	rsi <- 4
+	
+returning from compare_assign rdi <- rsi = 4
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+	
+	rsi <- 3
+	
+returning from compare_assign rdi <- rsi = 5
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from return_inst 
+	return
+tests/basic_compare_reg_lit.L1.out.tmp tests/basic_compare_reg_lit.L1.out differ: byte 1, line 1
+  Failed
+~/Compiler/L1/tests
+basic_compare_reg_reg.L1
+~/Compiler/L1/tests ~/Compiler/L1/tests
+returning from assignment rsi <- 5
+	
+returning from assignment rdx <- 3
+	
+returning from compare_assign rdi <- rdx < rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 3
+	
+returning from assignment rdx <- 5
+	
+returning from compare_assign rdi <- rdx < rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 4
+	
+returning from assignment rdx <- 4
+	
+returning from compare_assign rdi <- rdx <= rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 5
+	
+returning from assignment rdx <- 3
+	
+returning from compare_assign rdi <- rdx <= rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 3
+	
+returning from assignment rdx <- 5
+	
+returning from compare_assign rdi <- rdx <= rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+	
+	rsi <- 4
+	
+returning from assignment rdx <- 4
+	
+returning from compare_assign rdi <- rdx = rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+	
+	rsi <- 5
+	
+returning from assignment rdx <- 3
+	
+returning from compare_assign rdi <- rdx = rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 4
+	
+returning from compare_assign rdi <- rsi < rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 4
+	
+returning from compare_assign rdi <- rsi <= rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from assignment 
+
+	rsi <- 4
+	
+returning from compare_assign rdi <- rsi = rsi
+returning from arithmetic 
+	rdi <<= 1
+returning from arithmetic 
+	rdi += 1
+returning from call 
+	call print 1
+returning from return_inst 
+	return
+Makefile:28: recipe for target 'test' failed
