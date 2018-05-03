@@ -18,7 +18,7 @@
 #include <code_generator.h>
 
 
-#define DEBUGGING 0
+#define DEBUGGING 1
 #define DEBUG_S 0
 
 using namespace std;
@@ -147,7 +147,7 @@ int main(
       /*
        * Print the liveness.
        */
-      //cout << liveness->result << endl;
+      cout << liveness->result << endl;
       
       /*
        * Print the Interference Graph
@@ -177,7 +177,8 @@ int main(
       while(!done){
         done = true;
         if (DEBUGGING) printf("computing livenes Analysis\n");
-        L2::computeLivenessAnalysis(&p, f);
+        L2::DataFlowResult *liveness = L2::computeLivenessAnalysis(&p, f);
+        if(DEBUGGING) cout << liveness->result << endl;
         if (DEBUGGING) printf("generating interferenceGraph\n");
         generateInterferenceGraph(f);
         if (DEBUGGING) printInterferenceGraph(f->interferenceGraph);

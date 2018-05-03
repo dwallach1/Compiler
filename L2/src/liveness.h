@@ -238,6 +238,19 @@ void removeIncDecSpaces(L2::Function* f);
         if (DEBUGGING) printf("Successgully generated uses\n");
     }
 
+    void setActualUsedVars(std::set<Variable*>* vars, Function* f){
+        for (Instruction* I : f->instructions){
+            for(Arg* a : I->arguments){
+                if(a->type == VAR){
+                    Variable* tempV = findCorrespondingVar(a->name, f->interferenceGraph);
+                    if(tempV){
+                       vars->insert(tempV); 
+                    } 
+                }
+            }
+        }
+    }
+
     bool colorVariables(Function* f){
         //Color the registers because it won't change
         colorRegisters(f);
@@ -246,8 +259,8 @@ void removeIncDecSpaces(L2::Function* f);
         std::vector<Variable*> stack = {};
         std::vector<std::string> calleeSavesInUse = {};
         std::set<std::string> callerSavesInUse = {};
-       
-         generateStack(f, &stack);
+
+        generateStack(f, &stack);
 
          std::vector<Variable*> unusedVars = stack;
 
@@ -479,12 +492,21 @@ void removeIncDecSpaces(L2::Function* f);
                 // for each variable in the kill sets, link to variables in the out sets
                 for(std::string curVar : I->kill){
                     r = {};
+                    std::vector<std::string> tempStrings = {};
+                    std::set<Variable*> tempClique = {};
                     L2::Variable* V = findCorrespondingVar(curVar, f->interferenceGraph);
-
+                    tempStrings.push_back(V->name);
                     for(std::string curOut : I->out){
                         r.push_back(curOut);
+                        L2::Variable* vTemp = findCorrespondingVar(curOut, f->interferenceGraph);
+                        if(vTemp){
+                            tempClique.insert(vTemp);
+                            //addToEdgeSetOneWay(vTemp, tempStrings);
+                        }
                     }
-                    
+
+                    tempClique.insert(V);
+                    //makeClique(&tempClique);
                     addToEdgeSetOneWay(V, r);
 
 
