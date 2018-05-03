@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #define DEBUGGING 0
+#define DEBUG_SP 0
 
 
 
@@ -88,6 +89,8 @@ namespace L2{
 		newInst->type = LOAD;
 		newInst->instruction = replacementString + " <- "+ "mem rsp " + std::to_string(stackLoc);
 
+		if (DEBUG_SP) printf("inserting load: %s\n", newInst->instruction.c_str());
+
 		L2::Arg* arg = new L2::Arg();
 		arg->name = replacementString;
 		arg->type = MEM;
@@ -103,11 +106,14 @@ namespace L2{
 		f->instructions.insert(idx, newInst);
 	}
 
+
 	void insertStore(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc) {
 		Instruction* newInst = new Instruction();
 		//Store inst
 		newInst->instruction = "mem rsp " + std::to_string(stackLoc) + " <- "+ replacementString;
 		newInst->type = STORE;
+
+		if (DEBUG_SP) printf("inserting store: %s\n", newInst->instruction.c_str());
 
 		L2::Arg* arg = new L2::Arg();
 		arg->name = "mem rsp " + std::to_string(stackLoc);
@@ -127,14 +133,16 @@ namespace L2{
 
 	void spillVar(L2::Function* f){
 		
+		if (DEBUG_SP) printf("doing preliminary functions\n");
 		removeIncDecSpaces(f);
 		generateUsesAndVars(f);
-		generateInstNums(f);
+		linkInstructionPointers(f);
 		
 		Variable* V = findVarInFunction(f->toSpill, f);
 		
 		int i = 0;
 		if(V){ 
+			if (DEBUG_SP) printf("found var %s\n", V->name.c_str());
 			f->locals++;
 			int stackLoc = (f->locals * 8) - 8;
 			int numUses = V->uses.size();
@@ -148,38 +156,72 @@ namespace L2{
 				int j = 0;
 				std::string replacementString = f->replaceSpill + std::to_string(i);
 
+				if (DEBUG_SP) printf("replacementString is now %s\n", replacementString.c_str());
+
 				for(Arg* curArg : I->arguments){
 					if(curArg->name == f->toSpill){
 						I->arguments[j]->name = replacementString;
+						curArg->name = replacementString;
+						if (DEBUG_SP) printf("updated args w replacementString\n");
 					}
 
 					I->instruction = std::regex_replace(I->instruction, std::regex(f->toSpill), replacementString);
-					
+					if (DEBUG_SP) printf("updated instruction w replacementString\n");
 					j++;
 				}
 
+				for(Variable* replaceV : f->interferenceGraph->variables) {
+					if (replaceV->name == f->toSpill) {
+						replaceV->name = replacementString;
+					}
+					std::set<std::string>::iterator it;
+					it = replaceV->edges.begin();
+					for (std::string E : replaceV->edges) {
+
+						
+						if (E == f->toSpill) {
+							it = replaceV->edges.find(f->toSpill);
+							replaceV->edges.erase(it);
+							replaceV->edges.insert(replacementString);
+						}
+					}
+				}
+
+				if (DEBUGGING) printf("done w  arguments\n");
 				std::vector<Instruction*>::iterator iter2;
 				iter2 = f->instructions.begin();
 				
 				for(std::string g : I->gen){
 					if(g == V->name){
+						if (DEBUG_SP) printf("attempting load\n");
 						insertLoad(f, replacementString, iter2 + I->instNum, stackLoc);
-						generateInstNums(f);
+						linkInstructionPointers(f);
 						iter2 = f->instructions.begin();
+						if (DEBUG_SP) printf("inserted load replacementString\n");
 						break;
 					}
 				}
+
+				if (DEBUGGING) printf("passed through genset\n");
 				iter2 = f->instructions.begin();
+				if (DEBUGGING) printf("attempting kill[0]\n");
 				if(I->type == LOAD || I->type == ASSIGN || I->type == AOP || I->type == INC_DEC || I->type == CMP_ASSIGN || I->type == LEA){
-					if(I->kill[0] == V->name){
+					if (DEBUG_SP) printf("special instruction\n");
+					if(I->kill.size() && I->kill[0].compare(V->name) == 0){
+						if (DEBUGGING) printf("attempting store\n");
 						insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);
-						generateInstNums(f);
+						linkInstructionPointers(f);
 						iter2 = f->instructions.begin();
+						if (DEBUGGING) printf("inserted store w replacementString\n");
+					}
+					else {
+						if (DEBUGGING) printf("kill[0] not equal\n");
 					}
 				}
+				if (DEBUG_SP) printf("passed thorugh kill[0]\n");
 
 
-				
+				// pop off front use
 				int k = 0;
 				std::vector<Instruction*> newUses = {};
 				for(Instruction* I : V->uses){
@@ -188,8 +230,7 @@ namespace L2{
 				}
 				
 				V->uses = newUses;
-
-				generateInstNums(f);
+				linkInstructionPointers(f);
 				i++;
 			}
 		}

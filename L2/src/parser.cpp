@@ -981,7 +981,7 @@ namespace L2 {
       if(DEBUGGING) std::cout << "Found a print allocate or array-error " << in.string() << std::endl;
       L2::Arg* arg = new L2::Arg();
       if(in.string().find("array-error") != std::string::npos){
-        arg->name = "array_error";
+        arg->name = "array-error";
       }
       else{
         arg->name = in.string();

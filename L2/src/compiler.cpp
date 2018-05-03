@@ -19,6 +19,7 @@
 
 
 #define DEBUGGING 0
+#define DEBUG_S 0
 
 using namespace std;
 
@@ -179,7 +180,11 @@ int main(
         L2::computeLivenessAnalysis(&p, f);
         if (DEBUGGING) printf("generating interferenceGraph\n");
         generateInterferenceGraph(f);
+        if (DEBUGGING) printInterferenceGraph(f->interferenceGraph);
+        if (DEBUGGING) printf("Trying to coloring variables\n");
         done = colorVariables(f);
+        if (DEBUGGING) printf("Finished coloring variables\n");
+
         if (!done) {
           for (L2::Instruction* I : f->instructions) {
             I->gen = {};

@@ -7,7 +7,7 @@
 #include <regex>
 #include <stdlib.h>
 #define DEBUGGING 0
-#define DEBUG_S 1
+#define DEBUG_S 0
 
 
 std::vector<std::string> allRegs = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi", "r12", "r13", "r14", "r15", "rbp", "rbx"};
@@ -77,18 +77,20 @@ void removeIncDecSpaces(L2::Function* f);
                 calls.push_back(I);
             }
         }
-
+        if (DEBUGGING) printf("handiling call instruction\n");
         for (Instruction* I : calls) {
             i = 0;
             for (std::string r : regs) {
                     idx = f->instructions.begin() + I->instNum;
                     if (DEBUGGING) printf("adding insert store inst\n");
+                    
                     insertStore(f, r, idx, (curLocals * 8) + (i * 8));
                     if (DEBUGGING) printf("linking inst pointers\n");
                     linkInstructionPointers(f);
 
                     if (DEBUGGING) printf("adding insert load inst\n");
                     idx = f->instructions.begin() + I->instNum + 1;
+                    
                     insertLoad(f, r, idx, (curLocals * 8) + (i * 8));
                     if (DEBUGGING) printf("linking inst pointers\n");
                     linkInstructionPointers(f);
@@ -98,6 +100,8 @@ void removeIncDecSpaces(L2::Function* f);
                     i++;
             }
         }
+
+        if (DEBUGGING) printf("leaving call handler\n");
 
     }
 
@@ -115,10 +119,12 @@ void removeIncDecSpaces(L2::Function* f);
                 }
             }
         }
-        printf("\n");
     }
 
+
+
     void generateStack(Function* f, std::vector<Variable*>* stack){
+        std::vector<Variable*> tmpStack = {};
         for(Variable* v : f->interferenceGraph->variables){
             //Not a register
             if(std::find(allRegs.begin(), allRegs.end(), v->name) == allRegs.end()){
@@ -127,32 +133,45 @@ void removeIncDecSpaces(L2::Function* f);
                     v->aliveColors[i] = true;
                 }
                 v->aliveColors[15] = false;
-                stack->push_back(v);
+                tmpStack.push_back(v);
+            }
+        }
+        int j = 0;
+        for (int i=15; i >= 0; i--) {
+            for (Variable* V : tmpStack) {
+                if (V->edges.size() == i) {
+                    stack->push_back(V);
+                }
+                if (V->edges.size() > j) {
+                    j = V->edges.size();
+                }
+            }
+        }
+
+        for (j; j > 15; j--) {
+            for (Variable* V : tmpStack) {
+                if (V->edges.size() == j) {
+                    stack->push_back(V);
+                }
             }
         }
     }
 
-    bool assignColor(Variable* v, Function* f){
+    bool assignColor(Variable* v, Function* f, std::vector<Variable*> unusedVars){
         for(std::string e : v->edges){
+           
             Variable* curVar = findCorrespondingVar(e, f->interferenceGraph);
+            if (std::find(unusedVars.begin(), unusedVars.end(), curVar) != unusedVars.end()) { continue; };
             if(curVar){
                 if (DEBUGGING) printf("Marking bit %d false for %s -> %s\n", colorToRegMap[curVar->color], v->name.c_str(), curVar->name.c_str());
                 v->aliveColors[colorToRegMap[curVar->color]] = false;
             }
         }
-        if(DEBUGGING){
-            printf("The available colors for (%s) are: \n", v->name.c_str());
-            for(int i = 0 ; i < 15; i++){
-                if(v->aliveColors[i]){
-                    printf("%s ", allRegs[i].c_str());
-                }
-            }
-            printf("\n");
-        }
+
         for(int i = 0; i < 15; i++){
             if(v->aliveColors[i]){
                 v->color = regToColorMap[i];
-                if(DEBUGGING) printf("Assigning color %s to var %s\n", allRegs[colorToRegMap[v->color]].c_str(), v->name.c_str());
+                if(DEBUG_S) printf("Assigning color %s to var %s\n", allRegs[colorToRegMap[v->color]].c_str(), v->name.c_str());
                 return true;
             }
         }
@@ -162,7 +181,7 @@ void removeIncDecSpaces(L2::Function* f);
     void submitColorChanges(Function* f){
 
         for(Variable* V : f->interferenceGraph->variables){
-            if (DEBUG_S) printf("submitting COlor changes for %s\n", V->name.c_str());
+            if (DEBUG_S) printf("submitting Color changes for %s\n", V->name.c_str());
             if(std::find(allRegs.begin(), allRegs.end(), V->name) == allRegs.end()){
 
                 for(Instruction* I : V->uses){
@@ -170,6 +189,14 @@ void removeIncDecSpaces(L2::Function* f);
                         if(DEBUGGING) printf("Changing Instruction (Replacing %s with %s): %s\n", V->name.c_str(), allRegs[colorToRegMap[V->color] ].c_str() ,I->instruction.c_str());
                         std::string i = " " + I->instruction + " ";
                         I->instruction = std::regex_replace(i, std::regex(" " + V->name + " "), " " + allRegs[colorToRegMap[V->color]] + " ");
+                        
+                        I->instruction.erase(0,1);
+
+                        for (Arg* curArg : I->arguments) {
+                            if (curArg->name == V->name) {
+                                curArg->name = allRegs[colorToRegMap[V->color]];
+                            }
+                        }
                         if(DEBUGGING) printf("Instruction is now: %s\n", I->instruction.c_str());
                 }
             }
@@ -177,12 +204,16 @@ void removeIncDecSpaces(L2::Function* f);
     }
 
     void generateUses(L2::Function* f){
-
+        if (DEBUGGING) printf("trying to generate Uses\n");
         for(Instruction* I : f->instructions){
-            for(int i = 0; i < I->arguments.size(); i++){
-                L2::Variable* V = findCorrespondingVar(I->arguments[i]->name, f->interferenceGraph);
+            if (DEBUGGING) printf("got the instruction\n");
+            for(Arg* arg : I->arguments){
+                if (DEBUGGING) printf("got the arg\n");
+                L2::Variable* V = findCorrespondingVar(arg->name, f->interferenceGraph);
                 //Found a variable
+                
                 if(V){
+                    if (DEBUGGING) printf("I->arg is %s |--| associating %s with %s\n", arg->name.c_str(), V->name.c_str(), I->instruction.c_str());
                     V->uses.push_back(I);
                     if(I->type == ASSIGN){ 
                         if(I->arguments[0]->name == I->arguments[1]->name){
@@ -192,23 +223,26 @@ void removeIncDecSpaces(L2::Function* f);
                 }
             }
         }
+        if (DEBUGGING) printf("Successgully generated uses\n");
     }
 
     bool colorVariables(Function* f){
         //Color the registers because it won't change
         colorRegisters(f);
-        std::vector<Variable*> stack;
         bool done = false;
         bool assigned = false;
+        std::vector<Variable*> stack = {};
         std::vector<std::string> calleeSavesInUse = {};
         std::set<std::string> callerSavesInUse = {};
        
-         // calleeSavesInUse = {};
-         stack = {};
          generateStack(f, &stack);
+
+         std::vector<Variable*> unusedVars = stack;
+
          for(Variable* V : stack){
-             assigned = assignColor(V, f);
-             if(assigned){
+            unusedVars.erase(unusedVars.begin());
+            assigned = assignColor(V, f, unusedVars);
+            if(assigned){
                  //Callee Save
                  if(colorToRegMap[V->color] > colorToRegMap[RSI]){
                     if (DEBUGGING) printf("adding callee saved: %s\n", allRegs[colorToRegMap[V->color]].c_str());
@@ -217,15 +251,22 @@ void removeIncDecSpaces(L2::Function* f);
                     callerSavesInUse.insert(allRegs[colorToRegMap[V->color] ]);
                  }
              }
-             //spill
              else{
-                 f->toSpill = V->name;
-                 f->replaceSpill = V->name + "S_P_I_L_L";
-                 if(DEBUGGING) printf("Attempting to spill %s\n", V->name.c_str());
-                 spillVar(f);
-                 return false;
+                 V->color = NO_COLOR;
              }
          }
+
+         bool spilled = false;
+         for (Variable* V : f->interferenceGraph->variables) {
+            if (V->color == NO_COLOR) {
+                f->toSpill = V->name;
+                f->replaceSpill = V->name + "S_P_I_L_L";
+                spillVar(f);
+                spilled = true;
+            }
+         }
+
+         if (spilled) { if (DEBUG_S) printf("spilling!\n"); return false; }
         
         int offset = f->locals * 8;
         for(std::string str : calleeSavesInUse){
@@ -251,11 +292,14 @@ void removeIncDecSpaces(L2::Function* f);
             if (DEBUGGING) printf("handled callersave\n");
         }
 
-        if(DEBUGGING) printf("Submitting Color Changes\n");
         generateUses(f);
+        if(DEBUGGING) printf("generated uses\n");
         submitColorChanges(f);
+        if(DEBUGGING) printf("Submitted Color Changes\n");
         removeIncDecSpaces(f);
+        if(DEBUGGING) printf("removed INC_DEC spaces\n");
         handleStackArgs(f);
+        if(DEBUGGING) printf("handled stack-arg && retruning\n");
         return true;
 
     }
@@ -274,7 +318,8 @@ void removeIncDecSpaces(L2::Function* f);
     
     L2::Variable* findCorrespondingVar(std::string name, L2::InterferenceGraph* iG){
         for(Variable* var : iG->variables){
-            if(name == var->name){
+            if(name.compare(var->name) == 0){
+                if (DEBUGGING) printf("Correspoding to string -> %s is var -> %s\n", name.c_str(), var->name.c_str());
                 return var;
             }
         }
@@ -292,6 +337,18 @@ void removeIncDecSpaces(L2::Function* f);
         }
     }
     
+    void printInterferenceGraphSub(L2::InterferenceGraph* iG, std::string substr){
+        for(L2::Variable* V : iG->variables){ 
+            
+            if (V->name.substr(0,2) == substr) {
+                printf("%s", V->name.c_str());
+                for(std::string E : V->edges){
+                    printf(" %s", E.c_str());
+                }
+                printf("\n");
+            }
+        }
+    }
 
     void instatiateVariables(L2::Function* f, L2::InterferenceGraph* iG){
         std::set<std::string> vars = {};
@@ -366,6 +423,7 @@ void removeIncDecSpaces(L2::Function* f);
         }
     
     }
+
 
     void generateInterferenceGraph(L2::Function* f){
    
@@ -561,7 +619,7 @@ void removeIncDecSpaces(L2::Function* f);
                
                 case STACKARG:
                     I->kill.push_back(I->arguments[0]->name);
-                    if (DEBUGGING) printf("added %s to kill set (STACKARG)\n", I->kill[0].c_str());
+                    //if (DEBUGGING) printf("added %s to kill set (STACKARG)\n", I->kill[0].c_str());
                     break;
 
                 //store
@@ -825,9 +883,9 @@ void removeIncDecSpaces(L2::Function* f);
                     if(I->nextInst != NULL){
                         newOut = I->nextInst->in;                        
                     }
-                    else{
-                        newOut = prevINSet;
-                    }
+                    // else{
+                    //     newOut = prevINSet;
+                    // }
                 }
 
                 
