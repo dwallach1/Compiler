@@ -94,7 +94,7 @@ void removeIncDecSpaces(L2::Function* f);
         for (Instruction* I : calls_store) {
             i = 0;
             for (std::string r : regs) {
-                    
+                    if(r == "rax"){ continue;}
                     idx = f->instructions.begin() + I->instNum;                    
                     insertStore(f, r, idx, (curLocals * 8) + (i * 8));
                     linkInstructionPointers(f);    
@@ -105,6 +105,7 @@ void removeIncDecSpaces(L2::Function* f);
         for (Instruction* I : calls_load) {
             i = 0;
             for (std::string r : regs) {
+                    if(r == "rax"){ continue;}
                     
                     idx = f->instructions.begin() + I->instNum + 1;
                     insertLoad(f, r, idx, (curLocals * 8) + (i * 8));
