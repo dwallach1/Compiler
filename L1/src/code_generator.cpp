@@ -532,7 +532,7 @@ namespace L1{
 		    else if (arg1[0] != 'r') {
 		    
 			//negate operands
-			if (operand == "<") { operand = ">=";  }
+			if (operand == "<") { operand = ">";  }
 			if (operand == "<=") { operand = ">="; }
 
 		    }
