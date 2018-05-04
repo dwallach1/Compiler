@@ -9,7 +9,7 @@
 #include <algorithm>
 
 #define DEBUGGING 0
-#define DEBUG_SP 1
+#define DEBUG_SP 0
 
 
 

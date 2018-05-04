@@ -7,7 +7,7 @@
 #include <regex>
 #include <stdlib.h>
 #define DEBUGGING 0
-#define DEBUG_S 1
+#define DEBUG_S 0   
 
 
 std::vector<std::string> allRegs = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi", "r12", "r13", "r14", "r15", "rbp", "rbx"};
@@ -51,8 +51,8 @@ void printNewSpill(Function* f);
                 int bytes = f->locals * 8;
                 int a = atoi(I->arguments[2]->name.c_str());
                 bytes += a;
-                if (DEBUGGING) printf("a is %d\n", a);
-                I->instruction = std::regex_replace(I->instruction, std::regex("stack-arg [0-9]+"), "mem rsp " + std::to_string(bytes));
+                if (DEBUG_S) printf("a is %d\n", a);
+                I->instruction = std::regex_replace(I->instruction, std::regex("stack-arg -?[0-9]+"), "mem rsp " + std::to_string(bytes));
             }
         }
     }
@@ -329,7 +329,7 @@ void printNewSpill(Function* f);
                 f->toSpill = V->name;
                 f->replaceSpill = V->name + "S_P_I_L_L";
                 spillVar(f);
-                if(DEBUG_S) printNewSpill(f);
+                if(DEBUGGING) printNewSpill(f);
                 spilled = true;
             }
          }
