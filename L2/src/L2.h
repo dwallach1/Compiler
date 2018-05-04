@@ -68,6 +68,7 @@ namespace L2 {
       std::set<std::string> edges;
       std::vector<L2::Instruction*> uses;
       L2::Color color;
+      std::string prevName;
       bool aliveColors[16];
   };
   

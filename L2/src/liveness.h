@@ -43,6 +43,7 @@ void removeIncDecSpaces(L2::Function* f);
      *
      */
 
+
     void handleStackArgs(Function* f) {
 
         for (Instruction* I : f->instructions) {
@@ -89,7 +90,7 @@ void removeIncDecSpaces(L2::Function* f);
 
                 for (Instruction* i : f->instructions) {
                     if (i->type == LABEL) {
-                        if (DEBUG_S) printf("comparing %s -> %s\n", i->instruction.c_str(), I->arguments[1]->name.c_str());
+                        if (DEBUGGING) printf("comparing %s -> %s\n", i->instruction.c_str(), I->arguments[1]->name.c_str());
                         if (i->instruction == I->arguments[1]->name) {
                             calls_load.push_back(i);
                         }
@@ -146,6 +147,7 @@ void removeIncDecSpaces(L2::Function* f);
 
     void generateStack(Function* f, std::vector<Variable*>* stack){
         std::vector<Variable*> tmpStack = {};
+        
         for(Variable* v : f->interferenceGraph->variables){
             //Not a register
             if(std::find(allRegs.begin(), allRegs.end(), v->name) == allRegs.end()){
@@ -157,15 +159,33 @@ void removeIncDecSpaces(L2::Function* f);
                 tmpStack.push_back(v);
             }
         }
+        // size_t maxSize = 0;
+        // for(Variable* V : tmpStack){
+        //     if(V->edges.size() > maxSize){
+        //         maxSize = V->edges.size();
+        //     }
+        // }
+
+        // for(int i = maxSize; i >= 0; i--){
+        //     for(Variable* V : tmpStack){
+        //         if(V->edges.size() == i){
+        //             stack->push_back(V);
+        //         }
+        //     }
+        // }
+
+
         int j = 0;
         for (int i=15; i >= 0; i--) {
             for (Variable* V : tmpStack) {
                 if (V->edges.size() == i) {
                     stack->push_back(V);
                 }
-                if (V->edges.size() > j) {
+                
+                if (V->edges.size() > j ) {
                     j = V->edges.size();
                 }
+                
             }
         }
 
@@ -192,7 +212,7 @@ void removeIncDecSpaces(L2::Function* f);
         for(int i = 0; i < 15; i++){
             if(v->aliveColors[i]){
                 v->color = regToColorMap[i];
-                if(DEBUG_S) printf("Assigning color %s to var %s\n", allRegs[colorToRegMap[v->color]].c_str(), v->name.c_str());
+                if(DEBUGGING) printf("Assigning color %s to var %s\n", allRegs[colorToRegMap[v->color]].c_str(), v->name.c_str());
                 return true;
             }
         }
@@ -202,7 +222,7 @@ void removeIncDecSpaces(L2::Function* f);
     void submitColorChanges(Function* f){
 
         for(Variable* V : f->interferenceGraph->variables){
-            if (DEBUG_S) printf("submitting Color changes for %s\n", V->name.c_str());
+            if (DEBUGGING) printf("submitting Color changes for %s\n", V->name.c_str());
             if(std::find(allRegs.begin(), allRegs.end(), V->name) == allRegs.end()){
 
                 for(Instruction* I : V->uses){
@@ -313,7 +333,7 @@ void removeIncDecSpaces(L2::Function* f);
             }
          }
 
-         if (spilled) { if (DEBUG_S) printf("spilling!\n"); return false; }
+         if (spilled) { if (DEBUGGING) printf("spilling!\n"); return false; }
         
         int offset = f->locals * 8;
         std::vector<Instruction*> returnInsts = {};
@@ -438,6 +458,7 @@ void removeIncDecSpaces(L2::Function* f);
             //printf("instatiating newVar: %s\n", curVar.c_str());
             L2::Variable* newVar = new L2::Variable();
             newVar->name = curVar;
+            newVar->prevName = curVar;
             newVar->edges = {};
             iG->variables.insert(newVar); 
         }
@@ -480,6 +501,28 @@ void removeIncDecSpaces(L2::Function* f);
     
     }
 
+
+    void cleanSpillEdges(Function* f){
+        for(Variable* V : f->interferenceGraph->variables){
+            std::string originalName;
+            std::string spillName;
+            std::vector<std::string> toKill;
+            size_t endPos = V->name.find("S_P_I_L_L");
+            if(endPos != std::string::npos){
+                originalName = V->name.substr(0,endPos);
+                spillName = originalName + "S_P_I_L_L";
+                for(std::string curEdge : V->edges){
+                    if(curEdge.find(spillName) != std::string::npos){
+                        toKill.push_back(curEdge);
+                    }
+                }
+                for(std::string curEdge : toKill){
+                    V->edges.erase(curEdge);
+                }
+
+            }
+        }
+    }
 
     void generateInterferenceGraph(L2::Function* f){
    
@@ -562,7 +605,9 @@ void removeIncDecSpaces(L2::Function* f);
                     makeClique(&result); 
                 }
             }
-        }       
+        } 
+
+        cleanSpillEdges(f);      
     }
 
     /*

@@ -18,7 +18,7 @@
 #include <code_generator.h>
 
 
-#define DEBUGGING 0
+#define DEBUGGING 1
 #define DEBUG_S 0
 
 using namespace std;
@@ -181,7 +181,7 @@ int main(
         if(DEBUGGING) cout << liveness->result << endl;
         if (DEBUGGING) printf("generating interferenceGraph\n");
         generateInterferenceGraph(f);
-        if (DEBUGGING) printInterferenceGraph(f->interferenceGraph);
+        //if (DEBUGGING) printInterferenceGraph(f->interferenceGraph);
         if (DEBUGGING) printf("Trying to coloring variables\n");
         done = colorVariables(f);
         if (DEBUGGING) printf("Finished coloring variables\n");
