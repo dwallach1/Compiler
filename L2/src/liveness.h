@@ -11,7 +11,7 @@
 
 
 std::vector<std::string> allRegs = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi", "r12", "r13", "r14", "r15", "rbp", "rbx"};
-std::vector<std::string> callInstKill = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi"};
+std::vector<std::string> callerSaveRegs = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi"};
 std::vector<std::string> callInstGen = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 std::vector<std::string> calleeSaveRegs = {"r12", "r13", "r14", "r15", "rbx", "rbp"};
 
@@ -52,6 +52,14 @@ void removeIncDecSpaces(L2::Function* f);
                 bytes += a;
                 if (DEBUGGING) printf("a is %d\n", a);
                 I->instruction = std::regex_replace(I->instruction, std::regex("stack-arg [0-9]+"), "mem rsp " + std::to_string(bytes));
+            }
+        }
+    }
+
+    void handleReturnInstructions(Function* f, std::vector<Instruction*>* returnInsts){
+        for(Instruction* I : f->instructions){
+            if(I->type == RET){
+                returnInsts->push_back(I);
             }
         }
     }
@@ -252,17 +260,30 @@ void removeIncDecSpaces(L2::Function* f);
         }
     }
 
+    void addFunctionalRegsToCallerAndCalleeSave(Function* f, std::set<std::string>* calleeSavesInUse, std::set<std::string>* callerSavesInUse){
+        for(Instruction* I : f->instructions){
+            for(Arg* a : I->arguments){
+                if(std::find(calleeSaveRegs.begin(), calleeSaveRegs.end(), a->name) != calleeSaveRegs.end()){
+                    calleeSavesInUse->insert(a->name);
+                }
+                else if(std::find(callerSaveRegs.begin(), callerSaveRegs.end(), a->name) != callerSaveRegs.end()){
+                    callerSavesInUse->insert(a->name);
+                }
+            }
+        }
+    }
+
     bool colorVariables(Function* f){
         //Color the registers because it won't change
         colorRegisters(f);
         bool done = false;
         bool assigned = false;
         std::vector<Variable*> stack = {};
-        std::vector<std::string> calleeSavesInUse = {};
+        std::set<std::string> calleeSavesInUse = {};
         std::set<std::string> callerSavesInUse = {};
 
         generateStack(f, &stack);
-
+        //addFunctionalRegsToCallerAndCalleeSave(f, &calleeSavesInUse, &callerSavesInUse);
          std::vector<Variable*> unusedVars = stack;
 
          for(Variable* V : stack){
@@ -272,7 +293,7 @@ void removeIncDecSpaces(L2::Function* f);
                  //Callee Save
                  if(colorToRegMap[V->color] > colorToRegMap[RSI]){
                     if (DEBUGGING) printf("adding callee saved: %s\n", allRegs[colorToRegMap[V->color]].c_str());
-                     calleeSavesInUse.push_back(allRegs[colorToRegMap[V->color] ]);
+                     calleeSavesInUse.insert(allRegs[colorToRegMap[V->color] ]);
                  } else {
                     callerSavesInUse.insert(allRegs[colorToRegMap[V->color] ]);
                  }
@@ -295,6 +316,8 @@ void removeIncDecSpaces(L2::Function* f);
          if (spilled) { if (DEBUG_S) printf("spilling!\n"); return false; }
         
         int offset = f->locals * 8;
+        std::vector<Instruction*> returnInsts = {};
+        handleReturnInstructions(f, &returnInsts);
         for(std::string str : calleeSavesInUse){
             if (DEBUGGING) printf("adding load and store instructions for a callee saved reg\n");
             f->locals++;
@@ -303,8 +326,13 @@ void removeIncDecSpaces(L2::Function* f);
             iter = f->instructions.begin();
             insertStore(f, str, iter, offset);
 
-            iter = f->instructions.end() - 1;
-            insertLoad(f, str, iter, offset);
+            for(Instruction* ITemp : returnInsts){
+                iter = f->instructions.begin() + ITemp->instNum;
+                insertLoad(f, str, iter, offset);
+                linkInstructionPointers(f);
+            }
+            // iter = f->instructions.end() - 1;
+            // insertLoad(f, str, iter, offset);
 
             linkInstructionPointers(f);
             offset += 8;
@@ -715,7 +743,7 @@ void removeIncDecSpaces(L2::Function* f);
                         I->gen.push_back(callInstGen[q]);
                     }
 
-                    I->kill = callInstKill;
+                    I->kill = callerSaveRegs;
                     break;
 
                 // lea
