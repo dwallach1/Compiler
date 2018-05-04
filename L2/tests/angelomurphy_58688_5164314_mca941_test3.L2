@@ -1,6 +1,8 @@
 (:entry
+
   (:entry
     0 0
+
     array_size <- 40
     r12 <- array_size
     rdi <- array_size
@@ -21,19 +23,22 @@
     rcx += arr_ptr
     mem rcx 8 <- rdx
     mem rsp -8 <- :loop_inc
-    mem rsp -16 <- r11
+    unknownVar <- r11
     rdi <- r11
     call :loop_inc_gen 1
     :loop_inc
     inc_amount <- rax
-    loop_val <- stack-arg -16
+    loop_val <- unknownVar
     loop_val += inc_amount
     r11 <- loop_val
     cjump r11 < r12 :loop_start :loop_end
     :loop_end
     rdi <- arr_ptr
     call print 1
+
+    return 
   )
+
   (:loop_inc_gen
     1 0
     inc_amount <- 1
