@@ -18,7 +18,7 @@
 #include <code_generator.h>
 
 
-#define DEBUGGING 1
+#define DEBUGGING 0
 #define DEBUG_S 0
 
 using namespace std;
@@ -178,10 +178,10 @@ int main(
         done = true;
         if (DEBUGGING) printf("computing livenes Analysis\n");
         L2::DataFlowResult *liveness = L2::computeLivenessAnalysis(&p, f);
-        if(DEBUGGING) cout << liveness->result << endl;
+        //if(DEBUGGING) cout << liveness->result << endl;
         if (DEBUGGING) printf("generating interferenceGraph\n");
         generateInterferenceGraph(f);
-        //if (DEBUGGING) printInterferenceGraph(f->interferenceGraph);
+        if (DEBUGGING) printInterferenceGraph(f->interferenceGraph);
         if (DEBUGGING) printf("Trying to coloring variables\n");
         done = colorVariables(f);
         if (DEBUGGING) printf("Finished coloring variables\n");

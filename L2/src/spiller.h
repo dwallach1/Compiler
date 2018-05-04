@@ -9,7 +9,7 @@
 #include <algorithm>
 
 #define DEBUGGING 0
-#define DEBUG_SP 0
+#define DEBUG_SP 1
 
 
 
@@ -89,7 +89,7 @@ namespace L2{
 		newInst->type = LOAD;
 		newInst->instruction = replacementString + " <- "+ "mem rsp " + std::to_string(stackLoc);
 
-		if (DEBUG_SP) printf("inserting load: %s\n", newInst->instruction.c_str());
+		if (DEBUGGING) printf("inserting load: %s\n", newInst->instruction.c_str());
 
 		L2::Arg* arg = new L2::Arg();
 		arg->name = replacementString;
@@ -113,7 +113,7 @@ namespace L2{
 		newInst->instruction = "mem rsp " + std::to_string(stackLoc) + " <- "+ replacementString;
 		newInst->type = STORE;
 
-		if (DEBUG_SP) printf("inserting store: %s\n", newInst->instruction.c_str());
+		if (DEBUGGING) printf("inserting store: %s\n", newInst->instruction.c_str());
 
 		L2::Arg* arg = new L2::Arg();
 		arg->name = "mem rsp " + std::to_string(stackLoc);
@@ -131,9 +131,29 @@ namespace L2{
 	}
 
 
+	void replaceInstructionVarWithVar(Instruction* I, std::string varToReplace, std::string replacementString){
+		std::vector<std::string> result;
+		std::string newInst = "";
+		std::istringstream iss(I->instruction);		
+		for(std::string s; iss >> s;){
+			result.push_back(s);
+		}
+		int i = 0;
+		for(std::string s : result){
+			if(s == varToReplace){
+				result[i] = varToReplace;
+			}
+			i++;
+		}
+		for(std::string s : result){
+			newInst = newInst + s + " ";
+		}
+		I->instruction = newInst;
+	}
+
 	void spillVar(L2::Function* f){
 		
-		if (DEBUG_SP) printf("doing preliminary functions\n");
+		if (DEBUGGING) printf("doing preliminary functions\n");
 		removeIncDecSpaces(f);
 		generateUsesAndVars(f);
 		linkInstructionPointers(f);
@@ -142,7 +162,7 @@ namespace L2{
 		
 		int i = 0;
 		if(V){ 
-			if (DEBUG_SP) printf("found var %s\n", V->name.c_str());
+			if (DEBUGGING) printf("found var %s\n", V->name.c_str());
 			f->locals++;
 			int stackLoc = (f->locals * 8) - 8;
 			// if (f->arguments > 6) {
@@ -161,6 +181,10 @@ namespace L2{
 
 				if (DEBUG_SP) printf("replacementString is now %s\n", replacementString.c_str());
 
+				//replaceInstructionVarWithVar(I, f->toSpill, replacementString);
+
+				I->instruction = std::regex_replace(I->instruction, std::regex(f->toSpill), replacementString);
+
 				for(Arg* curArg : I->arguments){
 					if(curArg->name == f->toSpill){
 						I->arguments[j]->name = replacementString;
@@ -168,27 +192,30 @@ namespace L2{
 						if (DEBUG_SP) printf("updated args w replacementString\n");
 					}
 
-					I->instruction = std::regex_replace(I->instruction, std::regex(f->toSpill), replacementString);
-					if (DEBUG_SP) printf("updated instruction w replacementString\n");
+					//I->instruction = std::regex_replace(I->instruction, std::regex(f->toSpill), replacementString);
+
+
+
+					if (DEBUGGING) printf("updated instruction w replacementString\n");
 					j++;
 				}
 
-				for(Variable* replaceV : f->interferenceGraph->variables) {
-					if (replaceV->name == f->toSpill) {
-						replaceV->name = replacementString;
-					}
-					std::set<std::string>::iterator it;
-					it = replaceV->edges.begin();
-					for (std::string E : replaceV->edges) {
+				// for(Variable* replaceV : f->interferenceGraph->variables) {
+				// 	if (replaceV->name == f->toSpill) {
+				// 		replaceV->name = replacementString;
+				// 	}
+				// 	std::set<std::string>::iterator it;
+				// 	it = replaceV->edges.begin();
+				// 	for (std::string E : replaceV->edges) {
 
 						
-						if (E == f->toSpill) {
-							it = replaceV->edges.find(f->toSpill);
-							replaceV->edges.erase(it);
-							replaceV->edges.insert(replacementString);
-						}
-					}
-				}
+				// 		if (E == f->toSpill) {
+				// 			it = replaceV->edges.find(f->toSpill);
+				// 			replaceV->edges.erase(it);
+				// 			replaceV->edges.insert(replacementString);
+				// 		}
+				// 	}
+				// }
 
 				if (DEBUGGING) printf("done w  arguments\n");
 				std::vector<Instruction*>::iterator iter2;
@@ -209,19 +236,19 @@ namespace L2{
 				iter2 = f->instructions.begin();
 				if (DEBUGGING) printf("attempting kill[0]\n");
 				if(I->type == LOAD || I->type == ASSIGN || I->type == AOP || I->type == INC_DEC || I->type == CMP_ASSIGN || I->type == LEA){
-					if (DEBUG_SP) printf("special instruction\n");
+					if (DEBUGGING) printf("special instruction\n");
 					if(I->kill.size() && I->kill[0].compare(V->name) == 0){
-						if (DEBUGGING) printf("attempting store\n");
+						if (DEBUG_SP) printf("attempting store\n");
 						insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);
 						linkInstructionPointers(f);
 						iter2 = f->instructions.begin();
-						if (DEBUGGING) printf("inserted store w replacementString\n");
+						if (DEBUG_SP) printf("inserted store w replacementString\n");
 					}
 					else {
 						if (DEBUGGING) printf("kill[0] not equal\n");
 					}
 				}
-				if (DEBUG_SP) printf("passed thorugh kill[0]\n");
+				if (DEBUGGING) printf("passed thorugh kill[0]\n");
 
 
 				// pop off front use

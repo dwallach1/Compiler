@@ -7,7 +7,7 @@
 #include <regex>
 #include <stdlib.h>
 #define DEBUGGING 0
-#define DEBUG_S 0
+#define DEBUG_S 1
 
 
 std::vector<std::string> allRegs = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi", "r12", "r13", "r14", "r15", "rbp", "rbx"};
@@ -30,7 +30,7 @@ void generateUses(L2::Function* f);
 void insertLoad(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc);
 void insertStore(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc);
 void removeIncDecSpaces(L2::Function* f);
-
+void printNewSpill(Function* f);
     /*
      *
      *
@@ -329,6 +329,7 @@ void removeIncDecSpaces(L2::Function* f);
                 f->toSpill = V->name;
                 f->replaceSpill = V->name + "S_P_I_L_L";
                 spillVar(f);
+                if(DEBUG_S) printNewSpill(f);
                 spilled = true;
             }
          }
@@ -501,7 +502,16 @@ void removeIncDecSpaces(L2::Function* f);
     
     }
 
-
+    // void cleanInAndOutSets(Function* f){
+    //     std::vector<std::string> toKill;
+    //     for(Instruction* I : f->instructions){
+    //         for(Arg* a : I->arguments){
+    //             if(a->name.find("S_P_I_L_L") != std::string:npos){
+                    
+    //             }
+    //         }
+    //     }
+    // }
     void cleanSpillEdges(Function* f){
         for(Variable* V : f->interferenceGraph->variables){
             std::string originalName;
@@ -530,6 +540,7 @@ void removeIncDecSpaces(L2::Function* f);
         f->interferenceGraph = iG;
       
         instatiateVariables(f, iG);
+
 
         for(L2::Variable* V : iG->variables){ 
             std::string curVar = V->name;
