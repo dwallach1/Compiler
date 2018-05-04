@@ -327,7 +327,10 @@ void removeIncDecSpaces(L2::Function* f);
             insertStore(f, str, iter, offset);
 
             for(Instruction* ITemp : returnInsts){
-                iter = f->instructions.begin() + ITemp->instNum;
+                iter = f->instructions.begin() + ITemp->instNum + 1;
+                if(iter == f->instructions.end()){
+                    iter -= 1;
+                }
                 insertLoad(f, str, iter, offset);
                 linkInstructionPointers(f);
             }
