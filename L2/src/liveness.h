@@ -145,7 +145,7 @@ void printNewSpill(Function* f);
 
 
 
-    void generateStack(Function* f, std::vector<Variable*>* stack){
+    void generateStack(Function* f, std::vector<Variable*>* stack, bool trivial, std::set<Variable*>* varsInFunction){
         std::vector<Variable*> tmpStack = {};
         
         for(Variable* v : f->interferenceGraph->variables){
@@ -156,6 +156,14 @@ void printNewSpill(Function* f);
                     v->aliveColors[i] = true;
                 }
                 v->aliveColors[15] = false;
+                if(trivial){
+                    for(Variable* varKill : *varsInFunction){
+                        //Since it is trivial, let us never alias registers for this function
+                        if(std::find(allRegs.begin(), allRegs.end(), varKill->name) != allRegs.end()){
+                            v->aliveColors[colorToRegMap[varKill->color]] = false;
+                        }
+                    }
+                }
                 tmpStack.push_back(v);
             }
         }
@@ -280,30 +288,24 @@ void printNewSpill(Function* f);
         }
     }
 
-    void addFunctionalRegsToCallerAndCalleeSave(Function* f, std::set<std::string>* calleeSavesInUse, std::set<std::string>* callerSavesInUse){
-        for(Instruction* I : f->instructions){
-            for(Arg* a : I->arguments){
-                if(std::find(calleeSaveRegs.begin(), calleeSaveRegs.end(), a->name) != calleeSaveRegs.end()){
-                    calleeSavesInUse->insert(a->name);
-                }
-                else if(std::find(callerSaveRegs.begin(), callerSaveRegs.end(), a->name) != callerSaveRegs.end()){
-                    callerSavesInUse->insert(a->name);
-                }
-            }
-        }
-    }
 
     bool colorVariables(Function* f){
         //Color the registers because it won't change
         colorRegisters(f);
         bool done = false;
         bool assigned = false;
+        bool trivial = false;
         std::vector<Variable*> stack = {};
         std::set<std::string> calleeSavesInUse = {};
         std::set<std::string> callerSavesInUse = {};
+        std::set<Variable*> varsInFunction = {};
 
-        generateStack(f, &stack);
-        //addFunctionalRegsToCallerAndCalleeSave(f, &calleeSavesInUse, &callerSavesInUse);
+        setActualUsedVars(&varsInFunction, f);
+        if(varsInFunction.size() < 15){
+            trivial = true;
+        }
+        generateStack(f, &stack, trivial, &varsInFunction);
+        
          std::vector<Variable*> unusedVars = stack;
 
          for(Variable* V : stack){
@@ -377,6 +379,7 @@ void printNewSpill(Function* f);
         if(DEBUGGING) printf("removed INC_DEC spaces\n");
         handleStackArgs(f);
         if(DEBUGGING) printf("handled stack-arg && retruning\n");
+        trivial = false;
         return true;
 
     }
