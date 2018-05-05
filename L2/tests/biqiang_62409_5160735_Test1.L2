@@ -1,22 +1,17 @@
-(:go
-  (:go
-	0 1
-
+	(:go
+	 (:go
+	  0 1
     mem rsp 0 <- 1
     temp_var <- stack-arg 0
     // b_fib is ahead of a_fib
     a_fib <- 3
-    b_fib <- 5
+    b_fib <- 3
     count <- 1
     maxIter <- 31
-
     :loop
-    rdi <- a_fib
-    rsi <- b_fib
     mem rsp -8 <- :ret1
     call :fib_add 2
     :ret1
-
     count += 2
     a_fib <- rdi
     b_fib <- rsi
@@ -24,13 +19,10 @@
     stop <- :end
     cjump count < maxIter :loop :end 
     :end
-
     return
     )
-
     (:fib_add
      2 0
-
      temp <- rsi
      // b_fib is ahead of a_fib
      a_fib <- rdi
@@ -40,15 +32,18 @@
      b_fib += a_fib
      b_fib <<= 1
      b_fib += 1
-
      a_fib <- temp
      // not sure if this is needed
      rdi <- a_fib
      call print 1
-
      rdi <- a_fib
      rsi <- b_fib
-
      return
    )
 )
+
+
+
+
+
+  

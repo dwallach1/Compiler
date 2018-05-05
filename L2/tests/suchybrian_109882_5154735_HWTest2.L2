@@ -67,6 +67,7 @@
     rdi <- r8
     rdi <- r9
     rdi <- r12
+   r12 <- mem rsp 0
     return
   )
 )

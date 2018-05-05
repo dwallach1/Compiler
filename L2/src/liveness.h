@@ -7,7 +7,7 @@
 #include <regex>
 #include <stdlib.h>
 #define DEBUGGING 0
-#define DEBUG_S 0   
+#define DEBUG_S 0 
 
 
 std::vector<std::string> allRegs = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi", "r12", "r13", "r14", "r15", "rbp", "rbx", "rsp"};
@@ -51,7 +51,7 @@ void printNewSpill(Function* f);
                 int bytes = f->locals * 8;
                 int a = atoi(I->arguments[2]->name.c_str());
                 bytes += a;
-                if (DEBUG_S) printf("a is %d\n", a);
+                //if (DEBUG_S) printf("a is %d\n", a);
                 I->instruction = std::regex_replace(I->instruction, std::regex("stack-arg -?[0-9]+"), "mem rsp " + std::to_string(bytes));
             }
         }
@@ -302,7 +302,8 @@ void printNewSpill(Function* f);
 
         setActualUsedVars(&varsInFunction, f);
         if(varsInFunction.size() < 15){
-            trivial = true;
+            if(DEBUG_S) printf("Function %s is trivial\n", f->name.c_str());
+            //trivial = true;
         }
         generateStack(f, &stack, trivial, &varsInFunction);
         
@@ -318,6 +319,12 @@ void printNewSpill(Function* f);
                      calleeSavesInUse.insert(allRegs[colorToRegMap[V->color] ]);
                  } else {
                     callerSavesInUse.insert(allRegs[colorToRegMap[V->color] ]);
+                 }
+                 //if the function is trivial, then make everyone else a different color
+                 if(trivial){
+                    for(Variable* vKillColor : unusedVars){
+                        vKillColor->aliveColors[colorToRegMap[V->color]] = false;
+                    }
                  }
              }
              else{
