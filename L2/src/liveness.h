@@ -570,7 +570,7 @@ void printNewSpill(Function* f);
         for(Instruction* I : f->instructions){
 
             // check if x <- y condition           
-            if ((I->type != ASSIGN) || (I->type == ASSIGN && (I->arguments[1]->type == LBL || I->arguments[1]->type == NUM))) { 
+            if ((I->type != ASSIGN) || (I->type == ASSIGN && (I->arguments[1]->type != VAR || I->arguments[1]->name == "rax") )) { 
                 
                 std::vector<std::string> r;            
   
