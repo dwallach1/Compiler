@@ -67,6 +67,10 @@ define :iCanHold (number) {
     store tempSpot <- number
     number <- number < 1
     number <- 33
+    number <- 34
+    number <- 35
+    number <- 36
+    number <- 37
     number <- number + 200000
     number <- load tempSpot
     return number        
