@@ -44,6 +44,7 @@ void printNewSpill(Function* f);
      */
 
 
+    //This function will properly convert all stack-arg instructions into their proper mem rsp # L1 instruction
     void handleStackArgs(Function* f) {
 
         for (Instruction* I : f->instructions) {
@@ -57,6 +58,7 @@ void printNewSpill(Function* f);
         }
     }
 
+    //This function will push back all return instructions in a function so callee save registers can be reloaded
     void handleReturnInstructions(Function* f, std::vector<Instruction*>* returnInsts){
         for(Instruction* I : f->instructions){
             if(I->type == RET){
@@ -65,6 +67,10 @@ void printNewSpill(Function* f);
         }
     }
 
+
+    //This function will walk through a given function and look for anytime a call instruction is used, or any instructions that save a return label to mem rsp -8
+    //It then queues up all of the instructions it finds into a one of two vectors of instructions depending on if the instruction is a label or a call inst.
+    //Then the code will iterate through each of those vectors and store and load the caller save registers
     void handleCallInstructions(Function* f, std::set<std::string> regs) {
         std::vector<Instruction*>::iterator idx;
         int curLocals = f->locals;
@@ -128,6 +134,7 @@ void printNewSpill(Function* f);
     }
 
 
+    //This function will go through all the registers in a function and color them to their registers static color
     void colorRegisters(Function* f){
         //if (DEBUGGING) printf("Coloring registers:\n");
         for(std::string curReg : allRegs){
@@ -144,7 +151,7 @@ void printNewSpill(Function* f);
     }
 
 
-
+    //This function will walk through all of the variabbles in a function and generate the stack according to how Simone wanted us to load the stack of uncolored vars
     void generateStack(Function* f, std::vector<Variable*>* stack, bool trivial, std::set<Variable*>* varsInFunction){
         std::vector<Variable*> tmpStack = {};
         
@@ -206,6 +213,8 @@ void printNewSpill(Function* f);
         }
     }
 
+    //This function will take in an uncolored variable and disable any color any of its edges have, it then will see if there are any colors left
+    //If so, it will assign it that color and return true; otherwise, it will return false to be spilled.
     bool assignColor(Variable* v, Function* f, std::vector<Variable*> unusedVars){
         for(std::string e : v->edges){
            
@@ -227,6 +236,7 @@ void printNewSpill(Function* f);
         return false;
     }
 
+    //This function will iterate through the variables once their coloring has been finally decided and actually make the changes to all the instructions that use it.
     void submitColorChanges(Function* f){
 
         for(Variable* V : f->interferenceGraph->variables){
@@ -252,6 +262,8 @@ void printNewSpill(Function* f);
         }
     }
 
+    //This function will look through all the instructions in a function and push the instruction pointer
+    // into a vector stored in a variable if the variable is present in the instruction
     void generateUses(L2::Function* f){
         if (DEBUGGING) printf("trying to generate Uses\n");
         for(Instruction* I : f->instructions){
@@ -275,6 +287,7 @@ void printNewSpill(Function* f);
         if (DEBUGGING) printf("Successgully generated uses\n");
     }
 
+    //This was a stupid attempt to make compilation quicker
     void setActualUsedVars(std::set<Variable*>* vars, Function* f){
         for (Instruction* I : f->instructions){
             for(Arg* a : I->arguments){
@@ -289,6 +302,8 @@ void printNewSpill(Function* f);
     }
 
 
+
+//This is the main function called for trying to color the variables, if the variables are colored then it returns true, otherwise it is spill time
     bool colorVariables(Function* f){
         //Color the registers because it won't change
         colorRegisters(f);
@@ -391,18 +406,8 @@ void printNewSpill(Function* f);
 
     }
 
-    /*
-     *
-     *
-     *
-     *  GENERATE INTERFERENCE GRAPH 
-     *
-     *
-     *
-     *
-     *
-     */
     
+    //This function will find a variable that is in the function given its string name
     L2::Variable* findCorrespondingVar(std::string name, L2::InterferenceGraph* iG){
         for(Variable* var : iG->variables){
             if(name.compare(var->name) == 0){
@@ -414,6 +419,8 @@ void printNewSpill(Function* f);
     }
 
     
+
+    //This does what you think it does
     void printInterferenceGraph(L2::InterferenceGraph* iG){
         for(L2::Variable* V : iG->variables){ 
             printf("%s", V->name.c_str());
@@ -424,6 +431,7 @@ void printNewSpill(Function* f);
         }
     }
     
+    //This will print the interference graph of only a variable that is named the given string (DEBUGGING)
     void printInterferenceGraphSub(L2::InterferenceGraph* iG, std::string substr){
         for(L2::Variable* V : iG->variables){ 
             
@@ -437,6 +445,7 @@ void printNewSpill(Function* f);
         }
     }
 
+    //This function will go through the function and collect all the variables that exist and put them in a set
     void instatiateVariables(L2::Function* f, L2::InterferenceGraph* iG){
         std::set<std::string> vars = {};
 
@@ -475,6 +484,8 @@ void printNewSpill(Function* f);
         }
     }
 
+    //This instruction will look to see if a variable is within a given vector of strings
+    //If it is, it will add all other instructions into its interference graph (Good for IN and OUT sets)
     void addToEdgeSet(Variable* V, std::vector<std::string> vec){
         for (std::string s : vec) {
             if (s == V->name){
@@ -489,6 +500,7 @@ void printNewSpill(Function* f);
         
     }
 
+    //This is like addToEdgeSet, but will only add to the given variables interference graph
     void addToEdgeSetOneWay(Variable* V, std::vector<std::string> vec){
         for (std::string s : vec) {
                 for (std::string curVal : vec) {
@@ -500,7 +512,7 @@ void printNewSpill(Function* f);
         
     }
 
-
+    //This function will take a set of variables and have them all add eachother to their interference graphs
     void makeClique(std::set<L2::Variable*>* variables) {
         
         for (L2::Variable* V0 : *variables) { 
@@ -512,6 +524,7 @@ void printNewSpill(Function* f);
     
     }
 
+    //I AM A FAILED ATTEMPT AT DEBUGGING AND JENKY CODING
     // void cleanInAndOutSets(Function* f){
     //     std::vector<std::string> toKill;
     //     for(Instruction* I : f->instructions){
@@ -522,6 +535,8 @@ void printNewSpill(Function* f);
     //         }
     //     }
     // }
+
+    //This function will ensure that spilled variables do not interfere with one another (I.E. S0 wont interfere with S1)
     void cleanSpillEdges(Function* f){
         for(Variable* V : f->interferenceGraph->variables){
             std::string originalName;
@@ -544,6 +559,7 @@ void printNewSpill(Function* f);
         }
     }
 
+    //This will go through all the variables and assemble the interference graph by going through the IN OUT and KILL sets.
     void generateInterferenceGraph(L2::Function* f){
    
         L2::InterferenceGraph* iG = new L2::InterferenceGraph();
@@ -631,27 +647,8 @@ void printNewSpill(Function* f);
         cleanSpillEdges(f);      
     }
 
-    /*
-     *
-     *
-     *
-     *
-     *
-     *
-     *      GENERATE IN AND OUT SETS FOR LIVENESS ANALYSIS
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     */
 
-
+    //This function will go through all the instructions and make them a sequential linked list as well as number them
     void linkInstructionPointers(L2::Function* f){
         int size = f->instructions.size();
         if(size == 1){
@@ -683,6 +680,7 @@ void printNewSpill(Function* f);
     }
 
 
+    //Makes a gen and Kill set
     void computeGenKillSet(L2::Function* f) {
         //Iterate through each instruction and generate the instructions gen and kill sets
         for(Instruction* I : f->instructions) {
@@ -852,6 +850,7 @@ void printNewSpill(Function* f);
     }
 
 
+    //This formats the in and out set for printing
     std::string buildDFResult(L2::Function* f) {
 
         //Time to print to the string
@@ -908,7 +907,7 @@ void printNewSpill(Function* f);
 
     }
 
-
+    //This will generate the IN and OUT sets for a program
     L2::DataFlowResult* computeLivenessAnalysis(L2::Program* p, L2::Function* f) { 
 
         linkInstructionPointers(f);

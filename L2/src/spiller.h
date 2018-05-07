@@ -15,6 +15,7 @@
 
 namespace L2{
 
+	//Deprecated function
 	L2::Variable* findVarInFunction(std::string name, Function* f){
         for(Variable* var : f->interferenceGraph->variables){
         	if(DEBUGGING) printf("Comparing %s and %s\n", name.c_str(), var->name.c_str());
@@ -26,6 +27,7 @@ namespace L2{
         return NULL;
     }
 
+    //Deprecated function
 	void generateUsesAndVars(L2::Function* f){
 		if(DEBUGGING) printf("Beginning generateInterferenceGraph\n");
         L2::InterferenceGraph* iG = new L2::InterferenceGraph();
@@ -50,6 +52,7 @@ namespace L2{
 		}
 	}
 	
+	//Deprecated function
 	void generateInstNums(L2::Function* f){
 		int i = 0;
 		linkInstructionPointers(f);
@@ -61,6 +64,7 @@ namespace L2{
 
 	}
 
+	//Removes the spaces in increment/decrement instructions
 	void removeIncDecSpaces(L2::Function* f){
 		for(Instruction* I : f->instructions){
 			if(I->type == INC_DEC){
@@ -69,7 +73,7 @@ namespace L2{
 		}
 	}
 
-
+	//Prints a function after spilling a variable
 	void printNewSpill(Function* f){
 
 		printf("(%s\n", f->name.c_str());
@@ -82,7 +86,7 @@ namespace L2{
 		printf(")\n");
 	}
 
-
+	//Will insert a load instruction before the idx instruction
 	void insertLoad(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc) {
 		Instruction* newInst = new Instruction();
 		//Load inst
@@ -106,7 +110,7 @@ namespace L2{
 		f->instructions.insert(idx, newInst);
 	}
 
-
+	//Same as insertLoad, but with a store
 	void insertStore(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc) {
 		Instruction* newInst = new Instruction();
 		//Store inst
@@ -130,7 +134,7 @@ namespace L2{
 		f->instructions.insert(idx, newInst);
 	}
 
-
+	//Deprecated Function
 	void replaceInstructionVarWithVar(Instruction* I, std::string varToReplace, std::string replacementString){
 		std::vector<std::string> result;
 		std::string newInst = "";
@@ -151,6 +155,8 @@ namespace L2{
 		I->instruction = newInst;
 	}
 
+
+	//This function will spill a variable
 	void spillVar(L2::Function* f){
 		
 		if (DEBUGGING) printf("doing preliminary functions\n");
