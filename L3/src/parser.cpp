@@ -134,44 +134,34 @@ namespace L3 {
     >{};
 
   struct op:
-    pegtl::sor<
-      pegtl::one< '+' >,
-      pegtl::one< '-' >,
-      pegtl::one< '*' >,
-      pegtl::one< '&' >,
-      pegtl::string< '<', '<' >,
-      pegtl::string< '>', '>' >
+    pegtl::seq<
+      seps,
+      pegtl::sor<
+        pegtl::one< '+' >,
+        pegtl::one< '-' >,
+        pegtl::one< '*' >,
+        pegtl::one< '&' >,
+        pegtl::string< '<', '<' >,
+        pegtl::string< '>', '>' >
+      >
     >{};
 
   struct cmp:
     pegtl::seq<
       pegtl::sor<
         pegtl::string< '<', '=' >,
-        pegtl::one< '<' >,
+        pegtl::seq<
+          pegtl::one< '<' >,
+          pegtl::not_at< pegtl::one< '<' > >
+        >,
         pegtl::one< '=' >,
-        pegtl::one< '>' >,
+        pegtl::seq<
+          pegtl::one< '>' >,
+          pegtl::not_at< pegtl::one< '>' > >
+        >,
         pegtl::string< '>', '=' >
       >
     >{};
-
-    struct arithOp:
-    pegtl::seq<
-    seps,
-      pegtl::seq<
-        pegtl::sor<
-            pegtl::one< '-' >,
-            pegtl::one< '+' >,
-            pegtl::one< '*' >,
-            pegtl::string< '>', '>' >,
-            pegtl::string< '<', '<' >,
-            pegtl::one< '&' >
-        >,
-        pegtl::sor<
-          pegtl::one< '=' >
-        >
-      >
-    >
-  {};
 
   struct assignOp:
     pegtl::seq<
@@ -187,7 +177,9 @@ namespace L3 {
       seps,
       assignOp,
       seps,
-      s
+      s,
+      seps,
+      pegtl::not_at< op >
     >{};
 
   struct compare_assign:
@@ -220,6 +212,7 @@ namespace L3 {
       seps,
       var,
       seps,
+      assign,
       t,
       seps,
       op,
@@ -427,6 +420,33 @@ namespace L3 {
   template< typename Rule >
   struct action : pegtl::nothing< Rule > {};
 
+  template<> struct action < function_name > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+      
+      if(DEBUGGING) std::cout << "Found a new function " <<  in.string() << std::endl;
+      
+      L3::Function *newF = new L3::Function();
+      Arg* a = parsed_registers.back();
+      parsed_registers.pop_back();
+
+      while(a->type != LBL) {
+        
+        if(DEBUGGING) std::cout << "adding new parameter to function: " <<  a->name << std::endl;
+        
+        newF->parameters.push_back(a);
+        a = parsed_registers.back();
+        parsed_registers.pop_back();
+      }
+      
+      // newF->name = in.string();
+      newF->name = a->name;
+      if(DEBUGGING) std::cout << "setting this function name to: " <<  a->name << std::endl;
+
+      p.functions.push_back(newF);
+    }
+  };
+
   template<> struct action < label > {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
@@ -477,33 +497,6 @@ namespace L3 {
     }
   };
 
-  template<> struct action < function_name > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-      
-      if(DEBUGGING) std::cout << "Found a new function " <<  in.string() << std::endl;
-      
-      L3::Function *newF = new L3::Function();
-      Arg* a = parsed_registers.back();
-      parsed_registers.pop_back();
-
-      while(a->type != LBL) {
-        
-        if(DEBUGGING) std::cout << "adding new parameter to function: " <<  a->name << std::endl;
-        
-        newF->parameters.push_back(a);
-        a = parsed_registers.back();
-        parsed_registers.pop_back();
-      }
-      
-      // newF->name = in.string();
-      newF->name = a->name;
-      if(DEBUGGING) std::cout << "setting this function name to: " <<  a->name << std::endl;
-
-      p.functions.push_back(newF);
-    }
-  };
-
   template<> struct action < var > {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
@@ -516,6 +509,8 @@ namespace L3 {
       parsed_registers.push_back(arg);
     }
   };
+
+
 
   template<> struct action < number > {
     template< typename Input >
@@ -595,6 +590,7 @@ namespace L3 {
         instruction->operation = operation;
         
         currentF->instructions.push_back(instruction);
+        if(DEBUGGING) std::cout << "--> added an arithmetic_assign instruction: " <<  instruction->instruction << std::endl;
     }
   };
 
@@ -807,6 +803,8 @@ namespace L3 {
         instruction->label = label;
         
         currentF->instructions.push_back(instruction);
+        if(DEBUGGING) std::cout << "--> added a label_inst instruction " <<  instruction->instruction << std::endl;
+
     }
   };
 
@@ -826,6 +824,7 @@ namespace L3 {
         instruction->label = label;
         
         currentF->instructions.push_back(instruction);
+        if(DEBUGGING) std::cout << "--> added a br_single instruction: " <<  instruction->instruction << std::endl;
 
     }
   };
@@ -880,7 +879,6 @@ namespace L3 {
      */
     if(DEBUGGING) std::cout << "Checking the grammar" << std::endl;
     pegtl::analyze< L3::grammar >();
-
     if(DEBUGGING) std::cout << "Finished checking grammar" << std::endl;
 
 
@@ -890,6 +888,9 @@ namespace L3 {
     file_input< > fileInput(fileName);
     L3::Program p;
     if(DEBUGGING) std::cout << "Begin Parsing" << std::endl;
+    Function* mainF = new L3::Function();
+    mainF->name = ":main";
+    p.functions.push_back(mainF);
     parse< L3::grammar, L3::action >(fileInput, p);
     if(DEBUGGING) std::cout << "Done Parsing" << std::endl;
     return p;
