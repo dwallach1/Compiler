@@ -8,7 +8,7 @@ define :main () {
 
 	// on success
 	success <- call :encode (0)
-	print(success)
+	call print (success)
 }
 
 define :fib (end) {

@@ -8,11 +8,11 @@ define :main() {
 
 	// print the result of the function
 	printRes <- call :encode (result)
-	print(printRes)
+	call print (printRes)
 
 	// on success
 	success <- call :encode (0)
-	print(success)
+	call print (success)
 }
 
 
