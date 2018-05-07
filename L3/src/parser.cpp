@@ -56,6 +56,8 @@ namespace L3 {
   struct var:
     pegtl::seq<
       seps,
+      pegtl::not_at< pegtl::string<'c', 'a', 'l', 'l'> >,
+      seps,
       pegtl::plus< 
         pegtl::sor<
           pegtl::alpha,
@@ -92,6 +94,7 @@ namespace L3 {
 
   struct number:
     pegtl::seq<
+      seps,
       pegtl::opt<
         pegtl::sor<
           pegtl::one< '-' >,
@@ -212,7 +215,7 @@ namespace L3 {
       seps,
       var,
       seps,
-      assign,
+      assignOp,
       t,
       seps,
       op,
@@ -385,6 +388,8 @@ namespace L3 {
   struct L3_main_function_rule:
     pegtl::seq<
       seps,
+      pegtl::opt< L3_functions_rule >,
+      seps,
       pegtl::string<'d', 'e', 'f', 'i', 'n', 'e'>,
       seps,
       pegtl::string<':', 'm', 'a', 'i', 'n'>,
@@ -451,7 +456,7 @@ namespace L3 {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
       
-      if(DEBUGGING) std::cout << "returning from label " <<  in.string() << std::endl;
+      if(DEBUGGING) std::cout << "returning from label: " <<  in.string() << std::endl;
       
       // get rid of var part of label
       parsed_registers.pop_back(); 
@@ -491,8 +496,17 @@ namespace L3 {
   template<> struct action < op > {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
-      if(DEBUGGING) std::cout << "Found a op " << in.string() << std::endl;
+      if(DEBUGGING) std::cout << "Found a op: " << in.string() << std::endl;
       operations.push_back(in.string());
+
+    }
+  };
+
+  template<> struct action < assignOp > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+      if(DEBUGGING) std::cout << "Found a assignOp: " << in.string() << std::endl;
+      // operations.push_back(in.string());
 
     }
   };
@@ -501,7 +515,7 @@ namespace L3 {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
       
-      if(DEBUGGING) std::cout << "Found a var " <<  in.string() << std::endl;
+      if(DEBUGGING) std::cout << "Found a var: " <<  in.string() << std::endl;
       
       L3::Arg* arg = new L3::Arg();
       arg->name = in.string();
@@ -509,8 +523,6 @@ namespace L3 {
       parsed_registers.push_back(arg);
     }
   };
-
-
 
   template<> struct action < number > {
     template< typename Input >
