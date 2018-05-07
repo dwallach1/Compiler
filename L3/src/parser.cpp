@@ -9,16 +9,16 @@
 #include <cstdlib>
 #include <stdint.h>
 #include <assert.h>
-
 #include <L3.h>
 #include <parser.h>
-#define DEBUGGING 0
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
 
-namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
+#define DEBUGGING 1
 
+
+namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
 using namespace pegtl;
 using namespace std;
 
@@ -27,7 +27,10 @@ namespace L3 {
   /* 
    * Data required to parse
    */ 
+
   std::vector<L3::Arg*> parsed_registers;
+  std::vector<std::string> operations;
+
   std::vector<std::string> assignmentVec;
   std::vector<std::string> compareVec;
   std::vector<std::string> labelInsts;
@@ -185,7 +188,7 @@ namespace L3 {
       assignOp,
       seps,
       s
-    >;
+    >{};
 
   struct compare_assign:
     pegtl::seq<
@@ -209,11 +212,7 @@ namespace L3 {
       seps,
       assignOp,
       seps,
-      s,
-      seps,
-      pegtl::not_at<
-        comparison
-      >
+      s
     >{};
 
   struct arithmetic_assign:
@@ -238,7 +237,6 @@ namespace L3 {
       pegtl::string<'l', 'o', 'a', 'd'>,
       seps,
       var
-      >
     >{};
 
   struct store:
@@ -251,13 +249,14 @@ namespace L3 {
       assignOp,
       seps,
       s
-      >
     >{};
    
   struct return_nothing:
     pegtl::seq<
       seps,
-      pegtl::string<'r', 'e', 't', 'u', 'r', 'n'>
+      pegtl::string<'r', 'e', 't', 'u', 'r', 'n'>,
+      seps,
+      pegtl::not_at< t >
     >{};
 
   struct return_val:
@@ -304,7 +303,7 @@ namespace L3 {
       seps,
       pegtl::one< '(' >,
       seps,
-      args
+      args,
       seps,
       pegtl::one < ')' >
     >{};
@@ -361,6 +360,8 @@ namespace L3 {
       seps,
       pegtl::string< 'd', 'e', 'f', 'i', 'n', 'e' >,
       seps,
+      label,
+      seps,
       pegtl::one< '(' >,
       seps,
       vars,
@@ -370,6 +371,8 @@ namespace L3 {
  
   struct L3_function_rule:
     pegtl::seq<
+      seps,
+      pegtl::string<'d', 'e', 'f', 'i', 'n', 'e'>,
       seps,
       function_name,
       seps,
@@ -386,17 +389,28 @@ namespace L3 {
       pegtl::plus< L3_function_rule >
     > {};
 
+  struct L3_main_function_rule:
+    pegtl::seq<
+      seps,
+      pegtl::string<'d', 'e', 'f', 'i', 'n', 'e'>,
+      seps,
+      pegtl::string<':', 'm', 'a', 'i', 'n'>,
+      seps,
+      pegtl::one< '(' >,
+      seps,
+      pegtl::one< ')' >,
+      seps,
+      pegtl::one< '{' >,
+      seps,
+      instructions_rule,
+      seps,
+      pegtl::one< '}' >
+    > {};
 
   struct entry_point_rule:
     pegtl::seq<
       seps,
-      pegtl::one< '(' >,
-      seps,
-      label,
-      seps,
-      L3_functions_rule,
-      seps,
-      pegtl::one< ')' >,
+      L3_main_function_rule,
       seps
     > { };
 
@@ -405,12 +419,7 @@ namespace L3 {
       entry_point_rule
     > {};
 
-  struct function_grammar :
-    pegtl::must<
-      L3_function_rule
-    >{};
-
-
+  
 
   /* 
    * Actions attached to grammar rules.
@@ -421,376 +430,97 @@ namespace L3 {
   template<> struct action < label > {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
-      if (p.entryPointLabel.empty()){
-        if(DEBUGGING) std::cout << "found entry point " <<  in.string() << std::endl;
-        p.entryPointLabel = in.string();
-        
+      
+      if(DEBUGGING) std::cout << "returning from label " <<  in.string() << std::endl;
+      
+      // get rid of var part of label
+      parsed_registers.pop_back(); 
+      
+      L3::Arg* arg = new L3::Arg;
+      arg->name = in.string();
+      arg->type = LBL;
+      parsed_registers.push_back(arg);
+      labelInsts.push_back(in.string());
+    }
+  };
 
-      }
-      else {
-        if(DEBUGGING) std::cout << "returning from label " <<  in.string() << std::endl;
-        parsed_registers.pop_back(); // get rid of var part of label
-        L3::Arg* arg = new L3::Arg;
-        arg->name = in.string();
-        arg->type = LBL;
-        parsed_registers.push_back(arg);
-        labelInsts.push_back(in.string());
-      }
+  template<> struct action < callee > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+      
+      if(DEBUGGING) std::cout << "returning from callee " <<  in.string() << std::endl;
+      
+      
+      L3::Arg* arg = new L3::Arg;
+      arg->name = in.string();
+      arg->type = CALLEE;
+      parsed_registers.push_back(arg);
+      labelInsts.push_back(in.string());
+    }
+  };
+
+  template<> struct action < cmp > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+      if(DEBUGGING) std::cout << "Found a cmp " << in.string() << std::endl;
+      operations.push_back(in.string());
+
+    }
+  };
+
+  template<> struct action < op > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+      if(DEBUGGING) std::cout << "Found a op " << in.string() << std::endl;
+      operations.push_back(in.string());
+
     }
   };
 
   template<> struct action < function_name > {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
+      
       if(DEBUGGING) std::cout << "Found a new function " <<  in.string() << std::endl;
+      
       L3::Function *newF = new L3::Function();
-      newF->name = in.string();
+      Arg* a = parsed_registers.back();
+      parsed_registers.pop_back();
+
+      while(a->type != LBL) {
+        
+        if(DEBUGGING) std::cout << "adding new parameter to function: " <<  a->name << std::endl;
+        
+        newF->parameters.push_back(a);
+        a = parsed_registers.back();
+        parsed_registers.pop_back();
+      }
+      
+      // newF->name = in.string();
+      newF->name = a->name;
+      if(DEBUGGING) std::cout << "setting this function name to: " <<  a->name << std::endl;
+
       p.functions.push_back(newF);
     }
   };
 
-
-
-  template<> struct action < arithmetic > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-        if(DEBUGGING) std::cout << "Found an arithmetic " <<  in.string() << std::endl;
-        L3::Function *currentF = p.functions.back();
-        L3::Instruction *instruction = new L3::Instruction();
-
-        L3::Arg* source = parsed_registers.back();
-        parsed_registers.pop_back();
-        L3::Arg* dest = parsed_registers.back();
-        parsed_registers.pop_back();
-        std::string oper = assignmentVec.back();
-        assignmentVec.pop_back();
-        instruction->instruction = dest->name + ' ' + oper + ' ' + source->name;
-        instruction->arguments.push_back(dest);
-        instruction->arguments.push_back(source);
-        instruction->operation.push_back(oper);
-
-        if(DEBUGGING) printf("Pushing back the instruction: %s\n", instruction->instruction.c_str());
-
-        instruction->type = AOP;
-        currentF->instructions.push_back(instruction);
-    }
-  };
-
-  template<> struct action < assignment > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-        if(DEBUGGING) std::cout << "found an assignment " <<  in.string() << std::endl;
-        L3::Function *currentF = p.functions.back();
-        L3::Instruction *instruction = new L3::Instruction();
-
-        L3::Arg* source = parsed_registers.back();
-        parsed_registers.pop_back();
-        L3::Arg* dest = parsed_registers.back();
-        parsed_registers.pop_back();
-        std::string oper = assignmentVec.back();
-        assignmentVec.pop_back();
-
-        size_t loc = in.string().find(source->name);
-        if(loc != std::string::npos){
-          //Checking to see if the callee is actually a label
-          if (in.string()[loc-1] == ':'){
-            //Found a label
-            source->name.insert(0,1,':');
-            source->type = LBL;
-         }
-        }
-
-        instruction->instruction = dest->name + ' ' + oper + ' ' + source->name;
-        if(DEBUGGING) std::cout << "For the assignment, we wrote: " << instruction->instruction << std::endl;
-        instruction->arguments.push_back(dest);
-        instruction->arguments.push_back(source);
-        instruction->operation.push_back(oper);
-        
-        instruction->type = ASSIGN;
-        currentF->instructions.push_back(instruction);
-    }
-  };
-
-
-
-  template<> struct action < load > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-        if(DEBUGGING) std::cout << "found a load " <<  in.string() << std::endl;
-        
-        L3::Function *currentF = p.functions.back();
-        L3::Instruction *instruction = new L3::Instruction();
-
-        L3::Arg* source = parsed_registers.back();
-        parsed_registers.pop_back();
-
-        L3::Arg* num = new L3::Arg();
-        num = parsed_registers.back();
-        parsed_registers.pop_back();
-
-        L3::Arg* dest = parsed_registers.back();
-        parsed_registers.pop_back();
-        std::string oper = assignmentVec.back();
-        assignmentVec.pop_back();
-        instruction->instruction = dest->name + ' ' + oper + ' ' + source->name;
- 
-        instruction->arguments.push_back(dest);
-        instruction->arguments.push_back(source);
-        instruction->operation.push_back(oper);
-        if(source->type == MEM){ 
-          std::string regInMem;
-          for(int i = 4; source->name[i] != ' '; i++){
-            regInMem.append(source->name.substr(i,1));
-          }
-          L3::Arg* newArg = new L3::Arg();
-          newArg->name = regInMem;
-          newArg->type = MEM;
-          instruction->arguments.push_back(newArg);
-        }
-        
-        if (source->type == S_ARG) { 
-         
-          instruction->arguments.push_back(num);
-          if (DEBUGGING) printf("assigning instruction to STACKARG\n");
-          instruction->type == STACKARG; 
-        }
-        else { instruction->type = LOAD; }
-        currentF->instructions.push_back(instruction);
-        if(DEBUGGING) printf("Writing load as: %s\n", instruction->instruction.c_str());
-    }
-  };
-
-  template<> struct action < store > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-        if(DEBUGGING) std::cout << "found a store " <<  in.string() << std::endl;
-        
-        L3::Function *currentF = p.functions.back();
-        L3::Instruction *instruction = new L3::Instruction();
-        
-        L3::Arg* source = parsed_registers.back();
-        parsed_registers.pop_back();
-
-        L3::Arg* dest = parsed_registers.back();
-        parsed_registers.pop_back();
-        std::string oper = assignmentVec.back();
-        assignmentVec.pop_back();
-
-        size_t loc = in.string().find(source->name);
-        if(loc != std::string::npos){
-          //Checking to see if the callee is actually a label
-          if (in.string()[loc-1] == ':'){
-            //Found a label
-            source->name.insert(0,1,':');
-            source->type = LBL;
-          }
-        }
-
-
-        instruction->instruction = dest->name + ' ' + oper + ' ' + source->name;
-        instruction->arguments.push_back(dest);
-        instruction->arguments.push_back(source);
-        std::string regInMem;
-        for(int i = 4; dest->name[i] != ' '; i++){
-          regInMem.append(dest->name.substr(i,1));
-        }
-        L3::Arg* newArg = new L3::Arg();
-        newArg->name = regInMem;
-        newArg->type = MEM;
-        instruction->arguments.push_back(newArg);
-        instruction->operation.push_back(oper);
-        
-
-        instruction->type = STORE;
-        currentF->instructions.push_back(instruction);
-    }
-  };
-
-
-  template<> struct action < compare_assign > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-        if(DEBUGGING) std::cout << "Found a compare_assign " <<  in.string() << std::endl;
-        L3::Function *currentF = p.functions.back();
-        L3::Instruction *instruction = new L3::Instruction();
-        
-
-        L3::Arg* comparitor = parsed_registers.back();
-        parsed_registers.pop_back();
-        L3::Arg* source = parsed_registers.back();
-        parsed_registers.pop_back();
-        L3::Arg* dest = parsed_registers.back();
-        parsed_registers.pop_back();
-        std::string oper = assignmentVec.back();
-        assignmentVec.pop_back();
-        std::string compareOp = compareVec.back();
-        compareVec.pop_back();
-
-        instruction->instruction = dest->name + ' ' + oper + ' ' + source->name + ' ' + compareOp + ' ' + comparitor->name;
-        instruction->arguments.push_back(dest);
-        instruction->arguments.push_back(source);
-        instruction->arguments.push_back(comparitor);
-        instruction->operation.push_back(oper);
-        instruction->operation.push_back(compareOp);
-        
-
-        instruction->type = CMP_ASSIGN;
-        currentF->instructions.push_back(instruction);
-    }
-  };
-
-
-  template<> struct action < label_inst > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-        if(DEBUGGING) std::cout << "Found a label_inst " <<  in.string() << std::endl;
-        L3::Function *currentF = p.functions.back();
-        L3::Instruction *instruction = new L3::Instruction();
-        int found = 0;
-
-        L3::Arg* arg = new L3::Arg();
-        arg->name = in.string();
-        arg->type = LBL;
-        instruction->arguments.push_back(arg);
-
-        for(std::string curLabel : labelInsts){
-          //finding the which label I need
-          if(curLabel.find(in.string()) != std::string::npos){
-            instruction->instruction = curLabel;
-            labelInsts.push_back(curLabel);
-            found = 1;
-            if(DEBUGGING) std::cout << curLabel << " was found in " << in.string() << std::endl;
-            break;
-          }
-          //The label has not been found yet (most likely a loop)  
-        }
-        if(!found){
-            if(DEBUGGING) std::cout << "The label was not found in the vector of labels " <<  in.string() << std::endl;
-            //Begin the label at the appropriate spot.
-            std::string newLabel = in.string().substr(in.string().find(":"));
-            labelInsts.push_back(newLabel);
-            instruction->instruction = newLabel;
-          }
-        else{
-          if(DEBUGGING) std::cout << "The label WAS found in the vector of labels " <<  in.string() << std::endl;
-        }
-
-        L3::Arg* arg1 = new L3::Arg();
-        arg1->name = instruction->instruction;
-        arg1->type = LBL;
-        instruction->arguments.push_back(arg1);
-
-        instruction->type = LABEL;
-        currentF->instructions.push_back(instruction);
-    }
-  };
-
-
   template<> struct action < var > {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
-        if(DEBUGGING) std::cout << "Found a var " <<  in.string() << std::endl;
-
-        L3::Arg* arg = new L3::Arg();
-        arg->name = in.string();
-        arg->type = VAR; 
-        parsed_registers.push_back(arg);
-    }
-  };
-
-
-
-  template<> struct action < return_inst > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-        if(DEBUGGING) std::cout << "Found a return_inst " <<  in.string() << std::endl;
-        L3::Function *currentF = p.functions.back();
-        L3::Instruction *instruction = new L3::Instruction();
-        instruction->instruction = "return";
-        instruction->type = RET;
-        currentF->instructions.push_back(instruction);
-    }
-  };
-
-  template<> struct action < call > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-        if(DEBUGGING) std::cout << "Found a call " <<  in.string() << std::endl;
-        L3::Function *currentF = p.functions.back();
-        L3::Instruction *instruction = new L3::Instruction();
-        
-        L3::Arg* args = parsed_registers.back();
-        parsed_registers.pop_back();
-        L3::Arg* callee = parsed_registers.back();
-        //Need to add a new support for handling allowing vars, which will trigger the call when it may be calling a label
-        size_t loc = in.string().find(callee->name);
-        if(loc != std::string::npos){
-          //Checking to see if the callee is actually a label
-          if (in.string()[loc-1] == ':'){
-            //Found a label
-            callee->name.insert(0,1,':');
-            callee->type = LBL;
-         }
-        }
-
-        parsed_registers.pop_back();
-        instruction->instruction = "call " + callee->name + ' ' + args->name;
-        instruction->arguments.push_back(callee);
-        instruction->arguments.push_back(args);
-
-        instruction->type = CALL;
-        currentF->instructions.push_back(instruction);
-    }
-  };
-
-  template<> struct action < comment > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-        if(DEBUGGING) std::cout << "Found a comment " <<  in.string() << std::endl;
-    }
-  };
-
-  template<> struct action < lea > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-        if(DEBUGGING) std::cout << "found a lea " <<  in.string() << std::endl;
-        
-        L3::Function *currentF = p.functions.back();
-        L3::Instruction *instruction = new L3::Instruction();
-        
-        L3::Arg* num = parsed_registers.back();
-        parsed_registers.pop_back();
-        L3::Arg* multer = parsed_registers.back();
-        parsed_registers.pop_back();
-        L3::Arg* adder = parsed_registers.back();
-        parsed_registers.pop_back();
-        L3::Arg* dest = parsed_registers.back();
-        parsed_registers.pop_back();
-        instruction->instruction = dest->name + " @ " + adder->name + ' ' + multer->name + ' ' + num->name;
-        instruction->arguments.push_back(dest);
-        instruction->arguments.push_back(adder);
-        instruction->arguments.push_back(multer);
-        instruction->arguments.push_back(num);
-        instruction->operation.push_back("@");
-
-        instruction->type = LEA;
-        currentF->instructions.push_back(instruction);
-    }
-  };
-
-  template<> struct action < argument_number > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-      if(DEBUGGING) std::cout << "found an argument number " <<  in.string() << std::endl;
       
-      L3::Function *currentF = p.functions.back();
-      currentF->arguments = std::stoll(in.string());
+      if(DEBUGGING) std::cout << "Found a var " <<  in.string() << std::endl;
+      
+      L3::Arg* arg = new L3::Arg();
+      arg->name = in.string();
+      arg->type = VAR; 
+      parsed_registers.push_back(arg);
     }
   };
 
   template<> struct action < number > {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
+      
       if(DEBUGGING) std::cout << "Found a number " << in.string() << std::endl;
 
       L3::Arg* arg = new L3::Arg();
@@ -801,83 +531,347 @@ namespace L3 {
     }
   };
 
-
-  template<> struct action < local_number > {
+  template<> struct action < assign > {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
-      if(DEBUGGING) std::cout << "Found a local number " <<  in.string() << std::endl;
-      L3::Function *currentF = p.functions.back();
-      currentF->locals = std::stoll(in.string());
-    }
-  };
+        if(DEBUGGING) std::cout << "found an assign " <<  in.string() << std::endl;
+        
+        L3::Function *currentF = p.functions.back();
+        
+        L3::Instruction_Assignment *instruction = new L3::Instruction_Assignment();
 
-  template<> struct action < arithOp > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-      if(DEBUGGING) std::cout << "Found an arithmetic operation " << in.string() << std::endl;
-      assignmentVec.push_back(in.string());
+        L3::Arg* source = parsed_registers.back();
+        parsed_registers.pop_back();
 
-    }
-  };
+        L3::Arg* dest = parsed_registers.back();
+        parsed_registers.pop_back();
 
-  template<> struct action < incOrDec > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-      if(DEBUGGING) std::cout << "Found an inc/dec operation " << in.string() << std::endl;
-      assignmentVec.push_back(in.string());
 
-    }
-  };
+        size_t loc = in.string().find(source->name);
+        if(loc != std::string::npos){
+          //Checking to see if the callee is actually a label
+          if (in.string()[loc-1] == ':'){
+            //Found a label
+            source->name.insert(0,1,':');
+            source->type = LBL;
+         }
+        }
 
-  template<> struct action < assignOp > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-      if(DEBUGGING) std::cout << "Found an assignment operation " << in.string() << std::endl;
-      assignmentVec.push_back(in.string());
-
-    }
-  };
-
-  template<> struct action < paa_value > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-      if(DEBUGGING) std::cout << "Found a print allocate or array-error " << in.string() << std::endl;
-      L3::Arg* arg = new L3::Arg();
-      if(in.string().find("array-error") != std::string::npos){
-        arg->name = "array-error";
-      }
-      else{
-        arg->name = in.string();
-      }
-      arg->type = PAA;
-      parsed_registers.push_back(arg);
-    }
-  };
-
-  template<> struct action < comparison > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-      if(DEBUGGING) std::cout << "Found a comparison " << in.string() << std::endl;
-      compareVec.push_back(in.string());
-
-    }
-  };
-
-  template<> struct action < L3_Spill_Rule > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-      if(DEBUGGING) std::cout << "Found a SPILL function " << in.string() << std::endl;
-      L3::Function *currentF = p.functions.back();
-      currentF->replaceSpill = (parsed_registers.back()->name);
-      parsed_registers.pop_back();
-      currentF->toSpill = (parsed_registers.back()->name);
-
-    }
-  };
+        instruction->instruction = dest->name + " <- " + source->name;
   
+        instruction->dst = dest;
+        instruction->src = source;
+        
+        currentF->instructions.push_back(instruction);
+    }
+  };
+
+  template<> struct action < arithmetic_assign > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+        if(DEBUGGING) std::cout << "found an arithmetic_assign " <<  in.string() << std::endl;
+        
+        L3::Function *currentF = p.functions.back();
+        
+        L3::Instruction_opAssignment *instruction = new L3::Instruction_opAssignment();
+
+        L3::Arg* arg2 = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        L3::Arg* arg1 = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        L3::Arg* dest = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        std::string operation = operations.back();
+        operations.pop_back();
+
+        instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation + ' ' + arg2->name;
+  
+        instruction->dst = dest;
+        instruction->arg1 = arg1;
+        instruction->arg2 = arg2;
+        instruction->operation = operation;
+        
+        currentF->instructions.push_back(instruction);
+    }
+  };
+
+  template<> struct action < compare_assign > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+        if(DEBUGGING) std::cout << "found a compare_assign " <<  in.string() << std::endl;
+        
+        L3::Function *currentF = p.functions.back();
+        
+        L3::Instruction_cmpAssignment *instruction = new L3::Instruction_cmpAssignment();
+
+        L3::Arg* arg2 = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        L3::Arg* arg1 = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        L3::Arg* dest = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        std::string operation = operations.back();
+        operations.pop_back();
+
+        instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation + ' ' + arg2->name;
+  
+        instruction->dst = dest;
+        instruction->arg1 = arg1;
+        instruction->arg2 = arg2;
+        instruction->operation = operation;
+        
+        currentF->instructions.push_back(instruction);
+    }
+  };
+
+  template<> struct action < load > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+        if(DEBUGGING) std::cout << "found a load " <<  in.string() << std::endl;
+        
+        L3::Function *currentF = p.functions.back();
+        
+        L3::Instruction_Load *instruction = new L3::Instruction_Load();
+
+        L3::Arg* src = parsed_registers.back();
+        parsed_registers.pop_back();
+
+
+        L3::Arg* dest = parsed_registers.back();
+        parsed_registers.pop_back();
+
+
+        instruction->instruction = dest->name + " <- load " + src->name;
+  
+        instruction->dst = dest;
+        instruction->src = src;
+        
+        currentF->instructions.push_back(instruction);
+    }
+  };
+
+  template<> struct action < store > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+        if(DEBUGGING) std::cout << "found a store " <<  in.string() << std::endl;
+        
+        L3::Function *currentF = p.functions.back();
+        
+        L3::Instruction_Store *instruction = new L3::Instruction_Store();
+
+        L3::Arg* src = parsed_registers.back();
+        parsed_registers.pop_back();
+
+
+        L3::Arg* dest = parsed_registers.back();
+        parsed_registers.pop_back();
+
+
+        instruction->instruction = "store " + dest->name + " <- " + src->name;
+  
+        instruction->dst = dest;
+        instruction->src = src;
+        
+        currentF->instructions.push_back(instruction);
+    }
+  };
+
+  template<> struct action < return_nothing > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+        if(DEBUGGING) std::cout << "found a return_nothing " <<  in.string() << std::endl;
+        
+        L3::Function *currentF = p.functions.back();
+        
+        L3::Instruction_Return *instruction = new L3::Instruction_Return();
+
+        instruction->instruction = "return" ;
+        currentF->instructions.push_back(instruction);
+    }
+  };
+
+  template<> struct action < return_val > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+        if(DEBUGGING) std::cout << "found a return_val " <<  in.string() << std::endl;
+        
+        L3::Function *currentF = p.functions.back();
+        
+        L3::Instruction_ReturnVal *instruction = new L3::Instruction_ReturnVal();
+
+        L3::Arg* val = parsed_registers.back();
+        parsed_registers.pop_back();
+
+
+
+        instruction->instruction = "return " + val->name;
+  
+        instruction->retVal = val;
+        
+        currentF->instructions.push_back(instruction);
+    }
+  };
+
+  template<> struct action < call > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+        if(DEBUGGING) std::cout << "found a call " <<  in.string() << std::endl;
+        
+        L3::Function *currentF = p.functions.back();
+        
+        L3::Instruction_Call *instruction = new L3::Instruction_Call();
+
+        L3::Arg* a = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        while(a->type != CALLEE) {
+          if(DEBUGGING) std::cout << "Adding call paramter: " <<  a->name << std::endl;
+          instruction->parameters.push_back(a);
+
+          a = parsed_registers.back();
+          parsed_registers.pop_back();
+        }
+
+        instruction->callee = a;
+
+        instruction->instruction = "call " + instruction->callee->name + " ( ";
+
+        for (auto param : instruction->parameters) {
+          instruction->instruction.append(" " + param->name);
+        }
+        instruction->instruction.append(" )");
+  
+        
+        currentF->instructions.push_back(instruction);
+    }
+  };
+
+  template<> struct action < call_assign > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+        if(DEBUGGING) std::cout << "found a call_assign " <<  in.string() << std::endl;
+        
+        L3::Function *currentF = p.functions.back();
+        
+        L3::Instruction_CallAssign *instruction = new L3::Instruction_CallAssign();
+
+        L3::Arg* a = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        while(a->type != CALLEE) {
+          if(DEBUGGING) std::cout << "Adding call paramter: " <<  a->name << std::endl;
+          instruction->parameters.push_back(a);
+
+          a = parsed_registers.back();
+          parsed_registers.pop_back();
+        }
+
+        instruction->callee = a;
+
+        L3::Arg* dest = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        instruction->dst = dest;
+
+        instruction->instruction = instruction->dst->name + " <- call " + instruction->callee->name + " ( ";
+
+        for (auto param : instruction->parameters) {
+          instruction->instruction.append(" " + param->name);
+        }
+        instruction->instruction.append(" )");
+  
+        
+        currentF->instructions.push_back(instruction);
+    }
+  };
+
+  template<> struct action < label_inst > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+        if(DEBUGGING) std::cout << "found a label_inst " <<  in.string() << std::endl;
+        
+        L3::Function *currentF = p.functions.back();
+        
+        L3::Instruction_Label *instruction = new L3::Instruction_Label();
+
+        L3::Arg* label = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        instruction->instruction = label->name;
+        instruction->label = label;
+        
+        currentF->instructions.push_back(instruction);
+    }
+  };
+
+  template<> struct action < br_single > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+        if(DEBUGGING) std::cout << "found a br_single " <<  in.string() << std::endl;
+        
+        L3::Function *currentF = p.functions.back();
+        
+        L3::Instruction_br *instruction = new L3::Instruction_br();
+
+        L3::Arg* label = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        instruction->instruction = "br " + label->name;
+        instruction->label = label;
+        
+        currentF->instructions.push_back(instruction);
+
+    }
+  };
+
+  template<> struct action < br_cmp > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+        if(DEBUGGING) std::cout << "found a br_cmp " <<  in.string() << std::endl;
+        
+        L3::Function *currentF = p.functions.back();
+        
+        L3::Instruction_brCmp *instruction = new L3::Instruction_brCmp();
+        
+        L3::Arg* falseLabel = parsed_registers.back();
+        parsed_registers.pop_back();
+        
+        L3::Arg* trueLabel = parsed_registers.back();
+        parsed_registers.pop_back();
+        
+        L3::Arg* comparitor = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        instruction->instruction = "br " + comparitor->name + ' ' + trueLabel->name + ' ' + falseLabel->name;
+        instruction->comparitor = comparitor;
+        instruction->trueLabel = trueLabel;
+        instruction->falseLabel = falseLabel;
+        
+        currentF->instructions.push_back(instruction);
+
+    }
+  };
+
+  template<> struct action < comment > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+        if(DEBUGGING) std::cout << "Found a comment " <<  in.string() << std::endl;
+    }
+  };
 
 
   
+  /*
+   *
+   *  Functions to parse input file 
+   *
+   */  
 
   Program parse_file (char *fileName){
 
@@ -901,48 +895,5 @@ namespace L3 {
     return p;
   }
 
-  Program parse_function_file (char *fileName){
-
-    /* 
-     * Check the grammar for some possible issues.
-     */
-    if(DEBUGGING) std::cout << "Checking the grammar" << std::endl;
-    pegtl::analyze< L3::function_grammar >();
-
-    if(DEBUGGING) std::cout << "Finished checking grammar" << std::endl;
-
-
-    /*
-     * Parse.
-     */   
-    file_input< > fileInput(fileName);
-    L3::Program p;
-    if(DEBUGGING) std::cout << "Begin Parsing Function File" << std::endl;
-    parse<L3::function_grammar, L3::action>(fileInput, p);
-    if(DEBUGGING) std::cout << "Done Parsing Function File" << std::endl;
-    return p;
-  }
-
-  Program parse_spill_file (char *fileName){
-
-    /* 
-     * Check the grammar for some possible issues.
-     */
-    if(DEBUGGING) std::cout << "Checking the grammar" << std::endl;
-    pegtl::analyze< L3::spill_grammar >();
-
-    if(DEBUGGING) std::cout << "Finished checking grammar" << std::endl;
-
-
-    /*
-     * Parse.
-     */   
-    file_input< > fileInput(fileName);
-    L3::Program p;
-    if(DEBUGGING) std::cout << "Begin Parsing Spill File" << std::endl;
-    parse<L3::spill_grammar, L3::action>(fileInput, p);
-    if(DEBUGGING) std::cout << "Done Parsing Spill File" << std::endl;
-    return p;
-  }
 
 };// L3
