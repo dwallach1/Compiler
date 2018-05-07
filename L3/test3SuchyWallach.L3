@@ -34,10 +34,10 @@ define :fillArray (arr, end) {
 	:check
 	condition = i <= end
 
-	br end :loop :end
+	br condition :loop :end
 
 	zeroCondition <- i = 0
-	br zeroCondition :zeron :cont
+	br zeroCondition :zero :cont
 
 	:cont
 	oneCondition <- i = 1
@@ -94,6 +94,8 @@ define :fillArray (arr, end) {
 		arr <- arr + 8
 		itmp = i
 		i = itmp + 1
+
+		:check
 
 	:end 
 		return
