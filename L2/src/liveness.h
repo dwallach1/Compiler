@@ -10,6 +10,7 @@
 #define DEBUG_S 0 
 
 
+
 std::vector<std::string> allRegs = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi", "r12", "r13", "r14", "r15", "rbp", "rbx", "rsp"};
 std::vector<std::string> callerSaveRegs = {"r10", "r11", "r8", "r9", "rax", "rcx", "rdi", "rdx", "rsi"};
 std::vector<std::string> callInstGen = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
@@ -17,9 +18,14 @@ std::vector<std::string> calleeSaveRegs = {"r12", "r13", "r14", "r15", "rbx", "r
 
 using namespace std;
 
-namespace L2{    
+namespace L2{
+
+// Global maps     
 std::map<L2::Color, int> colorToRegMap = {{R10, 0}, {R11, 1}, {R8, 2}, {R9, 3}, {RAX, 4}, {RCX, 5}, {RDI, 6}, {RDX, 7}, {RSI, 8}, {R12, 9}, {R13, 10}, {R14, 11}, {R15, 12}, {RBP, 13}, {RBX, 14}, {NO_COLOR, 15} };
 std::map<int, L2::Color> regToColorMap = {{0, R10}, {1, R11}, {2, R8}, {3, R9}, {4, RAX}, {5, RCX}, {6, RDI}, {7, RDX}, {8, RSI}, {9, R12}, {10, R13}, {11, R14}, {12, R15}, {13, RBP}, {14, RBX}, {15, NO_COLOR} };
+
+
+
 
 void printInterferenceGraph(L2::InterferenceGraph* iG);
 void linkInstructionPointers(L2::Function* f);
@@ -31,6 +37,9 @@ void insertLoad(Function* f, std::string replacementString, std::vector<Instruct
 void insertStore(Function* f, std::string replacementString, std::vector<Instruction*>::iterator idx, int stackLoc);
 void removeIncDecSpaces(L2::Function* f);
 void printNewSpill(Function* f);
+    
+
+
     /*
      *
      *
@@ -52,7 +61,6 @@ void printNewSpill(Function* f);
                 int bytes = f->locals * 8;
                 int a = atoi(I->arguments[2]->name.c_str());
                 bytes += a;
-                //if (DEBUG_S) printf("a is %d\n", a);
                 I->instruction = std::regex_replace(I->instruction, std::regex("stack-arg -?[0-9]+"), "mem rsp " + std::to_string(bytes));
             }
         }
@@ -143,7 +151,6 @@ void printNewSpill(Function* f);
                 for(int i = 0; i < 15; i++){
                     if(curReg == allRegs[i]){
                         curVar->color = regToColorMap[i];
-                        //if (DEBUGGING) printf("%s -> %s\n", curReg.c_str(), allRegs[i].c_str());
                     }
                 }
             }
@@ -152,7 +159,7 @@ void printNewSpill(Function* f);
 
 
     //This function will walk through all of the variabbles in a function and generate the stack according to how Simone wanted us to load the stack of uncolored vars
-    void generateStack(Function* f, std::vector<Variable*>* stack, bool trivial, std::set<Variable*>* varsInFunction){
+    void generateStack(Function* f, std::vector<Variable*>* stack){
         std::vector<Variable*> tmpStack = {};
         
         for(Variable* v : f->interferenceGraph->variables){
@@ -163,14 +170,6 @@ void printNewSpill(Function* f);
                     v->aliveColors[i] = true;
                 }
                 v->aliveColors[15] = false;
-                if(trivial){
-                    for(Variable* varKill : *varsInFunction){
-                        //Since it is trivial, let us never alias registers for this function
-                        if(std::find(allRegs.begin(), allRegs.end(), varKill->name) != allRegs.end()){
-                            v->aliveColors[colorToRegMap[varKill->color]] = false;
-                        }
-                    }
-                }
                 tmpStack.push_back(v);
             }
         }
@@ -305,22 +304,18 @@ void printNewSpill(Function* f);
 
 //This is the main function called for trying to color the variables, if the variables are colored then it returns true, otherwise it is spill time
     bool colorVariables(Function* f){
+
         //Color the registers because it won't change
         colorRegisters(f);
-        bool done = false;
+
         bool assigned = false;
-        bool trivial = false;
         std::vector<Variable*> stack = {};
         std::set<std::string> calleeSavesInUse = {};
         std::set<std::string> callerSavesInUse = {};
         std::set<Variable*> varsInFunction = {};
 
-        setActualUsedVars(&varsInFunction, f);
-        if(varsInFunction.size() < 15){
-            if(DEBUG_S) printf("Function %s is trivial\n", f->name.c_str());
-            //trivial = true;
-        }
-        generateStack(f, &stack, trivial, &varsInFunction);
+       
+        generateStack(f, &stack);
         
          std::vector<Variable*> unusedVars = stack;
 
@@ -329,22 +324,14 @@ void printNewSpill(Function* f);
             assigned = assignColor(V, f, unusedVars);
             if(assigned){
                  //Callee Save
-                 if(colorToRegMap[V->color] > colorToRegMap[RSI]){
-                    if (DEBUGGING) printf("adding callee saved: %s\n", allRegs[colorToRegMap[V->color]].c_str());
-                     calleeSavesInUse.insert(allRegs[colorToRegMap[V->color] ]);
-                 } else {
-                    callerSavesInUse.insert(allRegs[colorToRegMap[V->color] ]);
-                 }
-                 //if the function is trivial, then make everyone else a different color
-                 if(trivial){
-                    for(Variable* vKillColor : unusedVars){
-                        vKillColor->aliveColors[colorToRegMap[V->color]] = false;
-                    }
-                 }
+                 if(colorToRegMap[V->color] > colorToRegMap[RSI]){  calleeSavesInUse.insert(allRegs[colorToRegMap[V->color]]);  }
+                 //Caller Save 
+                 else { callerSavesInUse.insert(allRegs[colorToRegMap[V->color]]);  }
              }
-             else{
+             else {
                  V->color = NO_COLOR;
              }
+             
          }
 
          bool spilled = false;
@@ -401,10 +388,23 @@ void printNewSpill(Function* f);
         if(DEBUGGING) printf("removed INC_DEC spaces\n");
         handleStackArgs(f);
         if(DEBUGGING) printf("handled stack-arg && retruning\n");
-        trivial = false;
         return true;
 
     }
+
+
+
+    /*
+     *
+     *
+     *
+     *  GENERATE INTERFERENCE GRAPH 
+     *
+     *
+     *
+     *
+     *
+     */
 
     
     //This function will find a variable that is in the function given its string name
