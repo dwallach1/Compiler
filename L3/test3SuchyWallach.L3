@@ -2,7 +2,7 @@
 define :main () {
 	
 	// declare how many fibonacci numbers to print 
-	end = 10
+	end <- 10
 
 	call :fib (end)
 
@@ -29,10 +29,10 @@ define :fillArray (arr, end) {
     	return
 
 	:isArray
-	i = 0
+	i <- 0
 
 	:check
-	condition = i <= end
+	condition <- i <= end
 
 	br condition :loop :end
 
@@ -54,8 +54,8 @@ define :fillArray (arr, end) {
 
 		// update array pointer, and the iterator i
 		arr <- arr + 8
-		itmp = i
-		i = itmp + 1
+		itmp <- i
+		i <- itmp + 1
 
 		:check
 
@@ -70,14 +70,14 @@ define :fillArray (arr, end) {
 
 		// update array pointer, and the iterator i
 		arr <- arr + 8
-		itmp = i
-		i = itmp + 1
+		itmp <- i
+		i <- itmp + 1
 
 		:check
 
 	:normal
-		first = arr - 16
-		second = arr - 8
+		first <- arr - 16
+		second <- arr - 8
 
 		f <- load first
 		s <- load second
@@ -92,8 +92,8 @@ define :fillArray (arr, end) {
 
 		// update array pointer, and the iterator i
 		arr <- arr + 8
-		itmp = i
-		i = itmp + 1
+		itmp <- i
+		i <- itmp + 1
 
 		:check
 

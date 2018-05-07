@@ -3,7 +3,7 @@
 // it will print 0 or 1 before that indicating the status of prime for the given val
 define :main() {
 	
-	val = 10 
+	val <- 10 
 	result <- call :isPrime (val)
 
 	// print the result of the function
@@ -20,24 +20,24 @@ define :isPrime(val) {
 	
 	arr <- call allocate(val, 1)
 
-	index = val - 1
+	index <- val - 1
 
 	:start
 	done <- index <= 2
-	br done :false :continue
+	br done :false1 :continue
 
 	:continue
 	divisible <- :isDivisible(val, index)
 
-	br divisible :true :next
-	:next
-	tmpIndex = index
-	index = tmpIndex + 1
+	br divisible :true1 :next1
+	:next1
+	tmpIndex <- index
+	index <- tmpIndex + 1
 	:start
 
-	:false
+	:false1
 		return 0
-	:true
+	:true1
 		return 1
 
 }
@@ -54,19 +54,19 @@ define :isDivisible(val1, val2){
 	br val1Bigger :val1Bigger :val2Bigger
 
 	:val1Bigger
-		steady = val1
-		changer = val2
-		i = 2
+		steady <- val1
+		changer <- val2
+		i <- 2
 		:ready
 
 	:val2Bigger
-		steady = val2
-		changer = val1
-		i = 2
+		steady <- val2
+		changer <- val1
+		i <- 2
 		:ready
 
 	:ready
-		checker = changer * i
+		checker <- changer * i
 
 		tooBig <- checker >= steady
 
@@ -79,8 +79,8 @@ define :isDivisible(val1, val2){
 		br equality :true :next
 
 	:next
-		itmp = i
-		i = itmp + 1
+		itmp <- i
+		i <- itmp + 1
 		:ready
 
 
