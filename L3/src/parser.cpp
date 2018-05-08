@@ -56,18 +56,21 @@ namespace L3 {
         pegtl::string<'a', 'r', 'r', 'a', 'y', '-', 'e', 'r', 'r', 'o', 'r'>
       >{};
 
+  // add spaces around keywords b/c vars can still be valid i.e. callerFP or returnVal
   struct keyword:
     pegtl::sor<
         paa,
-        pegtl::string<'r', 'e', 't', 'u', 'r', 'n'>,
-        pegtl::string<'c', 'a', 'l', 'l'>
+        pegtl::string<  'r', 'e', 't', 'u', 'r', 'n' >,
+        pegtl::string< 'c', 'a', 'l', 'l'>,
+        pegtl::string< 'l', 'o', 'a', 'd'>,
+        pegtl::string< 's', 't', 'o', 'r', 'e'>
       >{};
 
   struct var:
     pegtl::seq<
       seps,
-      not_at< keyword >,
-      seps,
+      // not_at< keyword >,
+      // seps,
       pegtl::plus< 
         pegtl::sor<
           pegtl::alpha,
@@ -189,9 +192,12 @@ namespace L3 {
       seps,
       assignOp,
       seps,
+      pegtl::not_at< keyword >,
       s,
       seps,
-      pegtl::not_at< op >
+      pegtl::not_at< op >,
+      pegtl::not_at< cmp >
+      
     >{};
 
   struct compare_assign:
@@ -336,19 +342,22 @@ namespace L3 {
     >{};
 
   struct instruction:
-    pegtl::sor<
-      assign,
-      arithmetic_assign,
-      compare_assign,
-      load,
-      store,
-      br_single,
-      label_inst,
-      br_cmp,
-      return_nothing,
-      return_val,
-      call,
-      call_assign
+    pegtl::seq<
+      seps,
+      pegtl::sor<
+        assign,
+        arithmetic_assign,
+        compare_assign,
+        load,
+        store,
+        br_single,
+        label_inst,
+        br_cmp,
+        return_nothing,
+        return_val,
+        call,
+        call_assign
+      >
     >{};
 
   struct instructions_rule:
@@ -369,7 +378,6 @@ namespace L3 {
       pegtl::one< ')' >
     >{};
   
-
   struct L3_function_rule:
     pegtl::seq<
       seps,
@@ -388,13 +396,11 @@ namespace L3 {
   struct L3_functions_rule:
     pegtl::seq<
       seps,
-      pegtl::star< L3_function_rule >
+      pegtl::plus< L3_function_rule >
     > {};
 
   struct L3_main_function_rule:
     pegtl::seq<
-      seps,
-      pegtl::star< L3_function_rule >,
       seps,
       pegtl::string<'d', 'e', 'f', 'i', 'n', 'e'>,
       seps,
@@ -402,24 +408,20 @@ namespace L3 {
       seps,
       pegtl::one< '(' >,
       seps,
-      vars,
-      seps,
       pegtl::one< ')' >,
       seps,
       pegtl::one< '{' >,
       seps,
       instructions_rule,
       seps,
-      pegtl::one< '}' >,
-      seps,
-      pegtl::star< L3_function_rule >
+      pegtl::one< '}' >
     > {};
 
   struct entry_point_rule:
     pegtl::seq<
       seps,
-      L3_main_function_rule,
-      seps
+      // L3_main_function_rule
+      L3_functions_rule
     >{};
 
   struct grammar : 
@@ -434,14 +436,6 @@ namespace L3 {
    */
   template< typename Rule >
   struct action : pegtl::nothing< Rule > {};
-
-  template<> struct action < L3_main_function_rule > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-      
-      if(DEBUGGING || DEBUG_S) std::cout << "Found the MAIN function " <<  in.string() << std::endl;
-    }
-  };
 
   template<> struct action < function_name > {
     template< typename Input >
@@ -799,6 +793,7 @@ namespace L3 {
 
         while(a->type != CALLEE) {
           if(DEBUGGING) std::cout << "Adding call paramter: " <<  a->name << std::endl;
+          
           instruction->parameters.push_back(a);
 
           a = parsed_registers.back();
@@ -809,6 +804,8 @@ namespace L3 {
 
         instruction->callee = a;
 
+        parsed_registers.pop_back();
+        
         L3::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
 
@@ -918,9 +915,7 @@ namespace L3 {
     /* 
      * Check the grammar for some possible issues.
      */
-    if(DEBUGGING) std::cout << "Checking the grammar" << std::endl;
     pegtl::analyze< L3::grammar >();
-    if(DEBUGGING) std::cout << "Finished checking grammar" << std::endl;
 
 
     /*
@@ -928,11 +923,8 @@ namespace L3 {
      */   
     file_input< > fileInput(fileName);
     L3::Program p;
-    if(DEBUGGING) std::cout << "Begin Parsing" << std::endl;
     
     parse< L3::grammar, L3::action >(fileInput, p);
-    
-    if(DEBUGGING) std::cout << "Done Parsing" << std::endl;
     return p;
   }
 
