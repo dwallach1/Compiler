@@ -99,7 +99,6 @@ namespace L3 {
   };
 
   struct Program{
-    // std::string entryPointLabel;
     std::vector<L3::Function *> functions;
   };
 

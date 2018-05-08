@@ -56,7 +56,6 @@ namespace L3 {
         pegtl::string<'a', 'r', 'r', 'a', 'y', '-', 'e', 'r', 'r', 'o', 'r'>
       >{};
 
-  // add spaces around keywords b/c vars can still be valid i.e. callerFP or returnVal
   struct keyword:
     pegtl::sor<
         paa,
