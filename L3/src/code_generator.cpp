@@ -61,7 +61,7 @@ namespace L3{
             f->uniques++;
 
             //generate the two instructions
-            std::string line1 = tmpVar + " <- " + i->arg1->name + " " + i->operation + " " + i->arg2->name + "\n";
+            std::string line1 = tmpVar + " <- " + i->arg1->name + " " + i->operation->str + " " + i->arg2->name + "\n";
             std::string line2 = "\t\t" + i->dst->name + " <- " + tmpVar;
             
             return line1 + line2;
@@ -69,10 +69,12 @@ namespace L3{
         else if (Instruction_cmpAssignment* i = dynamic_cast<Instruction_cmpAssignment *> (I)) {
 
             // check if we need to reverse the arguments
-            if (i->operation == ">") {
+            if (i->operation->op == GT) {
+                i->operation->op = LT;
                 return i->dst->name + " " + i->arg2->name + " < " + i->arg1->name;
             } 
-            else if (i->operation == ">=") {
+            else if (i->operation->op == GTE) {
+                i->operation->op = LTE;
                 return i->dst->name + " " + i->arg2->name + " <= " + i->arg1->name;
             }
             else {
