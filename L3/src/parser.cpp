@@ -15,7 +15,7 @@
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
 
-#define DEBUGGING 0
+#define DEBUGGING 1
 #define DEBUG_S 1
 
 
@@ -57,11 +57,17 @@ namespace L3 {
         pegtl::string<'a', 'r', 'r', 'a', 'y', '-', 'e', 'r', 'r', 'o', 'r'>
       >{};
 
+  struct keyword:
+    pegtl::sor<
+        paa,
+        pegtl::string<'r', 'e', 't', 'u', 'r', 'n'>,
+        pegtl::string<'c', 'a', 'l', 'l'>
+      >{};
+
   struct var:
     pegtl::seq<
       seps,
-      pegtl::not_at< pegtl::string<'c', 'a', 'l', 'l'> >,
-      pegtl::not_at< paa >,
+      not_at< keyword >,
       seps,
       pegtl::plus< 
         pegtl::sor<
@@ -262,7 +268,7 @@ namespace L3 {
   struct return_val:
     pegtl::seq<
       seps,
-      return_nothing,
+      pegtl::string<'r', 'e', 't', 'u', 'r', 'n'>,
       seps,
       t
     >{};
@@ -326,8 +332,6 @@ namespace L3 {
 
   struct label_inst:
     pegtl::seq<
-      seps,
-      pegtl::not_at< pegtl::string< 'b', 'r'> >,
       seps,
       label
     >{};
@@ -695,21 +699,6 @@ namespace L3 {
     }
   };
 
-  template<> struct action < return_nothing > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-        if(DEBUGGING) std::cout << "found a return_nothing " <<  in.string() << std::endl;
-        
-        L3::Function *currentF = p.functions.back();
-        
-        L3::Instruction_Return *instruction = new L3::Instruction_Return();
-
-        instruction->instruction = "return" ;
-        currentF->instructions.push_back(instruction);
-        if (DEBUG_S) std::cout << "--> added an Return_nothing instruction: " <<  instruction->instruction << std::endl;
-    }
-  };
-
   template<> struct action < return_val > {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
@@ -731,6 +720,21 @@ namespace L3 {
         currentF->instructions.push_back(instruction);
         if (DEBUG_S) std::cout << "--> added an Return_val instruction: " <<  instruction->instruction << std::endl;
       }
+  };
+
+  template<> struct action < return_nothing > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+        if(DEBUGGING) std::cout << "found a return_nothing " <<  in.string() << std::endl;
+        
+        L3::Function *currentF = p.functions.back();
+        
+        L3::Instruction_Return *instruction = new L3::Instruction_Return();
+
+        instruction->instruction = "return" ;
+        currentF->instructions.push_back(instruction);
+        if (DEBUG_S) std::cout << "--> added an Return_nothing instruction: " <<  instruction->instruction << std::endl;
+    }
   };
 
   template<> struct action < call > {
@@ -828,7 +832,7 @@ namespace L3 {
         instruction->label = label;
         
         currentF->instructions.push_back(instruction);
-        if(DEBUGGING) std::cout << "--> added a br_single instruction: " <<  instruction->instruction << std::endl;
+        if(DEBUG_S) std::cout << "--> added a br_single instruction: " <<  instruction->instruction << std::endl;
 
     }
   };

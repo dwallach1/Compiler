@@ -21,14 +21,15 @@ namespace L3{
 
         std::string funcStr = "";
 
-        funcStr.append( "(" + f->name + "\n\t" + to_string(f->arguments) + " " + to_string(f->locals) + "\n");
+        funcStr.append( "\t(" + f->name + "\n");
+        funcStr.append("\t\t" + to_string(f->arguments) + " " + to_string(f->locals) + "\n");
         
         for(Instruction* I : f->instructions){
-            funcStr.append("\t" + convert_instruction(I) + "\n");
+            funcStr.append("\t\t" + convert_instruction(I) + "\n");
         }
         
 
-        funcStr.append(")\n");
+        funcStr.append("\t)\n");
         return funcStr;
     }
 
