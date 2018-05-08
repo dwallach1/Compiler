@@ -36,17 +36,19 @@ namespace L3{
         else if (dynamic_cast<Instruction_Call *> (I)) {
 
             // TODO
+            // going to need to store parameters of the call in proper registers  
             return "";
         }
         else if (dynamic_cast<Instruction_CallAssign *> (I)) {
 
             // TODO
+            // going to need to store parameters of the call in proper registers  
             return "";
         }
         else if (dynamic_cast<Instruction_ReturnVal *> (I)) {
 
-            // TODO
-            return "";
+            // first store the return value in rax and then do the return
+            return "rax <- " + I->retVal + "\n\t\treturn";
         }
         else {
             /*  These instructions are already valid L2 instructions 
@@ -65,7 +67,12 @@ namespace L3{
     }
 
     void updateArgumentsAndLocals(Function* f) {
+        // this function will update the argument and local integers necessary for all L2 functions
 
+        // the arguments are synonymous with the parameters vector
+        f->arguments = f->parameters.size();
+
+        // the locals will be harder to determine, need to look through instruction variables used
     }
 
 
@@ -86,7 +93,7 @@ namespace L3{
 
         funcStr.append("\t)\n");
         return funcStr;
-    }
+     }
 
     void L3_generate_code(Program p) {
         // set up file stream
