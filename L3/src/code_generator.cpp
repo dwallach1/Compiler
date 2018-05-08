@@ -14,9 +14,10 @@ namespace L3{
 
     std::string generate_unique_var(Function* f) {
         std::string tmpVar = "";
-        for(i=0; i < f->uniques + 1; i++) {
+        for(int i=0; i < f->uniques + 1; i++) {
             tmpVar += '?';
         }
+        return tmpVar;
      }
 
 
@@ -60,8 +61,8 @@ namespace L3{
             f->uniques++;
 
             //generate the two instructions
-            std::string line1 = tmpVar + " <- " + arg1->name + " " + operation->name + " " + arg2 + "\n";
-            std::string line2 = "\t\t" + dst->name " <- " + tmpVar;
+            std::string line1 = tmpVar + " <- " + i->arg1->name + " " + i->operation + " " + i->arg2->name + "\n";
+            std::string line2 = "\t\t" + i->dst->name + " <- " + tmpVar;
             
             return line1 + line2;
         }

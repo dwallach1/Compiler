@@ -47,17 +47,22 @@ namespace L3 {
     std::string operation;
   };
 
-  struct Instruction_cmpAssignment : Instruction_opAssignment {
-
+  struct Instruction_cmpAssignment : Instruction {
+    L3::Arg*  dst;
+    L3::Arg*  arg1;
+    L3::Arg*  arg2;
+    std::string operation;
   };
 
 
-  struct Instruction_Load : Instruction_Assignment {
-
+  struct Instruction_Load : Instruction {
+    L3::Arg* src;
+    L3::Arg* dst;
   };
 
-  struct Instruction_Store : Instruction_Load {
-
+  struct Instruction_Store : Instruction {
+    L3::Arg* src;
+    L3::Arg* dst;
   };
 
   struct Instruction_br : Instruction {
