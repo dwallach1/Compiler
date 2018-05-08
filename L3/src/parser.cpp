@@ -2,7 +2,6 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
-#include <set>
 #include <iterator>
 #include <cstring>
 #include <cctype>
@@ -15,7 +14,7 @@
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
 
-#define DEBUGGING 1
+#define DEBUGGING 0
 #define DEBUG_S 1
 
 
@@ -361,17 +360,16 @@ namespace L3 {
   struct function_name:
     pegtl::seq<
       seps,
-      pegtl::string< 'd', 'e', 'f', 'i', 'n', 'e' >,
-      seps,
       label,
       seps,
       pegtl::one< '(' >,
       seps,
-      vars,
+      pegtl::opt< vars >,
       seps,
       pegtl::one< ')' >
     >{};
- 
+  
+
   struct L3_function_rule:
     pegtl::seq<
       seps,
@@ -383,19 +381,20 @@ namespace L3 {
       seps,
       instructions_rule,
       seps,
-      pegtl::one< '}' >
+      pegtl::one< '}' >,
+      seps
     > {};
 
   struct L3_functions_rule:
     pegtl::seq<
       seps,
-      pegtl::plus< L3_function_rule >
+      pegtl::star< L3_function_rule >
     > {};
 
   struct L3_main_function_rule:
     pegtl::seq<
       seps,
-      pegtl::opt< L3_functions_rule >,
+      pegtl::star< L3_function_rule >,
       seps,
       pegtl::string<'d', 'e', 'f', 'i', 'n', 'e'>,
       seps,
@@ -403,13 +402,17 @@ namespace L3 {
       seps,
       pegtl::one< '(' >,
       seps,
+      vars,
+      seps,
       pegtl::one< ')' >,
       seps,
       pegtl::one< '{' >,
       seps,
       instructions_rule,
       seps,
-      pegtl::one< '}' >
+      pegtl::one< '}' >,
+      seps,
+      pegtl::star< L3_function_rule >
     > {};
 
   struct entry_point_rule:
@@ -417,7 +420,7 @@ namespace L3 {
       seps,
       L3_main_function_rule,
       seps
-    > { };
+    >{};
 
   struct grammar : 
     pegtl::must< 
@@ -432,11 +435,19 @@ namespace L3 {
   template< typename Rule >
   struct action : pegtl::nothing< Rule > {};
 
+  template<> struct action < L3_main_function_rule > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+      
+      if(DEBUGGING || DEBUG_S) std::cout << "Found the MAIN function " <<  in.string() << std::endl;
+    }
+  };
+
   template<> struct action < function_name > {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
       
-      if(DEBUGGING) std::cout << "Found a new function " <<  in.string() << std::endl;
+      if(DEBUGGING || DEBUG_S) std::cout << "Found a new function " <<  in.string() << std::endl;
       
       L3::Function *newF = new L3::Function();
       Arg* a = parsed_registers.back();
@@ -918,10 +929,9 @@ namespace L3 {
     file_input< > fileInput(fileName);
     L3::Program p;
     if(DEBUGGING) std::cout << "Begin Parsing" << std::endl;
-    Function* mainF = new L3::Function();
-    mainF->name = ":main";
-    p.functions.push_back(mainF);
+    
     parse< L3::grammar, L3::action >(fileInput, p);
+    
     if(DEBUGGING) std::cout << "Done Parsing" << std::endl;
     return p;
   }

@@ -1,7 +1,5 @@
 #pragma once
-
 #include <vector>
-#include <set>
 
 namespace L3 {
   struct Variable;
@@ -10,20 +8,6 @@ namespace L3 {
   struct Function;
   struct Program;
   struct DataFlowResult;
-
-  enum Type {
-    AOP,
-    ASSIGN,
-    LOAD,
-    STORE,
-    CMP_ASSIGN,
-    LABEL,
-    INC_DEC,
-    CJUMP,
-    GOTO,
-    RET,
-    CALL
-  };
 
   enum ArgType {
     NUM,
@@ -42,13 +26,9 @@ namespace L3 {
 
   struct Instruction {
     std::string instruction;
-    // L3::Type type;
     int64_t instNum;
     Instruction* prevInst;
     Instruction* nextInst;
-    // std::vector<L3::Arg *> arguments;
-    // std::vector<std::string> operation;
-
   };
 
 
@@ -109,8 +89,6 @@ namespace L3 {
   struct Instruction_Label : Instruction {
     L3::Arg* label;
   };
-
-
 
   struct Function{
     std::string name;
