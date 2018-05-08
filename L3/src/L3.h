@@ -29,6 +29,8 @@ namespace L3 {
     int64_t instNum;
     Instruction* prevInst;
     Instruction* nextInst;
+
+    virtual ~Instruction() {};
   };
 
 

@@ -15,7 +15,7 @@
 #include <tao/pegtl/contrib/raw_string.hpp>
 
 #define DEBUGGING 0
-#define DEBUG_S 1
+#define DEBUG_S 0
 
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;

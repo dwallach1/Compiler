@@ -15,50 +15,63 @@ namespace L3{
 
     std::string convert_instruction(Instruction* I) {
         
-        if (dynamic_cast<Instruction_Load *> (I)) {
+
+        if (Instruction_Load* i = dynamic_cast<Instruction_Load *> (I)) {
 
             // TODO
-            return "";
+            return "load instruction -- not yet implemented";
         }
-        else if (dynamic_cast<Instruction_Store *> (I)) {
+        else if (Instruction_Store* i = dynamic_cast<Instruction_Store *> (I)) {
 
             // TODO
-            return "";
+            return "store instruction -- not yet implemented";
         }
-        else if (dynamic_cast<Instruction_br *> (I)) {
+        else if (Instruction_br* i = dynamic_cast<Instruction_br *> (I)) {
 
-            return "goto " + I->label->name;
+            return "goto " + i->label->name;
         }
-        else if (dynamic_cast<Instruction_brCmp *> (I)) {
+        else if (Instruction_brCmp* i = dynamic_cast<Instruction_brCmp *> (I)) {
 
-            return "cjump " + I->comparitor->name + " = 1 " + I->trueLabel + " " + I->falseLabel;
+            return "cjump " + i->comparitor->name + " = 1 " + i->trueLabel->name + " " + i->falseLabel->name;
         }
-        else if (dynamic_cast<Instruction_Call *> (I)) {
-
-            // TODO
-            // going to need to store parameters of the call in proper registers  
-            return "";
-        }
-        else if (dynamic_cast<Instruction_CallAssign *> (I)) {
+        else if (Instruction_Call* i = dynamic_cast<Instruction_Call *> (I)) {
 
             // TODO
             // going to need to store parameters of the call in proper registers  
-            return "";
+            return "call instruction -- not yet implemented";
         }
-        else if (dynamic_cast<Instruction_ReturnVal *> (I)) {
+        else if (Instruction_CallAssign* i = dynamic_cast<Instruction_CallAssign *> (I)) {
+
+            // TODO
+            // going to need to store parameters of the call in proper registers  
+            return "call_assign instruction -- not yet implemented";
+        }
+        else if (Instruction_cmpAssignment* i = dynamic_cast<Instruction_cmpAssignment *> (I)) {
+
+            // check if we need to reverse the arguments
+            if (i->operation == ">") {
+                return i->dst->name + " " + i->arg2->name + " < " + i->arg1->name;
+            } 
+            else if (i->operation == ">=") {
+                return i->dst->name + " " + i->arg2->name + " <= " + i->arg1->name;
+            }
+            else {
+                return i->instruction;
+            }
+        }
+        else if (Instruction_ReturnVal* i = dynamic_cast<Instruction_ReturnVal *> (I)) {
 
             // first store the return value in rax and then do the return
-            return "rax <- " + I->retVal + "\n\t\treturn";
+            return "rax <- " + i->retVal->name + "\n\t\treturn";
         }
         else {
             /*  These instructions are already valid L2 instructions 
              *   
              *    Types:
              *      (1) Instruction_Assignment
-             *      (2) Instruction_cmpAssignment
-             *      (3) Instruction_opAssignment
-             *      (4) Instruction_Label
-             *      (5) Instruction_return
+             *      (2) Instruction_opAssignment
+             *      (3) Instruction_Label
+             *      (4) Instruction_return
              *
              */
 
