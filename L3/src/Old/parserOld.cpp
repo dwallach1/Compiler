@@ -15,7 +15,7 @@
 #include <tao/pegtl/contrib/raw_string.hpp>
 
 #define DEBUGGING 0
-#define DEBUG_S 1
+#define DEBUG_S 0
 
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
@@ -29,7 +29,7 @@ namespace L3 {
    */ 
 
   std::vector<L3::Arg*> parsed_registers;
-  std::vector<L3::Operation*> operations;
+  std::vector<std::string> operations;
 
   /* 
    * Grammar rules from now on.
@@ -497,29 +497,7 @@ namespace L3 {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
       if(DEBUGGING) std::cout << "Found a cmp " << in.string() << std::endl;
-      L3::Operation* newOp = new L3::Operation();
-      newOp->str = in.string();
-
-      if(newOp->str == "<"){
-        newOp->op = LT;
-      }
-      else if(newOp->str == "<="){
-        newOp->op = LTE;
-      }
-      else if(newOp->str == "="){
-        newOp->op = EQ;
-      }
-      else if(newOp->str == ">="){
-        newOp->op = GTE;
-      }
-      else if(newOp->str == ">"){
-        newOp->op = GT;
-      }
-      else{
-        newOp->op = NO_OP;
-      }
-
-      operations.push_back(newOp);
+      operations.push_back(in.string());
 
     }
   };
@@ -528,30 +506,7 @@ namespace L3 {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
       if(DEBUGGING) std::cout << "Found a op: " << in.string() << std::endl;
-      L3::Operation* newOp = new L3::Operation();
-      newOp->str = in.string();
-      if(newOp->str == "+"){
-        newOp->op = ADD;
-      }
-      else if(newOp->str == "-"){
-        newOp->op = ADD;
-      }
-      else if(newOp->str == "&"){
-        newOp->op = AND;
-      }
-      else if(newOp->str == "*"){
-        newOp->op = MUL;
-      }
-      else if(newOp->str == "<<"){
-        newOp->op = SHL;
-      }
-      else if(newOp->str == ">>"){
-        newOp->op = SHR;
-      }
-      else{
-        newOp->op = NO_OP;
-      }
-      operations.push_back(newOp);
+      operations.push_back(in.string());
 
     }
   };
@@ -559,7 +514,7 @@ namespace L3 {
   template<> struct action < assignOp > {
     template< typename Input >
     static void apply( const Input & in, L3::Program & p){
-      if(DEBUGGING) std::cout << "Found an assignOp: " << in.string() << std::endl;
+      if(DEBUGGING) std::cout << "Found a assignOp: " << in.string() << std::endl;
       // operations.push_back(in.string());
 
     }
@@ -584,10 +539,9 @@ namespace L3 {
       
       if(DEBUGGING) std::cout << "Found a number " << in.string() << std::endl;
 
-      L3::Number* arg = new L3::Number();
+      L3::Arg* arg = new L3::Arg();
       arg->name = in.string();
       arg->type = NUM;
-      arg->num = atoi(in.string().c_str());
       parsed_registers.push_back(arg);
 
     }
@@ -636,8 +590,7 @@ namespace L3 {
         
         L3::Function *currentF = p.functions.back();
         
-        L3::Operation* operation = operations.back();
-        operations.pop_back();
+        L3::Instruction_opAssignment *instruction = new L3::Instruction_opAssignment();
 
         L3::Arg* arg2 = parsed_registers.back();
         parsed_registers.pop_back();
@@ -648,109 +601,18 @@ namespace L3 {
         L3::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
 
-        if(operation->op != MUL){
-          if(operation->op == ADD){
-            L3::Instruction_addAssignment *instruction = new L3::Instruction_addAssignment();
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->str + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_add instruction: " <<  instruction->instruction << std::endl;
-          }
-          else if(operation->op == SUB){
-            L3::Instruction_subAssignment *instruction = new L3::Instruction_subAssignment();
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->str + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_sub instruction: " <<  instruction->instruction << std::endl;
-          }
-          else if(operation->op == AND){
-            L3::Instruction_andAssignment *instruction = new L3::Instruction_andAssignment();
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->str + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_and instruction: " <<  instruction->instruction << std::endl;
-          }
-          else if(operation->op == SHL){
-            L3::Instruction_leftShiftAssignment *instruction = new L3::Instruction_leftShiftAssignment();
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->str + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_leftShift instruction: " <<  instruction->instruction << std::endl;
-          }
-          else if(operation->op == SHR){
-            L3::Instruction_rightShiftAssignment *instruction = new L3::Instruction_rightShiftAssignment();
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->str + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_rightShift instruction: " <<  instruction->instruction << std::endl;
-          }
-          else{
-            L3::Instruction_opAssignment *instruction = new L3::Instruction_opAssignment();
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->str + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_assign instruction: " <<  instruction->instruction << std::endl;
-          }  
-        }
-        //Checking to see if there is a multiply by 2 4 8 or 16
-        else if(operation->op == MUL){
-          unsigned loc = 0;
-          if(L3::Number* number = dynamic_cast<L3::Number*>(arg1)){
-            if(number->num == 2 || number->num == 4 || number->num == 8 || number->num == 16){
-              loc = 1;
-            }
-          }
-          else if(L3::Number* number = dynamic_cast<L3::Number*>(arg2)){
-            if(number->num == 2 || number->num == 4 || number->num == 8 || number->num == 16){
-              loc = 2;
-            }
-          }
-          if (loc){
-            L3::Instruction_specialMultAssignment *instruction = new L3::Instruction_specialMultAssignment();
-            instruction->locOfNum = loc;
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->str + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_specialMult instruction: " <<  instruction->instruction << std::endl;
+        std::string operation = operations.back();
+        operations.pop_back();
 
-          }
-          //just a normal mult
-          else{
-            L3::Instruction_multAssignment *instruction = new L3::Instruction_multAssignment();
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->str + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_mult instruction: " <<  instruction->instruction << std::endl;
-
-          }
-        }
-
+        instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation + ' ' + arg2->name;
+  
+        instruction->dst = dest;
+        instruction->arg1 = arg1;
+        instruction->arg2 = arg2;
+        instruction->operation = operation;
         
-        return;
+        currentF->instructions.push_back(instruction);
+        if(DEBUG_S) std::cout << "--> added an arithmetic_assign instruction: " <<  instruction->instruction << std::endl;
     }
   };
 
@@ -772,10 +634,10 @@ namespace L3 {
         L3::Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
 
-        L3::Operation* operation = operations.back();
+        std::string operation = operations.back();
         operations.pop_back();
 
-        instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->str + ' ' + arg2->name;
+        instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation + ' ' + arg2->name;
   
         instruction->dst = dest;
         instruction->arg1 = arg1;
