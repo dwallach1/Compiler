@@ -12,8 +12,15 @@ using namespace std;
 
 namespace L3{
 
+    std::string generate_unique_var(Function* f) {
+        std::string tmpVar = "";
+        for(i=0; i < f->uniques + 1; i++) {
+            tmpVar += '?';
+        }
+     }
 
-    std::string convert_instruction(Instruction* I) {
+
+    std::string convert_instruction(Function* f, Instruction* I) {
         
 
         if (Instruction_Load* i = dynamic_cast<Instruction_Load *> (I)) {
@@ -46,6 +53,18 @@ namespace L3{
             // going to need to store parameters of the call in proper registers  
             return "call_assign instruction -- not yet implemented";
         }
+        else if (Instruction_opAssignment* i = dynamic_cast<Instruction_opAssignment *> (I)) {
+
+            // need to split into two instructions and store into a new variable 
+            std::string tmpVar = generate_unique_var(f);
+            f->uniques++;
+
+            //generate the two instructions
+            std::string line1 = tmpVar + " <- " + arg1->name + " " + operation->name + " " + arg2 + "\n";
+            std::string line2 = "\t\t" + dst->name " <- " + tmpVar;
+            
+            return line1 + line2;
+        }
         else if (Instruction_cmpAssignment* i = dynamic_cast<Instruction_cmpAssignment *> (I)) {
 
             // check if we need to reverse the arguments
@@ -69,15 +88,14 @@ namespace L3{
              *   
              *    Types:
              *      (1) Instruction_Assignment
-             *      (2) Instruction_opAssignment
-             *      (3) Instruction_Label
-             *      (4) Instruction_return
+             *      (2) Instruction_Label
+             *      (3) Instruction_return
              *
              */
 
             return I->instruction;
         }
-    }
+     }
 
     void updateArgumentsAndLocals(Function* f) {
         // this function will update the argument and local integers necessary for all L2 functions
@@ -86,10 +104,11 @@ namespace L3{
         f->arguments = f->parameters.size();
 
         // the locals will be harder to determine, need to look through instruction variables used
-    }
-
+        }
 
     std::string convert_function(Function* f) {
+
+        f->uniques = 0;
 
         std::string funcStr = "";
 
@@ -100,7 +119,7 @@ namespace L3{
         funcStr.append("\t\t" + to_string(f->arguments) + " " + to_string(f->locals) + "\n");
         
         for(Instruction* I : f->instructions){
-            funcStr.append("\t\t" + convert_instruction(I) + "\n");
+            funcStr.append("\t\t" + convert_instruction(f, I) + "\n");
         }
         
 

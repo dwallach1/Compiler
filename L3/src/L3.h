@@ -96,6 +96,7 @@ namespace L3 {
     std::string name;
     int64_t arguments;
     int64_t locals;
+    int64_t uniques;
     std::vector< L3::Arg *> parameters;
     std::vector< L3::Instruction *> instructions;
   };
