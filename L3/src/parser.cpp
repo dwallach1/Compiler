@@ -15,7 +15,8 @@
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
 
-#define DEBUGGING 1
+#define DEBUGGING 0
+#define DEBUG_S 1
 
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
@@ -30,10 +31,6 @@ namespace L3 {
 
   std::vector<L3::Arg*> parsed_registers;
   std::vector<std::string> operations;
-
-  std::vector<std::string> assignmentVec;
-  std::vector<std::string> compareVec;
-  std::vector<std::string> labelInsts;
 
   /* 
    * Grammar rules from now on.
@@ -53,10 +50,18 @@ namespace L3 {
       > 
     > {};
 
+  struct paa:
+    pegtl::sor<
+        pegtl::string<'p', 'r', 'i', 'n', 't'>,
+        pegtl::string<'a', 'l', 'l', 'o', 'c', 'a', 't', 'e'>,
+        pegtl::string<'a', 'r', 'r', 'a', 'y', '-', 'e', 'r', 'r', 'o', 'r'>
+      >{};
+
   struct var:
     pegtl::seq<
       seps,
       pegtl::not_at< pegtl::string<'c', 'a', 'l', 'l'> >,
+      pegtl::not_at< paa >,
       seps,
       pegtl::plus< 
         pegtl::sor<
@@ -170,8 +175,7 @@ namespace L3 {
     pegtl::seq<
       seps,
       pegtl::string< '<', '-' >
-    >
-  {};
+    >{};
 
   struct assign:
     pegtl::seq<
@@ -266,11 +270,8 @@ namespace L3 {
   struct callee:
     pegtl::sor<
         u,
-        pegtl::string<'p', 'r', 'i', 'n', 't'>,
-        pegtl::string<'a', 'l', 'l', 'o', 'c', 'a', 't', 'e'>,
-        pegtl::string<'a', 'r', 'r', 'a', 'y', '-', 'e', 'r', 'r', 'o', 'r'>
-      >
-  {};
+        paa
+      >{};
 
   struct call:
     pegtl::seq<
@@ -304,12 +305,6 @@ namespace L3 {
       pegtl::one < ')' >
     >{};
 
-  struct label_inst:
-    pegtl::seq<
-      seps,
-      label
-    >{};
-
   struct br_single:
     pegtl::seq<
       seps,
@@ -325,6 +320,14 @@ namespace L3 {
       var,
       seps,
       label,
+      seps,
+      label
+    >{};
+
+  struct label_inst:
+    pegtl::seq<
+      seps,
+      pegtl::not_at< pegtl::string< 'b', 'r'> >,
       seps,
       label
     >{};
@@ -465,7 +468,6 @@ namespace L3 {
       arg->name = in.string();
       arg->type = LBL;
       parsed_registers.push_back(arg);
-      labelInsts.push_back(in.string());
     }
   };
 
@@ -480,7 +482,6 @@ namespace L3 {
       arg->name = in.string();
       arg->type = CALLEE;
       parsed_registers.push_back(arg);
-      labelInsts.push_back(in.string());
     }
   };
 
@@ -570,6 +571,7 @@ namespace L3 {
         instruction->src = source;
         
         currentF->instructions.push_back(instruction);
+        if (DEBUG_S) std::cout << "--> added an Assignment instruction: " <<  instruction->instruction << std::endl;
     }
   };
 
@@ -602,7 +604,7 @@ namespace L3 {
         instruction->operation = operation;
         
         currentF->instructions.push_back(instruction);
-        if(DEBUGGING) std::cout << "--> added an arithmetic_assign instruction: " <<  instruction->instruction << std::endl;
+        if(DEBUG_S) std::cout << "--> added an arithmetic_assign instruction: " <<  instruction->instruction << std::endl;
     }
   };
 
@@ -635,6 +637,7 @@ namespace L3 {
         instruction->operation = operation;
         
         currentF->instructions.push_back(instruction);
+        if (DEBUG_S) std::cout << "--> added an cmpAssignment instruction: " <<  instruction->instruction << std::endl;
     }
   };
 
@@ -661,6 +664,7 @@ namespace L3 {
         instruction->src = src;
         
         currentF->instructions.push_back(instruction);
+        if (DEBUG_S) std::cout << "--> added an Load instruction: " <<  instruction->instruction << std::endl;
     }
   };
 
@@ -687,6 +691,7 @@ namespace L3 {
         instruction->src = src;
         
         currentF->instructions.push_back(instruction);
+        if (DEBUG_S) std::cout << "--> added an Store instruction: " <<  instruction->instruction << std::endl;
     }
   };
 
@@ -701,6 +706,7 @@ namespace L3 {
 
         instruction->instruction = "return" ;
         currentF->instructions.push_back(instruction);
+        if (DEBUG_S) std::cout << "--> added an Return_nothing instruction: " <<  instruction->instruction << std::endl;
     }
   };
 
@@ -723,7 +729,8 @@ namespace L3 {
         instruction->retVal = val;
         
         currentF->instructions.push_back(instruction);
-    }
+        if (DEBUG_S) std::cout << "--> added an Return_val instruction: " <<  instruction->instruction << std::endl;
+      }
   };
 
   template<> struct action < call > {
@@ -746,17 +753,20 @@ namespace L3 {
           parsed_registers.pop_back();
         }
 
+        std::reverse(instruction->parameters.begin(), instruction->parameters.end());
+
         instruction->callee = a;
 
         instruction->instruction = "call " + instruction->callee->name + " ( ";
 
         for (auto param : instruction->parameters) {
-          instruction->instruction.append(" " + param->name);
+          instruction->instruction.append(" " + param->name + ",");
         }
         instruction->instruction.append(" )");
   
         
         currentF->instructions.push_back(instruction);
+        if (DEBUG_S) std::cout << "--> added an Call instruction: " <<  instruction->instruction << std::endl;
     }
   };
 
@@ -780,6 +790,8 @@ namespace L3 {
           parsed_registers.pop_back();
         }
 
+        std::reverse(instruction->parameters.begin(), instruction->parameters.end());
+
         instruction->callee = a;
 
         L3::Arg* dest = parsed_registers.back();
@@ -790,33 +802,13 @@ namespace L3 {
         instruction->instruction = instruction->dst->name + " <- call " + instruction->callee->name + " ( ";
 
         for (auto param : instruction->parameters) {
-          instruction->instruction.append(" " + param->name);
+          instruction->instruction.append(" " + param->name + ",");
         }
         instruction->instruction.append(" )");
   
         
         currentF->instructions.push_back(instruction);
-    }
-  };
-
-  template<> struct action < label_inst > {
-    template< typename Input >
-    static void apply( const Input & in, L3::Program & p){
-        if(DEBUGGING) std::cout << "found a label_inst " <<  in.string() << std::endl;
-        
-        L3::Function *currentF = p.functions.back();
-        
-        L3::Instruction_Label *instruction = new L3::Instruction_Label();
-
-        L3::Arg* label = parsed_registers.back();
-        parsed_registers.pop_back();
-
-        instruction->instruction = label->name;
-        instruction->label = label;
-        
-        currentF->instructions.push_back(instruction);
-        if(DEBUGGING) std::cout << "--> added a label_inst instruction " <<  instruction->instruction << std::endl;
-
+        if (DEBUG_S) std::cout << "--> added an call_assign instruction: " <<  instruction->instruction << std::endl;
     }
   };
 
@@ -865,6 +857,28 @@ namespace L3 {
         instruction->falseLabel = falseLabel;
         
         currentF->instructions.push_back(instruction);
+        if (DEBUG_S) std::cout << "--> added an br_cmp instruction: " <<  instruction->instruction << std::endl;
+
+    }
+  };
+
+  template<> struct action < label_inst > {
+    template< typename Input >
+    static void apply( const Input & in, L3::Program & p){
+        if(DEBUGGING) std::cout << "found a label_inst " <<  in.string() << std::endl;
+        
+        L3::Function *currentF = p.functions.back();
+        
+        L3::Instruction_Label *instruction = new L3::Instruction_Label();
+
+        L3::Arg* label = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        instruction->instruction = label->name;
+        instruction->label = label;
+        
+        currentF->instructions.push_back(instruction);
+        if(DEBUG_S) std::cout << "--> added a label_inst instruction " <<  instruction->instruction << std::endl;
 
     }
   };
