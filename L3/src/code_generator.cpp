@@ -388,6 +388,13 @@ namespace L3{
                 return i->dst->name + " <- " + to_string(a0);
 
             }
+
+            if(i->arg1->type == NUM){
+                std::string newVarName = i->parentFunction->name.substr(1);
+                newVarName = i->arg2->name + newVarName + "T_E_M_P_O_R_A_R_Y";
+                return newVarName + " <- " + i->arg1->name + "\n\t\t" + newVarName + " " + i->operation->str + "= " + i->arg2->name + "\n\t\t" + i->dst->name + " <- " + newVarName;
+            }
+
             //2) Var <- Var op Var1 (Var op Var and Var op # is equivalent)
             if(i->dst->name == i->arg1->name){
                 switch(i->operation->op){
@@ -427,15 +434,13 @@ namespace L3{
                         return i->dst->name + " &= " + i->arg1->name; 
                         break;
                     default: 
-                        std::string newVarName = i->parentFunction->name;
-                        newVarName.erase(0,1);
+                        std::string newVarName = i->parentFunction->name.substr(1);
                         newVarName = i->arg1->name + newVarName + "T_E_M_P_O_R_A_R_Y";
                         return newVarName + " <- " + i->arg1->name + "\n\t\t" + newVarName + " " + i->operation->str + "= " + i->arg2->name + "\n\t\t" + i->dst->name + " <- " + newVarName;
                         break;
                 } 
             }
-            std::string newVarName = i->parentFunction->name;
-            newVarName.erase(0,1);
+            std::string newVarName = i->parentFunction->name.substr(1);
             newVarName = i->arg1->name + newVarName + "T_E_M_P_O_R_A_R_Y";
             return newVarName + " <- " + i->arg1->name + "\n\t\t" + newVarName + " " + i->operation->str + "= " + i->arg2->name + "\n\t\t" + i->dst->name + " <- " + newVarName;
 
