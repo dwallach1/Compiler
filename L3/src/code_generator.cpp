@@ -16,11 +16,21 @@ namespace L3{
 
 
     std::string generate_unique_var(Function* f) {
-        std::string tmpVar = "";
-        for(int i=0; i < f->uniques + 1; i++) {
-            tmpVar += '?';
+        std::string appendage = "U_N_I_Q_U_E";
+        std::string newVar = "";
+
+        bool unique = false;
+        while (!unique) {
+            unique = true;
+            newVar.append(appendage);
+            for (Arg* variable : f->variables) {
+                if (variable->name == newVar) {
+                    unique = false;
+                }
+            }
         }
-        return tmpVar;
+
+        return newVar;
      }
 
     void numberInstructions(Program* p){
@@ -30,7 +40,7 @@ namespace L3{
                 I->instNum = i;
             }
         }
-    }
+     }
 
     //This function will find all instructions that make a call to it and add it into its set of instructions
     void linkCallsToFunctions(Program* p){
@@ -45,7 +55,7 @@ namespace L3{
                 }
             }
         }
-    }
+     }
 
     //This function will add all the call instructions found in a program into a set. May be worthless
     void gatherAllCalls(Program* p){
@@ -56,7 +66,7 @@ namespace L3{
                 }
             }
         }
-    }
+     }
 
 
     //This function will handle creating new instructions to handle the new call instruction.
@@ -177,7 +187,7 @@ namespace L3{
 
 
 
-    }
+     }
 
     std::string convert_instruction(Function* f, Instruction* I) {
         
@@ -216,7 +226,6 @@ namespace L3{
 
             // need to split into two instructions and store into a new variable 
             std::string tmpVar = generate_unique_var(f);
-            f->uniques++;
 
             //generate the two instructions
             std::string line1 = tmpVar + " <- " + i->arg1->name + " " + i->operation->str + " " + i->arg2->name + "\n";
@@ -268,8 +277,6 @@ namespace L3{
         }
 
     std::string convert_function(Function* f) {
-
-        f->uniques = 0;
 
         std::string funcStr = "";
 

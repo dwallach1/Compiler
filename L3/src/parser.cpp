@@ -476,6 +476,9 @@ namespace L3 {
       arg->name = in.string();
       arg->type = LBL;
       parsed_registers.push_back(arg);
+
+      L3::Function *currentF = p.functions.back();
+      currentF->variables.insert(arg);
     }
   };
 
@@ -490,6 +493,9 @@ namespace L3 {
       arg->name = in.string();
       arg->type = CALLEE;
       parsed_registers.push_back(arg);
+
+      L3::Function *currentF = p.functions.back();
+      currentF->variables.insert(arg);
     }
   };
 
@@ -575,6 +581,9 @@ namespace L3 {
       arg->name = in.string();
       arg->type = VAR; 
       parsed_registers.push_back(arg);
+
+      L3::Function *currentF = p.functions.back();
+      currentF->variables.insert(arg);
     }
   };
 
@@ -590,6 +599,8 @@ namespace L3 {
       arg->num = atoi(in.string().c_str());
       parsed_registers.push_back(arg);
 
+      L3::Function *currentF = p.functions.back();
+      currentF->variables.insert(arg);
     }
   };
 
