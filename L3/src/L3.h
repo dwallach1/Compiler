@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <set>
 
 namespace L3 {
   struct Variable;
@@ -13,7 +14,9 @@ namespace L3 {
     NUM,
     VAR, 
     LBL,
-    CALLEE
+    CALLEE,
+    S_ARG,
+    RSPMEM
   };
 
   enum Op {
@@ -55,14 +58,27 @@ namespace L3 {
     int64_t instNum;
     Instruction* prevInst;
     Instruction* nextInst;
+    Function* parentFunction;
   };
 
 
     struct Instruction_Assignment : Instruction {
+      virtual ~Instruction_Assignment() = default;
       L3::Arg* src;
       L3::Arg* dst;
     };
-  
+      struct Instruction_Load : Instruction_Assignment {
+        virtual ~Instruction_Load() = default;
+      };
+        struct Instruction_stackArg : Instruction_Load {
+        };
+    
+      struct Instruction_Store : Instruction_Assignment {
+        virtual ~Instruction_Store() = default;
+      };
+        struct Instruction_stackStore : Instruction_Store {
+
+        };
   
     struct Instruction_opAssignment : Instruction {
       virtual ~Instruction_opAssignment() = default;
@@ -107,13 +123,6 @@ namespace L3 {
           unsigned locOfNum;
         };
   
-    struct Instruction_Load : Instruction_Assignment {
-  
-    };
-  
-    struct Instruction_Store : Instruction_Load {
-  
-    };
   
     struct Instruction_br : Instruction {
       L3::Arg* label;
@@ -139,9 +148,9 @@ namespace L3 {
       std::vector< L3::Arg *> parameters;
     };
   
-    struct Instruction_CallAssign : Instruction_Call {
-      L3::Arg* dst;
-    };
+      struct Instruction_CallAssign : Instruction_Call {
+        L3::Arg* dst;
+      };
   
     struct Instruction_Label : Instruction {
       L3::Arg* label;
@@ -152,12 +161,14 @@ namespace L3 {
     int64_t arguments;
     int64_t locals;
     int64_t uniques;
+    std::set< L3::Instruction* > callers;
     std::vector< L3::Arg *> parameters;
     std::vector< L3::Instruction *> instructions;
   };
 
   struct Program{
     std::vector<L3::Function *> functions;
+    std::set<Instruction*> calls;
   };
 
   struct DataFlowResult {

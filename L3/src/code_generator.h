@@ -10,5 +10,8 @@ namespace L3{
   std::string generate_unique_var(Function* f);
   std::string convert_function(Function* f);
   std::string convert_instruction(Function* f, Instruction* I);
+  void linkCallsToFunctions(Program* p);
+  void gatherAllCalls(Program* p);
+  void addFunctionArgumentLoadAndStore(Program* p);
 
 }

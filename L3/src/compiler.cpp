@@ -83,7 +83,8 @@ int main(
    * Generate the code.
    */
   if (enable_code_generator){
-  
+    gatherAllCalls(&p);
+    linkCallsToFunctions(&p);
     L3::L3_generate_code(p);
   }
 

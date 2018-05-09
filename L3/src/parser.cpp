@@ -623,7 +623,7 @@ namespace L3 {
   
         instruction->dst = dest;
         instruction->src = source;
-        
+        instruction->parentFunction = currentF;
         currentF->instructions.push_back(instruction);
         if (DEBUG_S) std::cout << "--> added an Assignment instruction: " <<  instruction->instruction << std::endl;
     }
@@ -656,6 +656,7 @@ namespace L3 {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
+            instruction->parentFunction = currentF;
             currentF->instructions.push_back(instruction);
             if(DEBUG_S) std::cout << "--> added an arithmetic_add instruction: " <<  instruction->instruction << std::endl;
           }
@@ -666,6 +667,7 @@ namespace L3 {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
+            instruction->parentFunction = currentF;
             currentF->instructions.push_back(instruction);
             if(DEBUG_S) std::cout << "--> added an arithmetic_sub instruction: " <<  instruction->instruction << std::endl;
           }
@@ -676,6 +678,7 @@ namespace L3 {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
+            instruction->parentFunction = currentF;
             currentF->instructions.push_back(instruction);
             if(DEBUG_S) std::cout << "--> added an arithmetic_and instruction: " <<  instruction->instruction << std::endl;
           }
@@ -686,6 +689,7 @@ namespace L3 {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
+            instruction->parentFunction = currentF;
             currentF->instructions.push_back(instruction);
             if(DEBUG_S) std::cout << "--> added an arithmetic_leftShift instruction: " <<  instruction->instruction << std::endl;
           }
@@ -696,6 +700,7 @@ namespace L3 {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
+            instruction->parentFunction = currentF;
             currentF->instructions.push_back(instruction);
             if(DEBUG_S) std::cout << "--> added an arithmetic_rightShift instruction: " <<  instruction->instruction << std::endl;
           }
@@ -706,6 +711,7 @@ namespace L3 {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
+            instruction->parentFunction = currentF;
             currentF->instructions.push_back(instruction);
             if(DEBUG_S) std::cout << "--> added an arithmetic_assign instruction: " <<  instruction->instruction << std::endl;
           }  
@@ -731,6 +737,7 @@ namespace L3 {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
+            instruction->parentFunction = currentF;
             currentF->instructions.push_back(instruction);
             if(DEBUG_S) std::cout << "--> added an arithmetic_specialMult instruction: " <<  instruction->instruction << std::endl;
 
@@ -743,6 +750,7 @@ namespace L3 {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
+            instruction->parentFunction = currentF;
             currentF->instructions.push_back(instruction);
             if(DEBUG_S) std::cout << "--> added an arithmetic_mult instruction: " <<  instruction->instruction << std::endl;
 
@@ -781,7 +789,7 @@ namespace L3 {
         instruction->arg1 = arg1;
         instruction->arg2 = arg2;
         instruction->operation = operation;
-        
+        instruction->parentFunction = currentF;
         currentF->instructions.push_back(instruction);
         if (DEBUG_S) std::cout << "--> added an cmpAssignment instruction: " <<  instruction->instruction << std::endl;
     }
@@ -808,7 +816,7 @@ namespace L3 {
   
         instruction->dst = dest;
         instruction->src = src;
-        
+        instruction->parentFunction = currentF;
         currentF->instructions.push_back(instruction);
         if (DEBUG_S) std::cout << "--> added an Load instruction: " <<  instruction->instruction << std::endl;
     }
@@ -835,7 +843,7 @@ namespace L3 {
   
         instruction->dst = dest;
         instruction->src = src;
-        
+        instruction->parentFunction = currentF;
         currentF->instructions.push_back(instruction);
         if (DEBUG_S) std::cout << "--> added an Store instruction: " <<  instruction->instruction << std::endl;
     }
@@ -858,7 +866,7 @@ namespace L3 {
         instruction->instruction = "return " + val->name;
   
         instruction->retVal = val;
-        
+        instruction->parentFunction = currentF;
         currentF->instructions.push_back(instruction);
         if (DEBUG_S) std::cout << "--> added an Return_val instruction: " <<  instruction->instruction << std::endl;
       }
@@ -874,6 +882,7 @@ namespace L3 {
         L3::Instruction_Return *instruction = new L3::Instruction_Return();
 
         instruction->instruction = "return" ;
+        instruction->parentFunction = currentF;
         currentF->instructions.push_back(instruction);
         if (DEBUG_S) std::cout << "--> added an Return_nothing instruction: " <<  instruction->instruction << std::endl;
     }
@@ -910,7 +919,7 @@ namespace L3 {
         }
         instruction->instruction.append(" )");
   
-        
+        instruction->parentFunction = currentF;
         currentF->instructions.push_back(instruction);
         if (DEBUG_S) std::cout << "--> added an Call instruction: " <<  instruction->instruction << std::endl;
     }
@@ -955,7 +964,7 @@ namespace L3 {
         }
         instruction->instruction.append(" )");
   
-        
+        instruction->parentFunction = currentF;
         currentF->instructions.push_back(instruction);
         if (DEBUG_S) std::cout << "--> added an call_assign instruction: " <<  instruction->instruction << std::endl;
     }
@@ -975,7 +984,7 @@ namespace L3 {
 
         instruction->instruction = "br " + label->name;
         instruction->label = label;
-        
+        instruction->parentFunction = currentF;
         currentF->instructions.push_back(instruction);
         if(DEBUG_S) std::cout << "--> added a br_single instruction: " <<  instruction->instruction << std::endl;
 
@@ -1004,7 +1013,7 @@ namespace L3 {
         instruction->comparitor = comparitor;
         instruction->trueLabel = trueLabel;
         instruction->falseLabel = falseLabel;
-        
+        instruction->parentFunction = currentF;
         currentF->instructions.push_back(instruction);
         if (DEBUG_S) std::cout << "--> added an br_cmp instruction: " <<  instruction->instruction << std::endl;
 
@@ -1025,7 +1034,7 @@ namespace L3 {
 
         instruction->instruction = label->name;
         instruction->label = label;
-        
+        instruction->parentFunction = currentF;
         currentF->instructions.push_back(instruction);
         if(DEBUG_S) std::cout << "--> added a label_inst instruction " <<  instruction->instruction << std::endl;
 
