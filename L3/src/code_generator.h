@@ -13,5 +13,6 @@ namespace L3{
   void linkCallsToFunctions(Program* p);
   void gatherAllCalls(Program* p);
   void addFunctionArgumentLoadAndStore(Program* p);
+  void generateContextBlocks(Function* f);
 
 }

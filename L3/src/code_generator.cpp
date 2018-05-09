@@ -4,9 +4,9 @@
 #include <fstream>
 #include <cstdio>
 #include <stdlib.h>
+#include <code_generator.h>
 #define DEBUGGING 0
 #define DEBUG_S 0
-#include <code_generator.h>
 
 using namespace std;
 
@@ -276,6 +276,24 @@ namespace L3{
         // the locals will be harder to determine, need to look through instruction variables used
         }
 
+    void generateContextBlocks(Function* f) {
+        
+        ContextBlock* contextBlock = new ContextBlock();
+
+        for (Instruction* I : f->instructions) {
+            if (Instruction_Label* i = dynamic_cast<Instruction_Label *> (I) ||
+                Instruction_br* i = dynamic_cast<Instruction_br *> (I) ||
+                Instruction_brCmp* i = dynamic_cast<Instruction_brCmp *> (I)) { 
+
+                f->contextBlocks.push_back(contextBlock);
+                contextBlock = new ContextBlock();
+             }
+            else {
+                contextBlock->instructions.push_back(I);
+            }
+        }
+     }
+
     std::string convert_function(Function* f) {
 
         std::string funcStr = "";
@@ -283,6 +301,7 @@ namespace L3{
         funcStr.append( "\t(" + f->name + "\n");
 
         updateArgumentsAndLocals(f);
+        generateContextBlocks(f);
 
         funcStr.append("\t\t" + to_string(f->arguments) + " " + to_string(f->locals) + "\n");
         

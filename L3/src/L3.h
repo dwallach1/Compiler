@@ -156,6 +156,10 @@ namespace L3 {
       L3::Arg* label;
     };
 
+  struct ContextBlock {
+    std::vector< L3::Instruction *> instructions;
+  };
+
   struct Function{
     std::string name;
     int64_t arguments;
@@ -164,6 +168,7 @@ namespace L3 {
     std::set< L3::Instruction *> callers;
     std::vector< L3::Arg *> parameters;
     std::vector< L3::Instruction *> instructions;
+    std::vector<L3::ContextBlock *> contextBlocks;
   };
 
   struct Program{
