@@ -52,19 +52,28 @@ namespace L3{
         }
      }
 
+     bool isFunctionLabel(std::string labelName, Program* p){
+        for(Function* f : p->functions){
+            if(f->name == labelName){
+                return true;
+            }
+        }
+        return false;
+     }
+
      void renameAllLabels(Program* p){
         for(Function* f : p->functions){
             for(Instruction* I : f->instructions){
                 std::string functName = f->name;
                 functName.erase(0,1);
                 if(Instruction_Assignment* i = dynamic_cast<Instruction_Assignment*>(I)){
-                    if(i->src->type == LBL){
+                    if(i->src->type == LBL && !isFunctionLabel(i->src->name, p)){
                         i->src->name = i->src->name + functName;
                         i->instruction = i->dst->name + " <- " + i->src->name;
                     }
                 }
                 else if(Instruction_Store* i = dynamic_cast<Instruction_Store*>(I)){
-                    if(i->src->type == LBL){
+                    if(i->src->type == LBL && !isFunctionLabel(i->src->name, p)){
                         i->src->name = i->src->name + functName;
                     }
                 }
@@ -89,6 +98,7 @@ namespace L3{
         for(Function* f : p->functions){
             for(Instruction* I : f->instructions){
                 if(Instruction_Call* callInst = dynamic_cast<Instruction_Call *>(I)){
+                    bool found = false;
                     for(Function* f0 : p->functions){
                         if(f0->name == callInst->callee->name){
                             f0->callers.insert(callInst);
@@ -100,13 +110,113 @@ namespace L3{
      }
 
     //This function will add all the call instructions found in a program into a set. May be worthless
-    void gatherAllCalls(Program* p){
+    void gatherAllSpecialCalls(Program* p){
         for(Function* f : p->functions){
             for(Instruction* I : f->instructions){
                 if(Instruction_Call* callInst = dynamic_cast<Instruction_Call *>(I)){
-                    p->calls.insert(callInst);
+                    if(callInst->callee->name[0] != ':'){
+                        p->calls.insert(callInst);
+                    }         
                 }
             }
+        }
+     }
+
+
+     void handleAllSpecialCalls(Program* p){
+        std::vector<Instruction* >::iterator iter;
+        int callNum = 0;
+        if(DEBUGGING) std::cout << "Going through the special callers\n";
+        for(Instruction_Call* tempI : p->calls){
+            if(DEBUGGING) std::cout << "Dealing with instruction: " << tempI->instruction << "\n";
+            for(int i = 0; i < tempI->parameters.size(); i++){
+                if(i < 6){
+                    if(DEBUGGING) std::cout << "Loading an arg into a reg.\n";
+                    Instruction_Assignment* I = new Instruction_Assignment();
+                    I->src = tempI->parameters[i];
+                    Arg* a = new Arg();
+                    a->name = argumentRegs[i];
+                    a->type = VAR;
+                    I->dst = a;
+                    I->parentFunction = tempI->parentFunction;
+                    I->instruction = I->dst->name + " <- " + I->src->name;
+                    if(DEBUGGING) std::cout << "Loading arg: " << I->instruction << "\n";
+                    numberInstructions(p);
+                    iter = tempI->parentFunction->instructions.begin() + tempI->instNum;
+                    tempI->parentFunction->instructions.insert(iter, I);
+                }
+                else{
+                    if(DEBUGGING) std::cout << "Loading an arg into a stack location\n";
+                    Instruction_stackStore* I = new Instruction_stackStore();
+                    I->src = tempI->parameters[i];
+                    Arg* a = new Arg();
+                    a->name = "mem rsp -" + to_string((i - 6) * 8 + 16);
+                    a->type = RSPMEM;
+                    I->dst = a;
+                    I->parentFunction = tempI->parentFunction; 
+                    I->instruction = I->dst->name + " <- " + I->src->name;
+                    if(DEBUGGING) std::cout << "Loading arg: " << I->instruction << "\n";
+                    numberInstructions(p);
+                    iter = tempI->parentFunction->instructions.begin() + tempI->instNum;
+                    tempI->parentFunction->instructions.insert(iter, I);
+                }
+            }
+            // 3
+            //Create the return label store
+            if(DEBUGGING) std::cout << "Storing the return label into the stack at mem rsp -8\n";
+            Instruction_stackStore* retLabelStore = new Instruction_stackStore();
+            Arg* retLabel = new Arg();
+            retLabel->type = LBL;
+            retLabel->name = tempI->parentFunction->name + tempI->parentFunction->name.substr(1) + "R_E_T_U_R_N_L_A_B_E_L" + to_string(callNum);
+            retLabelStore->src = retLabel;
+            Arg* a0 = new Arg();
+            a0->type = RSPMEM;
+            a0->name = "mem rsp -8";
+            retLabelStore->dst = a0;
+            retLabelStore->parentFunction = tempI->parentFunction;
+            retLabelStore->instruction = retLabelStore->dst->name + " <- " + retLabelStore->src->name;
+            numberInstructions(p);
+            iter = tempI->parentFunction->instructions.begin() + tempI->instNum;
+            tempI->parentFunction->instructions.insert(iter, retLabelStore);
+            // 4
+            //check if it is a return value call, if so we will load the return inst for when the call returns
+            if(DEBUGGING) std::cout << "Checking for call_assign function\n";
+            if(Instruction_CallAssign* callAssInst = dynamic_cast<Instruction_CallAssign*>(tempI)){
+                if(DEBUGGING) std::cout << "It is a call assign\n";
+                Instruction_Assignment* raxAssign = new Instruction_Assignment();
+                Arg* rax = new Arg();
+                rax->name = "rax";
+                rax->type = VAR;
+                raxAssign->src = rax;
+                raxAssign->dst = callAssInst->dst;
+                raxAssign->instruction = raxAssign->dst->name + " <- " + raxAssign->src->name;
+                raxAssign->parentFunction = tempI->parentFunction;
+                numberInstructions(p);
+                iter = tempI->parentFunction->instructions.begin() + tempI->instNum;
+                //if(DEBUGGING) std::cout << "Inserting instruction for rax assign above inst: " << *(iter + 1).instruction <<"\n";
+                tempI->parentFunction->instructions.insert(iter + 1, raxAssign);
+            }
+            if(DEBUGGING) std::cout << "Adding the return label underneath the call\n";
+            // 5
+            //This will add the return label underneath the function call
+            Instruction_Label* labelInst = new Instruction_Label();
+            labelInst->label = retLabel;
+            labelInst->parentFunction = tempI->parentFunction;
+            labelInst->instruction = retLabel->name;
+            if(DEBUGGING) std::cout << "Created the new Instruction_Label\n";
+            numberInstructions(p);
+            if(DEBUGGING) std::cout << "Renumbered instructions\n";
+            iter = tempI->parentFunction->instructions.begin() + tempI->instNum;
+            //if(DEBUGGING) std::cout << "Inserting label to return to above inst: " << *(iter + 1).instruction <<"\n";
+            // if(iter >= tempI->parentFunction->instructions.end()){
+            //     iter--;
+            // }
+            if(DEBUGGING) std::cout << "Attempting insert\n";
+            tempI->parentFunction->instructions.insert(iter+1, labelInst);
+            if(DEBUGGING) std::cout << "Inserted\n";
+            numberInstructions(p);
+            callNum++;
+            if(DEBUGGING) std::cout << "Done with call inst, onto the next\n";
         }
      }
 
@@ -119,6 +229,9 @@ namespace L3{
     //5) Writes the return label immediately following the function call instruction.
     void addFunctionArgumentLoadAndStoreAndRetInst(Program* p){
         std::vector<Instruction* >::iterator iter;
+
+        bool specialCalls = p->calls.size() > 0;
+
         for(Function* f : p->functions){
             if(DEBUGGING) std::cout << "AFALASARI for: " << f->name << " There are " + to_string(f->parameters.size())    + " parameters\n";
             // 1
@@ -200,7 +313,7 @@ namespace L3{
                 Instruction_stackStore* retLabelStore = new Instruction_stackStore();
                 Arg* retLabel = new Arg();
                 retLabel->type = LBL;
-                retLabel->name = f->name + "R_E_T_U_R_N_L_A_B_E_L" + to_string(callNum);
+                retLabel->name = f->name + tempI->parentFunction->name.substr(1) + "R_E_T_U_R_N_L_A_B_E_L" + to_string(callNum);
                 retLabelStore->src = retLabel;
                 Arg* a0 = new Arg();
                 a0->type = RSPMEM;
@@ -256,6 +369,8 @@ namespace L3{
                 if(DEBUGGING) std::cout << "Done with call inst, onto the next\n";
             }
         }
+
+
 
 
         numberInstructions(p);
@@ -562,6 +677,7 @@ namespace L3{
         fs << "(:main" << "\n"; 
         if(DEBUGGING) std::cout << "Running add Function Argument ld store and ret\n";
         addFunctionArgumentLoadAndStoreAndRetInst(&p);
+        handleAllSpecialCalls(&p);
         // convert all the fucntions
         for(auto f : p.functions){
 

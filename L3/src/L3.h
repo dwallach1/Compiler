@@ -191,7 +191,7 @@ namespace L3 {
 
   struct Program{
     std::vector<L3::Function *> functions;
-    std::set<Instruction*> calls;
+    std::set<Instruction_Call*> calls;
   };
 
   struct DataFlowResult {

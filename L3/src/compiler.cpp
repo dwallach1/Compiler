@@ -86,6 +86,7 @@ int main(
     if(DEBUGGING) std::cout << "Linking calls to functions\n";
     renameAllLabels(&p);
     linkCallsToFunctions(&p);
+    gatherAllSpecialCalls(&p);
     if(DEBUGGING) std::cout << "Generating new code\n";
     L3::L3_generate_code(p);
   }
