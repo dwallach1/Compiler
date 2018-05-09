@@ -15,7 +15,7 @@
 #include <tao/pegtl/contrib/raw_string.hpp>
 
 #define DEBUGGING 0
-#define DEBUG_S 1
+#define DEBUG_S 0
 
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
@@ -477,8 +477,8 @@ namespace L3 {
       arg->type = LBL;
       parsed_registers.push_back(arg);
 
-      L3::Function *currentF = p.functions.back();
-      currentF->variables.insert(arg);
+      // L3::Function *currentF = p.functions.back();
+      // currentF->variables.insert(arg);
     }
   };
 
@@ -491,11 +491,17 @@ namespace L3 {
       
       L3::Arg* arg = new L3::Arg;
       arg->name = in.string();
-      arg->type = CALLEE;
+      if(arg->name == "print" || arg->name == "allocate" || arg->name == "array-error"){
+        arg->type = PAA;
+        if(DEBUGGING) std::cout << "Found paa value: " << arg->name << "\n";
+      }
+      else{
+        arg->type = CALLEE;
+      }
       parsed_registers.push_back(arg);
 
-      L3::Function *currentF = p.functions.back();
-      currentF->variables.insert(arg);
+      // L3::Function *currentF = p.functions.back();
+      // currentF->variables.insert(arg);
     }
   };
 
@@ -582,8 +588,10 @@ namespace L3 {
       arg->type = VAR; 
       parsed_registers.push_back(arg);
 
-      L3::Function *currentF = p.functions.back();
-      currentF->variables.insert(arg);
+      //L3::Function *currentF = p.functions.back();
+      //currentF->variables.insert(arg);
+
+      if(DEBUGGING) std::cout << "Leaving var\n";
     }
   };
 
@@ -599,8 +607,8 @@ namespace L3 {
       arg->num = atoi(in.string().c_str());
       parsed_registers.push_back(arg);
 
-      L3::Function *currentF = p.functions.back();
-      currentF->variables.insert(arg);
+      // L3::Function *currentF = p.functions.back();
+      // currentF->variables.insert(arg);
     }
   };
 
@@ -919,7 +927,7 @@ namespace L3 {
         L3::Arg* a = parsed_registers.back();
         parsed_registers.pop_back();
 
-        while(a->type != CALLEE) {
+        while(a->type != CALLEE && a->type != PAA) {
           if(DEBUGGING) std::cout << "Adding call paramter: " <<  a->name << std::endl;
           instruction->parameters.push_back(a);
 
@@ -956,7 +964,7 @@ namespace L3 {
         L3::Arg* a = parsed_registers.back();
         parsed_registers.pop_back();
 
-        while(a->type != CALLEE) {
+        while(a->type != CALLEE && a->type != PAA) {
           if(DEBUGGING) std::cout << "Adding call paramter: " <<  a->name << std::endl;
           
           instruction->parameters.push_back(a);

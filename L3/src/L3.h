@@ -15,6 +15,7 @@ namespace L3 {
     VAR, 
     LBL,
     CALLEE,
+    PAA,
     S_ARG,
     RSPMEM
   };
@@ -151,6 +152,7 @@ namespace L3 {
     };
   
     struct Instruction_Call : Instruction {
+      virtual ~Instruction_Call() = default;
       L3::Arg* callee;
       std::vector< L3::Arg *> parameters;
     };
@@ -181,7 +183,7 @@ namespace L3 {
     int64_t arguments;
     int64_t locals;
     std::set< L3::Arg *> variables;
-    std::set< L3::Instruction *> callers;
+    std::set< L3::Instruction_Call *> callers;
     std::vector< L3::Arg *> parameters;
     std::vector< L3::Instruction *> instructions;
     std::vector<L3::ContextBlock *> contextBlocks;

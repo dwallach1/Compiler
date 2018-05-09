@@ -45,7 +45,7 @@ namespace L3{
     //This function will find all instructions that make a call to it and add it into its set of instructions
     void linkCallsToFunctions(Program* p){
         for(Function* f : p->functions){
-            for(Instruction I* : f->instructions){
+            for(Instruction* I : f->instructions){
                 if(Instruction_Call* callInst = dynamic_cast<Instruction_Call *>(I)){
                     for(Function* f0 : p->functions){
                         if(f0->name == callInst->callee->name){
@@ -76,7 +76,7 @@ namespace L3{
     //4) Writes rax to the return variable if applicable
     //5) Writes the return label immediately following the function call instruction.
     void addFunctionArgumentLoadAndStoreAndRetInst(Program* p){
-        std::vector<Instruction* >:iterator iter;
+        std::vector<Instruction* >::iterator iter;
         for(Function* f : p->functions){
             // 1
             //This first part will add the argument loading at the start of a function
@@ -92,20 +92,20 @@ namespace L3{
                     I->parentFunction = f;
                     I->instruction = I->dst->name + " <- " + I->src->name;
                     iter = f->instructions.begin();
-                    f->instructions->insert(iter, I);
+                    f->instructions.insert(iter, I);
                 }
                 //This will require a stack-arg instruction
                 else{
                     Instruction_stackArg* I = new Instruction_stackArg();
                     I->dst = f->parameters[i];
                     Arg* a = new Arg();
-                    a->name = "stack-arg " + itoa((f->arguments - i - 1) * 8);
+                    a->name = "stack-arg " + to_string((f->arguments - i - 1) * 8);
                     a->type = S_ARG;
                     I->src = a;
                     I->parentFunction = f;
                     I->instruction = I->dst->name + " <- " + I->src->name;
                     iter = f->instructions.begin();
-                    f->instructions->insert(iter, I);
+                    f->instructions.insert(iter, I);
                 }
             }
 
@@ -123,20 +123,22 @@ namespace L3{
                         I->dst = a;
                         I->parentFunction = tempI->parentFunction;
                         I->instruction = I->dst->name + " <- " + I->src->name;
-                        iter = std::find(tempI->parentFunction->instructions.begin(), tempI->parentFunction->instructions.end(), tempI);
-                        tempI->parentFunction->instructions->insert(iter, I);
+                        numberInstructions(p);
+                        iter = tempI->parentFunction->instructions.begin() + tempI->instNum;
+                        tempI->parentFunction->instructions.insert(iter, I);
                     }
                     else{
                         Instruction_stackStore* I = new Instruction_stackStore();
-                        I->src = I->parameters[i];
+                        I->src = tempI->parameters[i];
                         Arg* a = new Arg();
-                        a->name = "mem rsp -" + atoi((i - 6) * 8 + 16);
+                        a->name = "mem rsp -" + to_string((i - 6) * 8 + 16);
                         a->type = RSPMEM;
                         I->dst = a;
                         I->parentFunction = tempI->parentFunction; 
                         I->instruction = I->dst->name + " <- " + I->src->name;
-                        iter = std::find(tempI->parentFunction->instructions.begin(), tempI->parentFunction->instructions.end(), tempI);
-                        tempI->parentFunction->instructions->insert(iter, I);
+                        numberInstructions(p);
+                        iter = tempI->parentFunction->instructions.begin() + tempI->instNum;
+                        tempI->parentFunction->instructions.insert(iter, I);
                     }
                 }
 
@@ -145,7 +147,7 @@ namespace L3{
                 Instruction_stackStore* retLabelStore = new Instruction_stackStore();
                 Arg* retLabel = new Arg();
                 retLabel->type = LBL;
-                retLabel->name = f->name + "R_E_T_U_R_N_L_A_B_E_L" + atoi(callNum);
+                retLabel->name = f->name + "R_E_T_U_R_N_L_A_B_E_L" + to_string(callNum);
                 retLabelStore->src = retLabel;
                 Arg* a0 = new Arg();
                 a0->type = RSPMEM;
@@ -153,12 +155,13 @@ namespace L3{
                 retLabelStore->dst = a0;
                 retLabelStore->parentFunction = tempI->parentFunction;
                 retLabelStore->instruction = retLabelStore->dst->name + " <- " + retLabelStore->src->name;
-                iter = std::find(tempI->parentFunction->instructions.begin(), tempI->parentFunction->instructions.end(), tempI);
-                tempI->parentFunction->instructions->insert(iter, retLabelStore);
+                numberInstructions(p);
+                iter = tempI->parentFunction->instructions.begin() + tempI->instNum;
+                tempI->parentFunction->instructions.insert(iter, retLabelStore);
 
                 // 4
                 //check if it is a return value call, if so we will load the return inst for when the call returns
-                if(Instruction_CallAssign* callAssInst = dynamic_cast<Instruction_CallAssign>(tempI)){
+                if(Instruction_CallAssign* callAssInst = dynamic_cast<Instruction_CallAssign*>(tempI)){
                     Instruction_Assignment* raxAssign = new Instruction_Assignment();
                     Arg* rax = new Arg();
                     rax->name = "rax";
@@ -167,8 +170,9 @@ namespace L3{
                     raxAssign->dst = callAssInst->dst;
                     raxAssign->instruction = raxAssign->dst->name + " <- " + raxAssign->src->name;
                     raxAssign->parentFunction = tempI->parentFunction;
-                    iter = std::find(tempI->parentFunction->instructions.begin(), tempI->parentFunction->instructions.end(), tempI);
-                    tempI->parentFunction->instructions->insert(iter + 1, raxAssign);
+                    numberInstructions(p);
+                    iter = tempI->parentFunction->instructions.begin() + tempI->instNum;
+                    tempI->parentFunction->instructions.insert(iter + 1, raxAssign);
 
                 }
 
@@ -178,29 +182,28 @@ namespace L3{
                 labelInst->label = retLabel;
                 labelInst->parentFunction = tempI->parentFunction;
                 labelInst->instruction = retLabel->name;
-                iter = std::find(tempI->parentFunction->instructions.begin(), tempI->parentFunction->instructions.end(), tempI);
-                f->instructions->insert(iter + 1, labelInst);
+                numberInstructions(p);
+                iter = tempI->parentFunction->instructions.begin() + tempI->instNum;
+                f->instructions.insert(iter + 1, labelInst);
 
                 callNum++;
             }
         }
 
 
-
-     }
+        numberInstructions(p);
+    }
 
     std::string convert_instruction(Function* f, Instruction* I) {
         
 
         if (Instruction_Load* i = dynamic_cast<Instruction_Load *> (I)) {
 
-            // TODO
-            return "load instruction -- not yet implemented";
+            return i->dst->name + " <- " + "mem " + i->src->name + " 0";
         }
         else if (Instruction_Store* i = dynamic_cast<Instruction_Store *> (I)) {
 
-            // TODO
-            return "store instruction -- not yet implemented";
+            return "mem " + i->dst->name + " 0 <- " + i->src->name;
         }
         else if (Instruction_br* i = dynamic_cast<Instruction_br *> (I)) {
 
@@ -210,28 +213,37 @@ namespace L3{
 
             return "cjump " + i->comparitor->name + " = 1 " + i->trueLabel->name + " " + i->falseLabel->name;
         }
-        else if (Instruction_Call* i = dynamic_cast<Instruction_Call *> (I)) {
-
-            // TODO
-            // going to need to store parameters of the call in proper registers  
-            return "call instruction -- not yet implemented";
-        }
         else if (Instruction_CallAssign* i = dynamic_cast<Instruction_CallAssign *> (I)) {
-
-            // TODO
+            if(i->callee->type == PAA){
+                if(DEBUGGING) std::cout << "In a call assign for: " << i->instruction << "\n";
+                if(i->callee->name == "print"){
+                    return "rdi <- " + i->parameters[0]->name + "\n\t\tcall print 1\n\t\t" + i->dst->name + " <- rax"; 
+                }
+                else if(i->callee->name == "allocate"){
+                    return "rdi <- " + i->parameters[0]->name + "\n\t\trsi <- " + i->parameters[1]->name + "\n\t\tcall allocate 2\n\t\t" + i->dst->name + " <- rax"; 
+                }
+                else{
+                    return "rdi <- " + i->parameters[0]->name + "\n\t\trsi <- " + i->parameters[1]->name + "\n\t\tcall array-error 2\n\t\t" + i->dst->name + " <- rax";
+                }
+            }
             // going to need to store parameters of the call in proper registers  
-            return "call_assign instruction -- not yet implemented";
+            return "call " + i->callee->name + " " + to_string(i->parameters.size());
         }
-        else if (Instruction_opAssignment* i = dynamic_cast<Instruction_opAssignment *> (I)) {
-
-            // need to split into two instructions and store into a new variable 
-            std::string tmpVar = generate_unique_var(f);
-
-            //generate the two instructions
-            std::string line1 = tmpVar + " <- " + i->arg1->name + " " + i->operation->str + " " + i->arg2->name + "\n";
-            std::string line2 = "\t\t" + i->dst->name + " <- " + tmpVar;
+        else if (Instruction_Call* i = dynamic_cast<Instruction_Call *> (I)) {
+            if(i->callee->type == PAA){
+                if(i->callee->name == "print"){
+                    return "rdi <- " + i->parameters[0]->name + "\n\t\tcall print 1"; 
+                }
+                else if(i->callee->name == "allocate"){
+                    return "rdi <- " + i->parameters[0]->name + "\n\t\trsi <- " + i->parameters[1]->name + "\n\t\tcall allocate 2"; 
+                }
+                else{
+                    return "rdi <- " + i->parameters[0]->name + "\n\t\trsi <- " + i->parameters[1]->name + "\n\t\tcall array-error 2";
+                }
+            }
             
-            return line1 + line2;
+            // going to need to store parameters of the call in proper registers  
+            return "call " + i->callee->name + " " + to_string(i->parameters.size());
         }
         else if (Instruction_cmpAssignment* i = dynamic_cast<Instruction_cmpAssignment *> (I)) {
 
@@ -248,6 +260,109 @@ namespace L3{
                 return i->instruction;
             }
         }
+        else if (Instruction_opAssignment* i = dynamic_cast<Instruction_opAssignment *> (I)) {
+
+            //This instruction will have 5 cases occur
+            //1) Var <- # op #
+            if(i->arg1->type == NUM && i->arg2->type == NUM){
+                int a0, a1, a2;
+                if(Number* a10 = dynamic_cast<Number*>(i->arg1)){
+                    a1 = a10->num;
+                }
+                if(Number* a10 = dynamic_cast<Number*>(i->arg2)){
+                    a2 = a10->num;
+                }
+                switch(i->operation->op){
+                    case ADD:
+                        a0 = a1 + a2; 
+                        break;
+                    case SUB:
+                        a0 = a1 - a2;
+                        break;
+                    case MUL:
+                        a0 = a1 * a2; 
+                        break;
+                    case AND:
+                        a0 = a1 & a2;
+                        break;
+                    case SHL:
+                        a0 = a1 << a2;
+                        break;
+                    case SHR:
+                        a0 = a1 >> a2;
+                        break;
+                    case LT:
+                        a0 = a1 < a2;
+                        break;
+                    case LTE:
+                        a0 = a1 <= a2;
+                        break;
+                    case EQ:
+                        a0 = a1 = a2;
+                        break;
+                    case GTE:
+                        a0 = a1 >= a2;
+                        break;
+                    case GT:
+                        a0 = a1 > a2;
+                        break;
+                    default: 
+                        break;
+                }
+                return i->dst->name + " <- " + to_string(a0);
+
+            }
+            //2) Var <- Var op Var1 (Var op Var and Var op # is equivalent)
+            if(i->dst->name == i->arg1->name){
+                switch(i->operation->op){
+                    case ADD:
+                        return i->dst->name + " += " + i->arg2->name; 
+                        break;
+                    case SUB:
+                        return i->dst->name + " -= " + i->arg2->name; 
+                        break;
+                    case MUL:
+                        return i->dst->name + " *= " + i->arg2->name; 
+                        break;
+                    case AND:
+                        return i->dst->name + " &= " + i->arg2->name; 
+                        break;
+                    case SHL:
+                        return i->dst->name + " <<= " + i->arg2->name; 
+                        break;
+                    case SHR:
+                        return i->dst->name + " >>= " + i->arg2->name; 
+                        break;
+                    default: 
+                        break;
+                }
+            
+            }
+            //5) Var <- Var1 op Var
+            if(i->dst->name == i->arg2->name){
+               switch(i->operation->op){
+                    case ADD:
+                        return i->dst->name + " += " + i->arg1->name; 
+                        break;
+                    case MUL:
+                        return i->dst->name + " *= " + i->arg1->name; 
+                        break;
+                    case AND:
+                        return i->dst->name + " &= " + i->arg1->name; 
+                        break;
+                    default: 
+                        return i->arg1->name + " " + i->operation->str + "= " + i->arg2->name + "\n\t\t" + i->dst->name + " <- " + i->arg1->name; 
+                        break;
+                } 
+            }
+
+            return i->arg1->name + " " + i->operation->str + "= " + i->arg2->name + "\n\t\t" + i->dst->name + " <- " + i->arg1->name; 
+
+            
+
+
+        }
+        
         else if (Instruction_ReturnVal* i = dynamic_cast<Instruction_ReturnVal *> (I)) {
 
             // first store the return value in rax and then do the return
@@ -278,49 +393,49 @@ namespace L3{
 
     void generateContextBlocks(Function* f) {
         
-        ContextBlock* contextBlock = new ContextBlock();
+        //ContextBlock* contextBlock = new ContextBlock();
 
-        for (Instruction* I : f->instructions) {
-            if (Instruction_Label* i = dynamic_cast<Instruction_Label *> (I) ||
-                Instruction_br* i = dynamic_cast<Instruction_br *> (I) ||
-                Instruction_brCmp* i = dynamic_cast<Instruction_brCmp *> (I)) { 
+        // for (Instruction* I : f->instructions) {
+        //     if (Instruction_Label* i = dynamic_cast<Instruction_Label *> (I) ||
+        //         Instruction_br* i = dynamic_cast<Instruction_br *> (I) ||
+        //         Instruction_brCmp* i = dynamic_cast<Instruction_brCmp *> (I)) { 
 
-                f->contextBlocks.push_back(contextBlock);
-                contextBlock = new ContextBlock();
-             }
-            else {
-                contextBlock->instructions.push_back(I);
-            }
-        }
+        //         f->contextBlocks.push_back(contextBlock);
+        //         contextBlock = new ContextBlock();
+        //      }
+        //     else {
+        //         contextBlock->instructions.push_back(I);
+        //     }
+        // }
      }
 
     void generateTrees(ContextBlock* cb, std::vector<Tree *>* trees) {
         
-        for (Instruction* I : cb->instructions) {
-            Tree* tree = new Tree();
+        // for (Instruction* I : cb->instructions) {
+        //     Tree* tree = new Tree();
             
-            if (Instruction_Assignment* i = dynamic_cast<Instruction_Assignment *> (I)) {
-                Node* child1 = new Node();
-                left = i->src;
+        //     if (Instruction_Assignment* i = dynamic_cast<Instruction_Assignment *> (I)) {
+        //         Node* child1 = new Node();
+        //         left = i->src;
 
-                Node* child2 = new Node();
-                right = i->dst;
+        //         Node* child2 = new Node();
+        //         right = i->dst;
 
-                Node* head = new Node();
-                head = i->operation;
-                head->children.push_back(child1);
-                head->children.push_back(child2);
+        //         Node* head = new Node();
+        //         head = i->operation;
+        //         head->children.push_back(child1);
+        //         head->children.push_back(child2);
 
-                tree->head = head;
-            }
+        //         tree->head = head;
+        //     }
 
-            // go through all possible instructions that can be in a code block and make a tree
-            // 
+        //     // go through all possible instructions that can be in a code block and make a tree
+        //     // 
 
 
-            // each iteration a tree is made, insert it into the trees vector
-            trees->push_back(tree);
-        }
+        //     // each iteration a tree is made, insert it into the trees vector
+        //     trees->push_back(tree);
+        // }
     }
 
 
@@ -333,16 +448,20 @@ namespace L3{
         updateArgumentsAndLocals(f);
         funcStr.append("\t\t" + to_string(f->arguments) + " " + to_string(f->locals) + "\n");
 
-        generateContextBlocks(f);
-        for (ContextBlock* cb : f->contextBlocks) {
-            std::vector<Tree *> trees = {};
-            generateTrees(cb, &trees);
-            //mergeTrees(&trees);
-            // for (Tree* tree : trees) {
-            //     tileTree(tree);
-            // }
-
+        for(Instruction* I : f->instructions){
+            funcStr.append("\t\t" + convert_instruction(f, I) + "\n");
         }
+
+        //generateContextBlocks(f);
+        // for (ContextBlock* cb : f->contextBlocks) {
+        //     std::vector<Tree *> trees = {};
+        //     generateTrees(cb, &trees);
+        //     //mergeTrees(&trees);
+        //     // for (Tree* tree : trees) {
+        //     //     tileTree(tree);
+        //     // }
+
+        // }
         
         funcStr.append("\t)\n");
         return funcStr;
@@ -356,6 +475,7 @@ namespace L3{
         // we know the starting point has to be main to be a valid L3 program
         fs << "(:main" << "\n"; 
         
+        addFunctionArgumentLoadAndStoreAndRetInst(&p);
         // convert all the fucntions
         for(auto f : p.functions){
 
