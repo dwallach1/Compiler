@@ -65,7 +65,7 @@ namespace L3 {
         seps
         >,
         pegtl::string<  'r', 'e', 't', 'u', 'r', 'n' >,
-        //pegtl::string< 'c', 'a', 'l', 'l'>,
+        pegtl::string< 'c', 'a', 'l', 'l'>,
         pegtl::string< 'l', 'o', 'a', 'd'>,
         pegtl::string< 's', 't', 'o', 'r', 'e'>
       >{};
@@ -227,6 +227,9 @@ namespace L3 {
       seps,
       assignOp,
       seps,
+      not_at<
+      keyword
+      >,
       s
     >{};
 

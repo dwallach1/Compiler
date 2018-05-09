@@ -84,6 +84,7 @@ int main(
    */
   if (enable_code_generator){
     if(DEBUGGING) std::cout << "Linking calls to functions\n";
+    renameAllLabels(&p);
     linkCallsToFunctions(&p);
     if(DEBUGGING) std::cout << "Generating new code\n";
     L3::L3_generate_code(p);

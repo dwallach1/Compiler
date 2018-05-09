@@ -15,5 +15,6 @@ namespace L3{
   void addFunctionArgumentLoadAndStore(Program* p);
   void generateContextBlocks(Function* f);
   void generateTrees(ContextBlock* cb, std::vector<Tree *>* trees);
+  void renameAllLabels(Program* p);
 
 }

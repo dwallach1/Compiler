@@ -52,6 +52,38 @@ namespace L3{
         }
      }
 
+     void renameAllLabels(Program* p){
+        for(Function* f : p->functions){
+            for(Instruction* I : f->instructions){
+                std::string functName = f->name;
+                functName.erase(0,1);
+                if(Instruction_Assignment* i = dynamic_cast<Instruction_Assignment*>(I)){
+                    if(i->src->type == LBL){
+                        i->src->name = i->src->name + functName;
+                        i->instruction = i->dst->name + " <- " + i->src->name;
+                    }
+                }
+                else if(Instruction_Store* i = dynamic_cast<Instruction_Store*>(I)){
+                    if(i->src->type == LBL){
+                        i->src->name = i->src->name + functName;
+                    }
+                }
+                else if(Instruction_brCmp* i = dynamic_cast<Instruction_brCmp*>(I)){
+                    i->trueLabel->name = i->trueLabel->name + functName;
+                    i->falseLabel->name = i->falseLabel->name + functName;
+                }
+                else if(Instruction_br* i = dynamic_cast<Instruction_br*>(I)){
+                    i->label->name = i->label->name + functName;
+                }
+                else if(Instruction_Label* i = dynamic_cast<Instruction_Label*>(I)){
+                    i->label->name = i->label->name + functName;
+                    i->instruction = i->label->name;
+                }
+
+            }
+        }
+     }
+
     //This function will find all instructions that make a call to it and add it into its set of instructions
     void linkCallsToFunctions(Program* p){
         for(Function* f : p->functions){
