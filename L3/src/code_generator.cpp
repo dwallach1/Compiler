@@ -38,6 +38,7 @@ namespace L3{
             int i = 0;
             for(Instruction* I : f->instructions){
                 I->instNum = i;
+                i++;
             }
         }
      }
@@ -84,6 +85,7 @@ namespace L3{
             for(int i = 0; i < f->parameters.size(); i++){
                 //This will have the arguments stored in a register
                 if(i < 6){
+                    if(DEBUGGING) std::cout << "Adding parameters with regs (<6)\n";
                     Instruction_Assignment* I = new Instruction_Assignment();
                     I->dst = f->parameters[i];
                     Arg* a = new Arg();
@@ -97,6 +99,7 @@ namespace L3{
                 }
                 //This will require a stack-arg instruction
                 else{
+                    if(DEBUGGING) std::cout << "Adding parameters with stack-arg\n";
                     Instruction_stackArg* I = new Instruction_stackArg();
                     I->dst = f->parameters[i];
                     Arg* a = new Arg();
@@ -113,9 +116,12 @@ namespace L3{
             int callNum = 0;
             // 2 
             //This second part will find all of the calls to the function and add the return address, and storing arguments
+            if(DEBUGGING) std::cout << "Going through the callers to the inst\n";
             for(Instruction_Call* tempI : f->callers){
-                for(int i = 0; i < f->arguments; i++){
+                if(DEBUGGING) std::cout << "Dealing with instruction: " << tempI->instruction << "\n";
+                for(int i = 0; i < f->parameters.size(); i++){
                     if(i < 6){
+                        if(DEBUGGING) std::cout << "Loading an arg into a reg.\n";
                         Instruction_Assignment* I = new Instruction_Assignment();
                         I->src = tempI->parameters[i];
                         Arg* a = new Arg();
@@ -124,11 +130,13 @@ namespace L3{
                         I->dst = a;
                         I->parentFunction = tempI->parentFunction;
                         I->instruction = I->dst->name + " <- " + I->src->name;
+                        if(DEBUGGING) std::cout << "Loading arg: " << I->instruction << "\n";
                         numberInstructions(p);
                         iter = tempI->parentFunction->instructions.begin() + tempI->instNum;
                         tempI->parentFunction->instructions.insert(iter, I);
                     }
                     else{
+                        if(DEBUGGING) std::cout << "Loading an arg into a stack location\n";
                         Instruction_stackStore* I = new Instruction_stackStore();
                         I->src = tempI->parameters[i];
                         Arg* a = new Arg();
@@ -137,6 +145,7 @@ namespace L3{
                         I->dst = a;
                         I->parentFunction = tempI->parentFunction; 
                         I->instruction = I->dst->name + " <- " + I->src->name;
+                        if(DEBUGGING) std::cout << "Loading arg: " << I->instruction << "\n";
                         numberInstructions(p);
                         iter = tempI->parentFunction->instructions.begin() + tempI->instNum;
                         tempI->parentFunction->instructions.insert(iter, I);
@@ -145,6 +154,7 @@ namespace L3{
 
                 // 3
                 //Create the return label store
+                if(DEBUGGING) std::cout << "Storing the return label into the stack at mem rsp -8\n";
                 Instruction_stackStore* retLabelStore = new Instruction_stackStore();
                 Arg* retLabel = new Arg();
                 retLabel->type = LBL;
@@ -162,7 +172,9 @@ namespace L3{
 
                 // 4
                 //check if it is a return value call, if so we will load the return inst for when the call returns
+                if(DEBUGGING) std::cout << "Checking for call_assign function\n";
                 if(Instruction_CallAssign* callAssInst = dynamic_cast<Instruction_CallAssign*>(tempI)){
+                    if(DEBUGGING) std::cout << "It is a call assign\n";
                     Instruction_Assignment* raxAssign = new Instruction_Assignment();
                     Arg* rax = new Arg();
                     rax->name = "rax";
@@ -173,21 +185,33 @@ namespace L3{
                     raxAssign->parentFunction = tempI->parentFunction;
                     numberInstructions(p);
                     iter = tempI->parentFunction->instructions.begin() + tempI->instNum;
+                    //if(DEBUGGING) std::cout << "Inserting instruction for rax assign above inst: " << *(iter + 1).instruction <<"\n";
                     tempI->parentFunction->instructions.insert(iter + 1, raxAssign);
+
 
                 }
 
+                if(DEBUGGING) std::cout << "Adding the return label underneath the call\n";
                 // 5
                 //This will add the return label underneath the function call
                 Instruction_Label* labelInst = new Instruction_Label();
                 labelInst->label = retLabel;
                 labelInst->parentFunction = tempI->parentFunction;
                 labelInst->instruction = retLabel->name;
+                if(DEBUGGING) std::cout << "Created the new Instruction_Label\n";
                 numberInstructions(p);
+                if(DEBUGGING) std::cout << "Renumbered instructions\n";
                 iter = tempI->parentFunction->instructions.begin() + tempI->instNum;
-                f->instructions.insert(iter + 1, labelInst);
-
+                //if(DEBUGGING) std::cout << "Inserting label to return to above inst: " << *(iter + 1).instruction <<"\n";
+                // if(iter >= tempI->parentFunction->instructions.end()){
+                //     iter--;
+                // }
+                if(DEBUGGING) std::cout << "Attempting insert\n";
+                tempI->parentFunction->instructions.insert(iter+1, labelInst);
+                if(DEBUGGING) std::cout << "Inserted\n";
+                numberInstructions(p);
                 callNum++;
+                if(DEBUGGING) std::cout << "Done with call inst, onto the next\n";
             }
         }
 
@@ -199,10 +223,17 @@ namespace L3{
         
 
         if (Instruction_Load* i = dynamic_cast<Instruction_Load *> (I)) {
+            if(Instruction_stackArg* ii = dynamic_cast<Instruction_stackArg*>(i)){
+                return ii->instruction;
+            }
 
             return i->dst->name + " <- " + "mem " + i->src->name + " 0";
         }
         else if (Instruction_Store* i = dynamic_cast<Instruction_Store *> (I)) {
+
+            if(Instruction_stackStore* ii = dynamic_cast<Instruction_stackStore*>(i)){
+                return ii->instruction;
+            }
 
             return "mem " + i->dst->name + " 0 <- " + i->src->name;
         }
@@ -262,6 +293,8 @@ namespace L3{
             }
         }
         else if (Instruction_opAssignment* i = dynamic_cast<Instruction_opAssignment *> (I)) {
+
+            
 
             //This instruction will have 5 cases occur
             //1) Var <- # op #
@@ -352,12 +385,17 @@ namespace L3{
                         return i->dst->name + " &= " + i->arg1->name; 
                         break;
                     default: 
-                        return i->arg1->name + " " + i->operation->str + "= " + i->arg2->name + "\n\t\t" + i->dst->name + " <- " + i->arg1->name; 
+                        std::string newVarName = i->parentFunction->name;
+                        newVarName.erase(0,1);
+                        newVarName = i->arg1->name + newVarName + "T_E_M_P_O_R_A_R_Y";
+                        return newVarName + " <- " + i->arg1->name + "\n\t\t" + newVarName + " " + i->operation->str + "= " + i->arg2->name + "\n\t\t" + i->dst->name + " <- " + newVarName;
                         break;
                 } 
             }
-
-            return i->arg1->name + " " + i->operation->str + "= " + i->arg2->name + "\n\t\t" + i->dst->name + " <- " + i->arg1->name; 
+            std::string newVarName = i->parentFunction->name;
+            newVarName.erase(0,1);
+            newVarName = i->arg1->name + newVarName + "T_E_M_P_O_R_A_R_Y";
+            return newVarName + " <- " + i->arg1->name + "\n\t\t" + newVarName + " " + i->operation->str + "= " + i->arg2->name + "\n\t\t" + i->dst->name + " <- " + newVarName;
 
             
 
