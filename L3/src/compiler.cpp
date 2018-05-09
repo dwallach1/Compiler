@@ -16,7 +16,7 @@
 #include <code_generator.h>
 
 
-#define DEBUGGING 1
+#define DEBUGGING 0
 #define DEBUG_S 0
 
 using namespace std;

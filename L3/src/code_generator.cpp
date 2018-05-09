@@ -1,12 +1,21 @@
 #include <string>
+#include <vector>
+#include <utility>
+#include <algorithm>
+#include <iterator>
+#include <cstring>
+#include <cctype>
+#include <cstdlib>
+#include <stdint.h>
+#include <assert.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <cstdio>
 #include <stdlib.h>
 #include <code_generator.h>
-#define DEBUGGING 1
-#define DEBUG_S 1
+#define DEBUGGING 0
+#define DEBUG_S 0
 
 using namespace std;
 
@@ -82,6 +91,7 @@ namespace L3{
             if(DEBUGGING) std::cout << "AFALASARI for: " << f->name << " There are " + to_string(f->parameters.size())    + " parameters\n";
             // 1
             //This first part will add the argument loading at the start of a function
+            std::reverse(f->parameters.begin(), f->parameters.end());
             for(int i = 0; i < f->parameters.size(); i++){
                 //This will have the arguments stored in a register
                 if(i < 6){
