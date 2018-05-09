@@ -5,8 +5,8 @@
 #include <cstdio>
 #include <stdlib.h>
 #include <code_generator.h>
-#define DEBUGGING 0
-#define DEBUG_S 0
+#define DEBUGGING 1
+#define DEBUG_S 1
 
 using namespace std;
 
@@ -78,9 +78,10 @@ namespace L3{
     void addFunctionArgumentLoadAndStoreAndRetInst(Program* p){
         std::vector<Instruction* >::iterator iter;
         for(Function* f : p->functions){
+            if(DEBUGGING) std::cout << "AFALASARI for: " << f->name << " There are " + to_string(f->parameters.size())    + " parameters\n";
             // 1
             //This first part will add the argument loading at the start of a function
-            for(int i = 0; i < f->arguments; i++){
+            for(int i = 0; i < f->parameters.size(); i++){
                 //This will have the arguments stored in a register
                 if(i < 6){
                     Instruction_Assignment* I = new Instruction_Assignment();
@@ -474,12 +475,13 @@ namespace L3{
         
         // we know the starting point has to be main to be a valid L3 program
         fs << "(:main" << "\n"; 
-        
+        if(DEBUGGING) std::cout << "Running add Function Argument ld store and ret\n";
         addFunctionArgumentLoadAndStoreAndRetInst(&p);
         // convert all the fucntions
         for(auto f : p.functions){
 
             // this will write out an entire L2 function translated from L3
+            if(DEBUGGING) std::cout << "Converting function: " << f->name << "\n";
             fs << convert_function(f) << "\n";
         }
 

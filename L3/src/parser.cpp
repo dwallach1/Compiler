@@ -15,7 +15,7 @@
 #include <tao/pegtl/contrib/raw_string.hpp>
 
 #define DEBUGGING 0
-#define DEBUG_S 0
+#define DEBUG_S 1
 
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
@@ -58,9 +58,14 @@ namespace L3 {
 
   struct keyword:
     pegtl::sor<
-        paa,
-        pegtl::string<  'r', 'e', 't', 'u', 'r', 'n' >,
+        pegtl::seq<
         pegtl::string< 'c', 'a', 'l', 'l'>,
+        seps,
+        paa,
+        seps
+        >,
+        pegtl::string<  'r', 'e', 't', 'u', 'r', 'n' >,
+        //pegtl::string< 'c', 'a', 'l', 'l'>,
         pegtl::string< 'l', 'o', 'a', 'd'>,
         pegtl::string< 's', 't', 'o', 'r', 'e'>
       >{};
@@ -68,8 +73,8 @@ namespace L3 {
   struct var:
     pegtl::seq<
       seps,
-      // not_at< keyword >,
-      // seps,
+      pegtl::not_at< keyword >,
+      seps,
       pegtl::plus< 
         pegtl::sor<
           pegtl::alpha,
@@ -82,7 +87,8 @@ namespace L3 {
           pegtl::one< '_' >,
           pegtl::digit
         >
-      >
+      >,
+      pegtl::not_at<one<'-'>>
     >{};
 
   struct vars:
@@ -911,7 +917,7 @@ namespace L3 {
         instruction->instruction = "return" ;
         instruction->parentFunction = currentF;
         currentF->instructions.push_back(instruction);
-        if (DEBUG_S) std::cout << "--> added an Return_nothing instruction: " <<  instruction->instruction << std::endl;
+        if (DEBUG_S) std::cout << "--> added a Return_nothing instruction: " <<  instruction->instruction << std::endl;
     }
   };
 
@@ -1098,6 +1104,8 @@ namespace L3 {
     L3::Program p;
     
     parse< L3::grammar, L3::action >(fileInput, p);
+
+    if(DEBUGGING) std::cout << "Done parsing!\n";
     return p;
   }
 

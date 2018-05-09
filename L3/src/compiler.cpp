@@ -16,7 +16,7 @@
 #include <code_generator.h>
 
 
-#define DEBUGGING 0
+#define DEBUGGING 1
 #define DEBUG_S 0
 
 using namespace std;
@@ -83,8 +83,9 @@ int main(
    * Generate the code.
    */
   if (enable_code_generator){
-    gatherAllCalls(&p);
+    if(DEBUGGING) std::cout << "Linking calls to functions\n";
     linkCallsToFunctions(&p);
+    if(DEBUGGING) std::cout << "Generating new code\n";
     L3::L3_generate_code(p);
   }
 
