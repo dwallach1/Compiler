@@ -14,5 +14,6 @@ namespace L3{
   void gatherAllCalls(Program* p);
   void addFunctionArgumentLoadAndStore(Program* p);
   void generateContextBlocks(Function* f);
+  void generateTrees(ContextBlock* cb, std::vector<Tree *>* trees)
 
 }

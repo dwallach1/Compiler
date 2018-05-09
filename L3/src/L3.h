@@ -35,13 +35,19 @@ namespace L3 {
     NO_OP //Null operation
   };
 
-  struct Operation{
+
+  struct Node {
+    virtual ~Node() = default;
+    std::vector<L3::Node *> children; 
+  };
+
+  struct Operation : Node {
     std::string str;
     Op op;
   };
 
 
-  struct Arg {
+  struct Arg : Node {
     virtual ~Arg() = default;
     std::string name;
     L3::ArgType type;
@@ -66,6 +72,7 @@ namespace L3 {
       virtual ~Instruction_Assignment() = default;
       L3::Arg* src;
       L3::Arg* dst;
+      L3::Operation* operation;
     };
       struct Instruction_Load : Instruction_Assignment {
         virtual ~Instruction_Load() = default;
@@ -158,6 +165,15 @@ namespace L3 {
 
   struct ContextBlock {
     std::vector< L3::Instruction *> instructions;
+  };
+
+  // struct Node {
+  //   std::string val; 
+  //   L3::Node* next;
+  // }
+
+  struct Tree {
+    L3::Node* head;
   };
 
   struct Function{

@@ -634,6 +634,14 @@ namespace L3 {
   
         instruction->dst = dest;
         instruction->src = source;
+
+        L3::Operation* op = new Operation();
+        op->str = "<-";
+        op->op = ASSIGN;
+
+        instruction->operation = op;
+
+
         instruction->parentFunction = currentF;
         currentF->instructions.push_back(instruction);
         if (DEBUG_S) std::cout << "--> added an Assignment instruction: " <<  instruction->instruction << std::endl;

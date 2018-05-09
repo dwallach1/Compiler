@@ -294,6 +294,36 @@ namespace L3{
         }
      }
 
+    void generateTrees(ContextBlock* cb, std::vector<Tree *>* trees) {
+        
+        for (Instruction* I : cb->instructions) {
+            Tree* tree = new Tree();
+            
+            if (Instruction_Assignment* i = dynamic_cast<Instruction_Assignment *> (I)) {
+                Node* child1 = new Node();
+                left = i->src;
+
+                Node* child2 = new Node();
+                right = i->dst;
+
+                Node* head = new Node();
+                head = i->operation;
+                head->children.push_back(child1);
+                head->children.push_back(child2);
+
+                tree->head = head;
+            }
+
+            // go through all possible instructions that can be in a code block and make a tree
+            // 
+
+
+            // each iteration a tree is made, insert it into the trees vector
+            trees->push_back(tree);
+        }
+    }
+
+
     std::string convert_function(Function* f) {
 
         std::string funcStr = "";
@@ -301,15 +331,19 @@ namespace L3{
         funcStr.append( "\t(" + f->name + "\n");
 
         updateArgumentsAndLocals(f);
-        generateContextBlocks(f);
-
         funcStr.append("\t\t" + to_string(f->arguments) + " " + to_string(f->locals) + "\n");
-        
-        for(Instruction* I : f->instructions){
-            funcStr.append("\t\t" + convert_instruction(f, I) + "\n");
+
+        generateContextBlocks(f);
+        for (ContextBlock* cb : f->contextBlocks) {
+            std::vector<Tree *> trees = {};
+            generateTrees(cb, &trees);
+            //mergeTrees(&trees);
+            // for (Tree* tree : trees) {
+            //     tileTree(tree);
+            // }
+
         }
         
-
         funcStr.append("\t)\n");
         return funcStr;
      }
