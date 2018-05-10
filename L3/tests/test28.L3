@@ -18,11 +18,11 @@ define :main () {
  store newVar6 <- 7
  newVar7 <- a + 32
  store newVar7 <- 7
- call :storeV (a, 1, 2, 3)
+ call :SuchyAndWallachstoreV (a, 1, 2, 3)
  return 
 }
 
-define :storeV (A, k, i, j) {
+define :SuchyAndWallachstoreV (A, k, i, j) {
  :entry
  newVar1 <- 0
  newVar2 <- A + 24

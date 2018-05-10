@@ -13,13 +13,13 @@ define :main () {
  store newVar3 <- l
  encodedL <- call :encodedValue (l)
  call print (encodedL)
- call :printArrayGT (ar)
- call :printArrayGE (ar)
- call :printArrayE (ar)
+ call :SuchyAndWallachprintArrayGT (ar)
+ call :SuchyAndWallachprintArrayGE (ar)
+ call :SuchyAndWallachprintArrayE (ar)
  return 
 }
 
-define :printArrayGT (p) {
+define :SuchyAndWallachprintArrayGT (p) {
  :entry
  i <- 6
  br :begin_loop
@@ -37,7 +37,7 @@ define :printArrayGT (p) {
  return 
 }
 
-define :printArrayGE (p) {
+define :SuchyAndWallachprintArrayGE (p) {
  :entry
  i <- 5
  br :begin_loop
@@ -55,7 +55,7 @@ define :printArrayGE (p) {
  return 
 }
 
-define :printArrayE (p) {
+define :SuchyAndWallachprintArrayE (p) {
  :entry
  i <- 5
  br :begin_loop

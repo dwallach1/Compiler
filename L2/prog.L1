@@ -1,0 +1,177 @@
+(:main
+(:main
+	0 3
+	mem rsp 8 <- r13
+	mem rsp 0 <- r12
+	rdi <- 5
+	rsi <- 5
+	mem rsp 16 <- r10
+	call allocate 2
+	r10 <- mem rsp 16
+	r12 <- rax  
+	r10 <- r12    
+	r10 += 8  
+	r13 <- r10    
+	mem r13 0 <- 85  
+	rdi <- r12  
+	mem rsp 16 <- r10
+	call print 1
+	r10 <- mem rsp 16
+	rdi <- r12  
+	mem rsp -8 <- :SuchyAndWallachprintArraymainR_E_T_U_R_N_L_A_B_E_L2
+	mem rsp 16 <- r10
+	call :SuchyAndWallachprintArray 1
+	:SuchyAndWallachprintArraymainR_E_T_U_R_N_L_A_B_E_L2
+	r10 <- mem rsp 16
+	rdi <- 5
+	rsi <- 5
+	mem rsp 16 <- r10
+	call allocate 2
+	r10 <- mem rsp 16
+	r10 <- rax  
+	mem r13 0 <- r10    
+	rdi <- r12  
+	mem rsp 16 <- r10
+	call print 1
+	r10 <- mem rsp 16
+	rdi <- r12  
+	mem rsp -8 <- :SuchyAndWallachprintArraymainR_E_T_U_R_N_L_A_B_E_L1
+	mem rsp 16 <- r10
+	call :SuchyAndWallachprintArray 1
+	:SuchyAndWallachprintArraymainR_E_T_U_R_N_L_A_B_E_L1
+	r10 <- mem rsp 16
+	r12 <- mem rsp 0
+	r13 <- mem rsp 8
+	return
+)
+(:SuchyAndWallachprintArray
+	1 4
+	mem rsp 16 <- r14
+	mem rsp 8 <- r13
+	mem rsp 0 <- r12
+	r12 <- rdi  
+	r14 <- 0  
+	r13 <- mem r12 0    
+	r10 <- r12    
+	r10 &= 1  
+	r10 <- r10    
+	cjump r10 = 1 :isAnIntSuchyAndWallachprintArray :isAnArraySuchyAndWallachprintArray  
+	:isAnIntSuchyAndWallachprintArray
+	rax <- 0
+	r12 <- mem rsp 0
+	r13 <- mem rsp 8
+	r14 <- mem rsp 16
+	return
+	:isAnArraySuchyAndWallachprintArray
+	:checkSuchyAndWallachprintArray
+	r10 <- r14 < r13      
+	cjump r10 = 1 :trueSuchyAndWallachprintArray :falseSuchyAndWallachprintArray  
+	:trueSuchyAndWallachprintArray
+	r10 <- r14    
+	r10 <<= 1  
+	r10 <- r10    
+	r10 <- r10    
+	r10 += 1  
+	r10 <- r10    
+	rdi <- r12  
+	rsi <- r10  
+	mem rsp -8 <- :SuchyAndWallachprintDataSuchyAndWallachprintArrayR_E_T_U_R_N_L_A_B_E_L0
+	mem rsp 24 <- r10
+	call :SuchyAndWallachprintData 2
+	:SuchyAndWallachprintDataSuchyAndWallachprintArrayR_E_T_U_R_N_L_A_B_E_L0
+	r10 <- mem rsp 24
+	r10 <- r14    
+	r10 += 1  
+	r14 <- r10    
+	goto :checkSuchyAndWallachprintArray
+	:falseSuchyAndWallachprintArray
+	rax <- 1
+	r12 <- mem rsp 0
+	r13 <- mem rsp 8
+	r14 <- mem rsp 16
+	return
+)
+(:SuchyAndWallachprintData
+	2 5
+	mem rsp 16 <- r14
+	mem rsp 8 <- r13
+	mem rsp 0 <- r12
+	r14 <- rsi  
+	r13 <- rdi  
+	rdi <- r14  
+	mem rsp 24 <- r10
+	mem rsp 32 <- r11
+	call print 1
+	r11 <- mem rsp 32
+	r10 <- mem rsp 24
+	r10 <- mem r13 0    
+	r10 <- r10    
+	r10 <<= 1  
+	r10 <- r10    
+	r10 <- r10    
+	r10 += 1  
+	r10 <- r10    
+	r10 <- r14 < r10      
+	cjump r10 = 1 :correctSuchyAndWallachprintData :wrongSuchyAndWallachprintData  
+	:wrongSuchyAndWallachprintData
+	rdi <- r13  
+	rsi <- r14  
+	mem rsp 24 <- r10
+	mem rsp 32 <- r11
+	call r12 2  
+	r11 <- mem rsp 32
+	r10 <- mem rsp 24
+	:correctSuchyAndWallachprintData
+	r10 <- r14    
+	r10 >>= 1  
+	r12 <- r10    
+	r10 <- r12    
+	r10 *= 8  
+	r12 <- r10    
+	r10 <- r12    
+	r10 += 8  
+	r12 <- r10    
+	r10 <- r12    
+	r10 <<= 1  
+	r10 <- r10    
+	r10 <- r10    
+	r10 += 1  
+	r10 <- r10    
+	rdi <- r10  
+	mem rsp 24 <- r10
+	mem rsp 32 <- r11
+	call print 1
+	r11 <- mem rsp 32
+	r10 <- mem rsp 24
+	r10 <- r12    
+	r10 += r13    
+	r10 <- r10    
+	r10 <- mem r10 0    
+	r11 <- r10    
+	r11 &= 1  
+	r11 <- r11    
+	cjump r11 = 1 :isAnInt2SuchyAndWallachprintData :isAnArray2SuchyAndWallachprintData  
+	:isAnInt2SuchyAndWallachprintData
+	rdi <- r10  
+	mem rsp 24 <- r10
+	mem rsp 32 <- r11
+	call print 1
+	r11 <- mem rsp 32
+	r10 <- mem rsp 24
+	goto :exitFunctionSuchyAndWallachprintData
+	:isAnArray2SuchyAndWallachprintData
+	rdi <- r10  
+	mem rsp -8 <- :SuchyAndWallachprintArraySuchyAndWallachprintDataR_E_T_U_R_N_L_A_B_E_L0
+	mem rsp 24 <- r10
+	mem rsp 32 <- r11
+	call :SuchyAndWallachprintArray 1
+	:SuchyAndWallachprintArraySuchyAndWallachprintDataR_E_T_U_R_N_L_A_B_E_L0
+	r11 <- mem rsp 32
+	r10 <- mem rsp 24
+	:exitFunctionSuchyAndWallachprintData
+	r12 <- mem rsp 0
+	r13 <- mem rsp 8
+	r14 <- mem rsp 16
+	return
+)
+)

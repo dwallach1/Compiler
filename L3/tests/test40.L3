@@ -216,7 +216,7 @@ define :findArrayValue (A, v) {
  newVar20 <- A + newVar9
  current_value <- load newVar20
  check_value_equality <- current_value = v
- br check_value_equality :return_true :continue 
+ br check_value_equality :SuchyAndWallachreturn_true :continue 
  :continue
  k <- k + 1
  br :check_loop_3
@@ -228,7 +228,7 @@ define :findArrayValue (A, v) {
  br :check_loop_1
  :exit_loop1
  return 1
- :return_true
+ :SuchyAndWallachreturn_true
  return 3
 }
 

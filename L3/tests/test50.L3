@@ -17,10 +17,10 @@ define :main () {
  call print (a)
  call :initArray (a)
  call print (a)
- call :printE (a, 0, 0)
- call :printE (a, 0, 1)
- call :printE (a, 1, 0)
- call :printE (a, 1, 1)
+ call :SuchyAndWallachprintE (a, 0, 0)
+ call :SuchyAndWallachprintE (a, 0, 1)
+ call :SuchyAndWallachprintE (a, 1, 0)
+ call :SuchyAndWallachprintE (a, 1, 1)
  return 
 }
 
@@ -42,7 +42,7 @@ define :initArray (A) {
  return 
 }
 
-define :printE (A, i, j) {
+define :SuchyAndWallachprintE (A, i, j) {
  :entry
  newVar1 <- 0
  newVar2 <- A + 24

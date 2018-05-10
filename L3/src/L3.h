@@ -39,6 +39,7 @@ namespace L3 {
 
   struct Node {
     virtual ~Node() = default;
+    L3::Node* parent;
     std::vector<L3::Node *> children; 
   };
 
@@ -67,6 +68,15 @@ namespace L3 {
     Instruction* nextInst;
     Function* parentFunction;
   };
+
+
+    struct Instruction_Lea : Instruction {
+
+    };
+    struct Instruction_MemWithNonZeroConst : Instruction {
+
+    };
+
 
 
     struct Instruction_Assignment : Instruction {

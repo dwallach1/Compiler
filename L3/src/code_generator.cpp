@@ -42,6 +42,10 @@ namespace L3{
         return newVar;
      }
 
+    void optimizeInstructions(Function* f){
+
+    }
+
     void numberInstructions(Program* p){
         for(Function* f : p->functions){
             int i = 0;
@@ -379,6 +383,31 @@ namespace L3{
     std::string convert_instruction(Function* f, Instruction* I) {
         
 
+        // if (Instruction_specialMultAssignment* i = dynamic_cast<Instruction_specialMultAssignment*>(I)){
+        //     // if(i->locOfNum == 1){
+        //     //     Number* num = dynamic_cast<Number*>(i->arg1);
+        //     //     int shift = num->num;
+        //     //     shift = log2(shift);
+        //     //     num->num = shift;
+
+        //     //     i->operation->str = "<<";
+        //     //     i->operation->op = SHL;
+
+        //     //     Arg* a = i->arg1;
+        //     //     i->arg1 = i->arg2;
+        //     //     i->arg2 = a;
+                
+        //     // }
+        //     if(i->locOfNum == 2){
+        //         Number* num = dynamic_cast<Number*>(i->arg1);
+        //         int shift = num->num;
+        //         shift = log2(shift);
+        //         num->num = shift;
+        //         i->operation->str = "<<";
+        //         i->operation->op = SHL;
+        //     }
+        // }
+
         if (Instruction_Load* i = dynamic_cast<Instruction_Load *> (I)) {
             if(Instruction_stackArg* ii = dynamic_cast<Instruction_stackArg*>(i)){
                 return ii->instruction;
@@ -594,51 +623,179 @@ namespace L3{
 
     void generateContextBlocks(Function* f) {
         
-        //ContextBlock* contextBlock = new ContextBlock();
+        ContextBlock* contextBlock = new ContextBlock();
 
-        // for (Instruction* I : f->instructions) {
-        //     if (Instruction_Label* i = dynamic_cast<Instruction_Label *> (I) ||
-        //         Instruction_br* i = dynamic_cast<Instruction_br *> (I) ||
-        //         Instruction_brCmp* i = dynamic_cast<Instruction_brCmp *> (I)) { 
+        for (Instruction* I : f->instructions) {
+            Instruction_Label* i = dynamic_cast<Instruction_Label *> (I);
+            Instruction_br* iBr = dynamic_cast<Instruction_br *> (I);
+            Instruction_brCmp* iBrCmp = dynamic_cast<Instruction_brCmp *> (I);
+            if (i || iBr || iBrCmp) { 
 
-        //         f->contextBlocks.push_back(contextBlock);
-        //         contextBlock = new ContextBlock();
-        //      }
-        //     else {
-        //         contextBlock->instructions.push_back(I);
-        //     }
-        // }
+                f->contextBlocks.push_back(contextBlock);
+                contextBlock = new ContextBlock();
+             }
+            else {
+                contextBlock->instructions.push_back(I);
+            }
+        }
      }
 
     void generateTrees(ContextBlock* cb, std::vector<Tree *>* trees) {
         
-        // for (Instruction* I : cb->instructions) {
-        //     Tree* tree = new Tree();
+        for (Instruction* I : cb->instructions) { 
             
-        //     if (Instruction_Assignment* i = dynamic_cast<Instruction_Assignment *> (I)) {
-        //         Node* child1 = new Node();
-        //         left = i->src;
+            if (Instruction_opAssignment* i = dynamic_cast<Instruction_opAssignment*>(I)) {
+                Tree* tree = new Tree();
+                
+                if (Node* n = dynamic_cast<Node*>(i->operation)) {
+                    i->arg1->parent = n;
+                    i->arg2->parent = n;
+                    n->children.push_back(i->arg1);
+                    n->children.push_back(i->arg2);
+                }
 
-        //         Node* child2 = new Node();
-        //         right = i->dst;
+                Operation* assignment = new Operation();
+                assignment->str = "<-";
+                assignment->op = ASSIGN;
 
-        //         Node* head = new Node();
-        //         head = i->operation;
-        //         head->children.push_back(child1);
-        //         head->children.push_back(child2);
+                if (Node* n = dynamic_cast<Node *>(assignment)) {
+                    i->dst->parent = n;
+                    i->operation->parent = n;
+                    n->children.push_back(i->dst);
+                    n->children.push_back(i->operation);
 
-        //         tree->head = head;
-        //     }
+                    tree->head = n;
+                    trees->push_back(tree);
+                }
+            }
+            else if (Instruction_Assignment* i = dynamic_cast<Instruction_Assignment *> (I)) {
+                Tree* tree = new Tree();
 
-        //     // go through all possible instructions that can be in a code block and make a tree
-        //     // 
+                if (Node* n = dynamic_cast<Node *> (i->operation)) {
+                    i->src->parent = n;
+                    i->dst->parent = n;
+                    n->children.push_back(i->src);
+                    n->children.push_back(i->dst);
 
-
-        //     // each iteration a tree is made, insert it into the trees vector
-        //     trees->push_back(tree);
-        // }
+                    tree->head = n;
+                    trees->push_back(tree);
+                }
+            }
+        }
     }
 
+    void mergeTrees(std::vector<Tree *>* trees) {
+        std::vector<Tree*> newTrees = {};
+        bool* usedTrees = (bool*)malloc(trees->size() * sizeof(bool));
+
+        for (int i=0; i < trees->size(); i++) {
+            usedTrees[i] = 0;
+        }
+
+        for(int i = trees->size()-1; i >= 0; i-- ){
+            if(usedTrees[i] == 1){
+                continue;
+            }
+            Tree* currentTree = (*trees)[i];
+
+            for (int j = i-1; j >= 0; j--) {
+                if (usedTrees[j] == 1) {
+                    continue;
+                }
+
+                Tree* potentialBranch = (*trees)[j];
+                std::vector<Node *> suitors = {};
+
+                for (Node* child : currentTree->head->children) {
+                    for (Node* subChild : child->children) {
+                        suitors.push_back(subChild);
+                    }
+                }
+
+                Node* match = NULL;
+                for (Node* child : potentialBranch->head->children) {
+                    for (Node* suitor : suitors) {
+                        Arg* c = dynamic_cast<Arg *> (child);
+                        Arg* s = dynamic_cast<Arg *> (suitor);
+                        if (c && s) {
+                            if (c->name == s->name) {
+                                match = suitor;
+                                break;
+                            }
+                        }
+                    }
+                    if (match) break;
+                }
+
+                if (match) {
+                    for (Node* child : potentialBranch->head->children) {
+                        child->parent = match;
+                        match->children.push_back(child);
+                    }
+                    usedTrees[j] = 1;
+                }
+            }
+
+            newTrees.push_back(currentTree);
+            usedTrees[i] = 1;
+        }
+
+        trees = &newTrees;
+    }
+
+
+    void tileTree(Tree* tree) {
+        std::vector<Node *> optimizedInst = {};
+        bool tileable = false;
+        for(Node* child : tree->head->children) {
+            if (child->children.size() > 0) {
+                for (Node* subChild : child->children) {
+                    if (subChild->children.size() > 0) {
+                        tileable = true;
+                    }
+                }
+            }
+        }
+
+        if (tileable) {
+            int type = 0;
+            for (Node* child : tree->head->children) {
+                if (child->children.size() == 0) {
+                    optimizedInst.push_back(child);
+                }
+                else {
+                    for (Node* subChild : child->children) {
+                        Operation* nodeOp = dynamic_cast<Operation*> (subChild);
+                        if (nodeOp && nodeOp->op == AND) {
+                            if (subChild->children.size() == 0) {
+                                optimizedInst.push_back(subChild);
+                            }
+                            else {
+                                Operation* multOp = dynamic_cast<Operation*> (subChild);
+                                if (multOp) {
+                                    for (Node* bottomChild : subChild->children) {
+                                        optimizedInst.push_back(bottomChild);
+                                        Number* num = dynamic_cast<Number *> (bottomChild);
+
+                                        if (num) {
+                                            if (num->num == 2 || 
+                                                num->num == 4 || 
+                                                num->num == 8 || 
+                                                num->num == 16) {
+                                                
+                                                type = 1;
+                                            }
+                                        } 
+
+                                    }   
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     std::string convert_function(Function* f) {
 
@@ -649,20 +806,22 @@ namespace L3{
         updateArgumentsAndLocals(f);
         funcStr.append("\t\t" + to_string(f->arguments) + " " + to_string(f->locals) + "\n");
 
+        generateContextBlocks(f);
+        for (ContextBlock* cb : f->contextBlocks) {
+            std::vector<Tree *> trees = {};
+            generateTrees(cb, &trees);
+            mergeTrees(&trees);
+            for (Tree* tree : trees) {
+                tileTree(tree);
+            }
+
+        }
+
         for(Instruction* I : f->instructions){
             funcStr.append("\t\t" + convert_instruction(f, I) + "\n");
         }
 
-        //generateContextBlocks(f);
-        // for (ContextBlock* cb : f->contextBlocks) {
-        //     std::vector<Tree *> trees = {};
-        //     generateTrees(cb, &trees);
-        //     //mergeTrees(&trees);
-        //     // for (Tree* tree : trees) {
-        //     //     tileTree(tree);
-        //     // }
-
-        // }
+        
         
         funcStr.append("\t)\n");
         return funcStr;

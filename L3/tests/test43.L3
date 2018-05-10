@@ -112,6 +112,7 @@ define :find (A, v) {
  br :inck
  :inck
  k <- k + 1
+ 
  over <- k >= dim2
  br over :resetk :loop 
  :resetk

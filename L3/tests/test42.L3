@@ -72,7 +72,7 @@ define :search (m, v) {
  br :outerHeader
  :outerHeader
  checki <- i < length1
- br checki :outerBody :return 
+ br checki :outerBody :SuchyAndWallachreturn 
  :outerBody
  j <- 0
  br :middleHeader
@@ -118,8 +118,8 @@ define :search (m, v) {
  br :outerHeader
  :setFound
  found <- 3
- br :return
- :return
+ br :SuchyAndWallachreturn
+ :SuchyAndWallachreturn
  return found
 }
 

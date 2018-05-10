@@ -18,5 +18,7 @@ namespace L3{
   void renameAllLabels(Program* p);
   bool isFunctionLabel(std::string labelName, Program* p);
   //void replaceKeywordLabels(char* fileName);
+  void mergeTrees(std::vector<Tree *>* trees);
+  void tileTree(Tree* tree);
 
 }

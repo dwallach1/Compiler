@@ -1,0 +1,127 @@
+(:main
+	(:main
+		0 0
+		rdi <- 5
+		rsi <- 5
+		call allocate 2
+		array1 <- rax
+		 array1mainT_E_M_P_O_R_A_R_Y <-  array1
+		 array1mainT_E_M_P_O_R_A_R_Y += 8
+		el1Address <-  array1mainT_E_M_P_O_R_A_R_Y
+		mem el1Address 0 <- 85
+		rdi <- array1
+		call print 1
+		rdi <- array1
+		mem rsp -8 <- :SuchyAndWallachprintArraymainR_E_T_U_R_N_L_A_B_E_L2
+		call :SuchyAndWallachprintArray 1
+		:SuchyAndWallachprintArraymainR_E_T_U_R_N_L_A_B_E_L2
+		rdi <- 5
+		rsi <- 5
+		call allocate 2
+		array2 <- rax
+		mem el1Address 0 <- array2
+		rdi <- array1
+		call print 1
+		rdi <- array1
+		mem rsp -8 <- :SuchyAndWallachprintArraymainR_E_T_U_R_N_L_A_B_E_L1
+		call :SuchyAndWallachprintArray 1
+		:SuchyAndWallachprintArraymainR_E_T_U_R_N_L_A_B_E_L1
+		return
+	)
+
+	(:SuchyAndWallachprintArray
+		1 0
+		array <- rdi
+		index <- 0
+		arrayLength <- mem array 0
+		 arraySuchyAndWallachprintArrayT_E_M_P_O_R_A_R_Y <-  array
+		 arraySuchyAndWallachprintArrayT_E_M_P_O_R_A_R_Y &= 1
+		tempArrayPointer <-  arraySuchyAndWallachprintArrayT_E_M_P_O_R_A_R_Y
+		cjump tempArrayPointer = 1 :isAnIntSuchyAndWallachprintArray :isAnArraySuchyAndWallachprintArray
+		:isAnIntSuchyAndWallachprintArray
+		rax <- 0
+		return
+		:isAnArraySuchyAndWallachprintArray
+		:checkSuchyAndWallachprintArray
+		continueToExecute <- index < arrayLength
+		cjump continueToExecute = 1 :trueSuchyAndWallachprintArray :falseSuchyAndWallachprintArray
+		:trueSuchyAndWallachprintArray
+		 indexSuchyAndWallachprintArrayT_E_M_P_O_R_A_R_Y <-  index
+		 indexSuchyAndWallachprintArrayT_E_M_P_O_R_A_R_Y <<= 1
+		encodedIndex <-  indexSuchyAndWallachprintArrayT_E_M_P_O_R_A_R_Y
+		 encodedIndexSuchyAndWallachprintArrayT_E_M_P_O_R_A_R_Y <-  encodedIndex
+		 encodedIndexSuchyAndWallachprintArrayT_E_M_P_O_R_A_R_Y += 1
+		encodedIndex <-  encodedIndexSuchyAndWallachprintArrayT_E_M_P_O_R_A_R_Y
+		rdi <- array
+		rsi <- encodedIndex
+		mem rsp -8 <- :SuchyAndWallachprintDataSuchyAndWallachprintArrayR_E_T_U_R_N_L_A_B_E_L0
+		call :SuchyAndWallachprintData 2
+		:SuchyAndWallachprintDataSuchyAndWallachprintArrayR_E_T_U_R_N_L_A_B_E_L0
+		 indexSuchyAndWallachprintArrayT_E_M_P_O_R_A_R_Y <-  index
+		 indexSuchyAndWallachprintArrayT_E_M_P_O_R_A_R_Y += 1
+		index <-  indexSuchyAndWallachprintArrayT_E_M_P_O_R_A_R_Y
+		goto :checkSuchyAndWallachprintArray
+		:falseSuchyAndWallachprintArray
+		rax <- 1
+		return
+	)
+
+	(:SuchyAndWallachprintData
+		2 0
+		indexToPrintEncoded <- rsi
+		array <- rdi
+		rdi <- indexToPrintEncoded
+		call print 1
+		arrayLength <- mem array 0
+		 arrayLengthSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y <-  arrayLength
+		 arrayLengthSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y <<= 1
+		arrayLengthEncoded <-  arrayLengthSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y
+		 arrayLengthEncodedSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y <-  arrayLengthEncoded
+		 arrayLengthEncodedSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y += 1
+		arrayLengthEncoded <-  arrayLengthEncodedSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y
+		isArrayBigEnough <- indexToPrintEncoded < arrayLengthEncoded
+		cjump isArrayBigEnough = 1 :correctSuchyAndWallachprintData :wrongSuchyAndWallachprintData
+		:wrongSuchyAndWallachprintData
+		rdi <- array
+		rsi <- indexToPrintEncoded
+		call array-error 2
+		:correctSuchyAndWallachprintData
+		 indexToPrintEncodedSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y <-  indexToPrintEncoded
+		 indexToPrintEncodedSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y >>= 1
+		offset <-  indexToPrintEncodedSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y
+		 offsetSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y <-  offset
+		 offsetSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y *= 8
+		offset <-  offsetSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y
+		 offsetSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y <-  offset
+		 offsetSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y += 8
+		offset <-  offsetSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y
+		 offsetSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y <-  offset
+		 offsetSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y <<= 1
+		offsetEncoded <-  offsetSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y
+		 offsetEncodedSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y <-  offsetEncoded
+		 offsetEncodedSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y += 1
+		offsetEncoded <-  offsetEncodedSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y
+		rdi <- offsetEncoded
+		call print 1
+		 offsetSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y <-  offset
+		 offsetSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y += array
+		arrayElementAddress <-  offsetSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y
+		arrayElement <- mem arrayElementAddress 0
+		 arrayElementSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y <-  arrayElement
+		 arrayElementSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y &= 1
+		isArrayElementAnInt <-  arrayElementSuchyAndWallachprintDataT_E_M_P_O_R_A_R_Y
+		cjump isArrayElementAnInt = 1 :isAnInt2SuchyAndWallachprintData :isAnArray2SuchyAndWallachprintData
+		:isAnInt2SuchyAndWallachprintData
+		rdi <- arrayElement
+		call print 1
+		goto :exitFunctionSuchyAndWallachprintData
+		:isAnArray2SuchyAndWallachprintData
+		rdi <- arrayElement
+		mem rsp -8 <- :SuchyAndWallachprintArraySuchyAndWallachprintDataR_E_T_U_R_N_L_A_B_E_L0
+		call :SuchyAndWallachprintArray 1
+		:SuchyAndWallachprintArraySuchyAndWallachprintDataR_E_T_U_R_N_L_A_B_E_L0
+		:exitFunctionSuchyAndWallachprintData
+		return
+	)
+
+)

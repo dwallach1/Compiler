@@ -1,8 +1,12 @@
 define :main () {
  :entry
+  //call print (1)
  t <- call :createMyClosure (3)
- v <- call :callMyClosure (t, 4)
+ //call print (1)
+ v <- call :SuchyAndWallachcallMyClosure (t, 4)
+ // call print (1)
  x <- call :encodeValue (v)
+ // call print (1)
  call print (x)
  return 
 }
@@ -30,20 +34,27 @@ define :createMyClosure (p1) {
  return p
 }
 
-define :callMyClosure (c, argClosure) {
+define :SuchyAndWallachcallMyClosure (c, argClosure) {
+ //call print (1)
  :entry
  newVar1 <- 0 * 8
  newVar0 <- newVar1 + 8
  newVar2 <- c + newVar0
+  //call print (3)
  fp <- load newVar2
+  //call print (5)
  newVar4 <- 1 * 8
  newVar3 <- newVar4 + 8
  newVar5 <- c + newVar3
+  //call print (7)
  arityOfC <- load newVar5
+  //call print (9)
  checkArgs <- arityOfC = 1
  br checkArgs :true :false 
  :true
+ // call print (11)
  finalResult <- call fp (c, argClosure)
+  //call print (13)
  finalResultEncoded <- call :encodeValue (finalResult)
  call print (finalResultEncoded)
  return finalResult
