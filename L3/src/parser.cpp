@@ -17,16 +17,17 @@
 #define DEBUGGING 0
 #define DEBUG_S 0
 
-
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
 using namespace pegtl;
 using namespace std;
 
 namespace L3 {
 
+
   /* 
    * Data required to parse
    */ 
+
 
   std::vector<L3::Arg*> parsed_registers;
   std::vector<L3::Operation*> operations;
@@ -107,7 +108,9 @@ namespace L3 {
     pegtl::seq<
       seps,
       pegtl::one<':'>,
+      sor<
       var
+      >
     > {};
 
   struct number:

@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <iostream>
+#include <fstream>
 
 #include <parser.h>
 #include <code_generator.h>
@@ -20,6 +21,36 @@
 #define DEBUG_S 0
 
 using namespace std;
+
+
+vector<string> keywords = {"print", "allocate", "array", "return", "call", "load", "store"};
+
+
+void replaceKeywordLabels(char* fileName){
+    std::ifstream t;
+    t.open(fileName);
+    std::string str;
+    t.seekg(0,std::ios::end);
+    str.reserve(t.tellg());
+    t.seekg(0,std::ios::beg);
+    str.assign((std::istreambuf_iterator<char>(t)),std::istreambuf_iterator<char>());
+    t.close();
+    for(std::string str1 : keywords){
+        size_t index = 0;
+        std::string repSearch = ":" + str1;
+        while(1){
+            index = str.find(repSearch, index);
+            if(index == std::string::npos){
+                break;
+            }
+            str.replace(index, repSearch.size(), ":SuchyAndWallach" + str1);
+        }
+    }
+    std::ofstream out;
+    out.open(fileName);
+    out << str;
+    out.close();
+}
 
 void print_help (char *progName){
   std::cerr << "Usage: " << progName << " [-v] [-g 0|1] [-O 0|1|2] [-s] [-l 1|2] SOURCE" << std::endl;
@@ -76,6 +107,7 @@ int main(
    * Parse the input file.
    */
   L3::Program p;
+  replaceKeywordLabels(argv[optind]);
   p = L3::parse_file(argv[optind]);
     
 

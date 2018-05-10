@@ -17,5 +17,6 @@ namespace L3{
   void generateTrees(ContextBlock* cb, std::vector<Tree *>* trees);
   void renameAllLabels(Program* p);
   bool isFunctionLabel(std::string labelName, Program* p);
+  //void replaceKeywordLabels(char* fileName);
 
 }
