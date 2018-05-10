@@ -185,17 +185,17 @@ namespace L2{
 				int j = 0;
 				std::string replacementString = f->replaceSpill + std::to_string(i);
 
-				if (DEBUG_SP) printf("replacementString is now %s\n", replacementString.c_str());
+				if (DEBUGGING) printf("replacementString is now %s\n", replacementString.c_str());
 
 				//replaceInstructionVarWithVar(I, f->toSpill, replacementString);
-
-				I->instruction = std::regex_replace(I->instruction, std::regex(f->toSpill), replacementString);
-
+				if(DEBUG_SP) printf("Instruction was: %s\n", I->instruction.c_str());
+				I->instruction = std::regex_replace(" " + I->instruction + " ", std::regex(" " + f->toSpill + " "), " " + replacementString + " ");
+				if(DEBUG_SP) printf("Instruction is now: %s\n", I->instruction.c_str());
 				for(Arg* curArg : I->arguments){
 					if(curArg->name == f->toSpill){
 						I->arguments[j]->name = replacementString;
 						curArg->name = replacementString;
-						if (DEBUG_SP) printf("updated args w replacementString\n");
+						if (DEBUGGING) printf("updated args w replacementString\n");
 					}
 
 					//I->instruction = std::regex_replace(I->instruction, std::regex(f->toSpill), replacementString);
@@ -229,11 +229,11 @@ namespace L2{
 				
 				for(std::string g : I->gen){
 					if(g == V->name){
-						if (DEBUG_SP) printf("attempting load\n");
+						if (DEBUGGING) printf("attempting load\n");
 						insertLoad(f, replacementString, iter2 + I->instNum, stackLoc);
 						linkInstructionPointers(f);
 						iter2 = f->instructions.begin();
-						if (DEBUG_SP) printf("inserted load replacementString\n");
+						if (DEBUGGING) printf("inserted load replacementString\n");
 						break;
 					}
 				}
@@ -244,11 +244,11 @@ namespace L2{
 				if(I->type == LOAD || I->type == ASSIGN || I->type == AOP || I->type == INC_DEC || I->type == CMP_ASSIGN || I->type == LEA){
 					if (DEBUGGING) printf("special instruction\n");
 					if(I->kill.size() && I->kill[0].compare(V->name) == 0){
-						if (DEBUG_SP) printf("attempting store\n");
+						if (DEBUGGING) printf("attempting store\n");
 						insertStore(f, replacementString, iter2 + I->instNum + 1, stackLoc);
 						linkInstructionPointers(f);
 						iter2 = f->instructions.begin();
-						if (DEBUG_SP) printf("inserted store w replacementString\n");
+						if (DEBUGGING) printf("inserted store w replacementString\n");
 					}
 					else {
 						if (DEBUGGING) printf("kill[0] not equal\n");
