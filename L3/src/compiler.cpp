@@ -23,7 +23,7 @@
 using namespace std;
 
 
-vector<string> keywords = {"print", "allocate", "array", "return", "call", "load", "store"};
+vector<string> keywords = {"print", "allocate", "return", "call", "load", "store"};
 
 
 void replaceKeywordLabels(char* fileName){
