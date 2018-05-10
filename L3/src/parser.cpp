@@ -179,11 +179,11 @@ namespace L3 {
           pegtl::not_at< pegtl::one< '<' > >
         >,
         pegtl::one< '=' >,
+        pegtl::string< '>', '=' >,
         pegtl::seq<
           pegtl::one< '>' >,
           pegtl::not_at< pegtl::one< '>' > >
-        >,
-        pegtl::string< '>', '=' >
+        >
       >
     >{};
 

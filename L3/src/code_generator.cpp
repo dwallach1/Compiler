@@ -22,37 +22,7 @@ using namespace std;
 namespace L3{
 
     std::vector<std::string> argumentRegs = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
-    vector<string> keywords = {"print", "allocate", "array", "return", "call", "load", "store"};
 
-
-    void replaceKeywordLabels(char* fileName){
-        std::ifstream t(fileName);
-        std::string str;
-        t.seekg(0,std::ios::end);
-        str.reserve(t.tellg());
-        t.seekg(0,std::ios::beg);
-        str.assign((std::istreambuf_iterator<char>(t)),std::istreambuf_iterator<char>());
-        t.close();
-
-        for(std::string str1 : keywords){
-            size_t index = 0;
-            std::string repSearch = ":" + str1;
-            while(1){
-                index = str.find(repSearch, index);
-                if(index == std::string::npos){
-                    break;
-                }
-                str.replace(index, repSearch.size(), ":SuchyAndWallach" + str1);
-            }
-
-        }
-
-        std::ofstream out(fileName);
-        out << str;
-        out.close();
-
-
-    }
 
     std::string generate_unique_var(Function* f) {
         std::string appendage = "U_N_I_Q_U_E";
@@ -469,11 +439,11 @@ namespace L3{
             // check if we need to reverse the arguments
             if (i->operation->op == GT) {
                 i->operation->op = LT;
-                return i->dst->name + " " + i->arg2->name + " < " + i->arg1->name;
+                return i->dst->name + " <- " + i->arg2->name + " < " + i->arg1->name;
             } 
             else if (i->operation->op == GTE) {
                 i->operation->op = LTE;
-                return i->dst->name + " " + i->arg2->name + " <= " + i->arg1->name;
+                return i->dst->name + " <- " + i->arg2->name + " <= " + i->arg1->name;
             }
             else {
                 return i->instruction;
