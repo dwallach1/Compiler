@@ -3,12 +3,6 @@
 #include <set>
 
 namespace IR {
-  struct Variable;
-  struct InterferenceGraph;
-  struct Instruction;
-  struct Function;
-  struct Program;
-  struct DataFlowResult;
 
   enum ArgType {
     NUM,
@@ -37,19 +31,13 @@ namespace IR {
   };
 
 
-  struct Node {
-    virtual ~Node() = default;
-    Node* parent;
-    std::vector<Node *> children; 
-  };
-
-  struct Operation : Node {
+  struct Operation {
     std::string str;
     Op op;
   };
 
 
-  struct Arg : Node {
+  struct Arg {
     virtual ~Arg() = default;
     std::string name;
     ArgType type;
@@ -76,8 +64,6 @@ namespace IR {
     struct Instruction_MemWithNonZeroConst : Instruction {
 
     };
-
-
 
     struct Instruction_Assignment : Instruction {
       virtual ~Instruction_Assignment() = default;
@@ -157,7 +143,7 @@ namespace IR {
   
     };
   
-    struct Instruction_ReturnVal : Instruction {
+    struct Instruction_Return : Instruction {
       Arg* retVal;
     };
   
@@ -171,16 +157,16 @@ namespace IR {
         Arg* dst;
       };
   
-    struct Instruction_Label : Instruction {
-      Arg* label;
-    };
 
-  struct ContextBlock {
-    std::vector< Instruction *> instructions;
+  struct BasicBlock {
+    Arg* label; // must be a label 
+    std::vector< Instruction *> instructions; // all instructions garunteed to be executed in succession
+    Instruction* te; // must be a branch or return 
+    std::vector< BasicBlock *> successors; // its a vector b/c brCmp can have two successors
   };
 
-  struct Tree {
-    Node* head;
+  struct ExitBlock : BasicBlock {
+
   };
 
   struct Function{
@@ -191,7 +177,7 @@ namespace IR {
     std::set<Instruction_Call *> callers;
     std::vector<Arg *> parameters;
     std::vector<Instruction *> instructions;
-    std::vector<ContextBlock *> contextBlocks;
+    std::vector<BasicBlock *> basicBlocks;
   };
 
   struct Program{
