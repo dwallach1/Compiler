@@ -30,6 +30,7 @@ namespace IR {
 
 
   std::vector<IR::Arg*> parsed_registers;
+  std::vector<IR::Arg*> index_holder;
   std::vector<IR::Operation*> operations;
 
   /* 
@@ -58,16 +59,9 @@ namespace IR {
 
   struct keyword:
     pegtl::sor<
-        pegtl::seq<
         pegtl::string< 'c', 'a', 'l', 'l'>,
-        seps,
-        paa,
-        seps
-        >,
-        pegtl::string<  'r', 'e', 't', 'u', 'r', 'n' >,
-        pegtl::string< 'c', 'a', 'l', 'l', ' '>,
-        pegtl::string< 'l', 'o', 'a', 'd'>,
-        pegtl::string< 's', 't', 'o', 'r', 'e'>
+        pa,
+        pegtl::string<  'r', 'e', 't', 'u', 'r', 'n' >
       >{};
 
   struct word:
@@ -87,8 +81,7 @@ namespace IR {
           pegtl::one< '_' >,
           pegtl::digit
         >
-      >,
-      pegtl::not_at<one<'-'>>
+      >
     >{};
 
   struct var:
@@ -188,10 +181,18 @@ namespace IR {
   struct type:
     pegtl::seq<
       seps,
-
-
       pegtl::sor<
-        pegtl::string< 'i', 'n', 't', '6', '4', '[', ']' >,
+        pegtl::seq<
+          pegtl::string< 'i', 'n', 't', '6', '4' >,
+          pegtl::star<
+            pegtl::seq<
+              seps,
+              pegtl::one<'['>,
+              seps,
+              pegtl::one<']'>,
+            >,
+          >
+        >,
         pegtl::string< 't', 'u', 'p', 'l', 'e' >,
         pegtl::string< 'c', 'o', 'd', 'e' >
       >
@@ -327,7 +328,7 @@ namespace IR {
       seps,
       assignOp,
       seps,
-      pegtl::string< 'n', 'e', 'w' >,
+      pegtl::string< 'n', 'e', 'w', ' ' >,
       seps,
       pegtl::string< 'A', 'r', 'r', 'a', 'y' >,
       seps,
@@ -341,7 +342,8 @@ namespace IR {
             pegtl::one<','>
           >
         >
-      >
+      >,
+      pegtl::one < ')' >
     >{};
 
   struct tuple:
@@ -351,7 +353,7 @@ namespace IR {
       seps,
       assignOp,
       seps,
-      pegtl::string< 'n', 'e', 'w' >,
+      pegtl::string< 'n', 'e', 'w', ' ' >,
       seps,
       pegtl::string< 'T', 'u', 'p', 'l', 'e' >,
       seps,
@@ -542,6 +544,16 @@ namespace IR {
     }
   };
 
+  template<> struct action < index > {
+    template< typename Input >
+    static void apply( const Input & in, IR::Program & p){
+      if(DEBUGGING) std::cout << "Found an index: " << in.string() << std::endl;
+        Arg* newIndex = parsed_registers.back();
+        parsed_registers.pop_back();
+        index_holder.push_back(newIndex);
+    }
+  };
+
   template<> struct action < callee > {
     template< typename Input >
     static void apply( const Input & in, IR::Program & p){
@@ -562,37 +574,6 @@ namespace IR {
 
       // IR::Function *currentF = p.functions.back();
       // currentF->variables.insert(arg);
-    }
-  };
-
-  template<> struct action < cmp > {
-    template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-      if(DEBUGGING) std::cout << "Found a cmp " << in.string() << std::endl;
-      IR::Operation* newOp = new IR::Operation();
-      newOp->str = in.string();
-
-      if(newOp->str == "<"){
-        newOp->op = LT;
-      }
-      else if(newOp->str == "<="){
-        newOp->op = LTE;
-      }
-      else if(newOp->str == "="){
-        newOp->op = EQ;
-      }
-      else if(newOp->str == ">="){
-        newOp->op = GTE;
-      }
-      else if(newOp->str == ">"){
-        newOp->op = GT;
-      }
-      else{
-        newOp->op = NO_OP;
-      }
-
-      operations.push_back(newOp);
-
     }
   };
 
@@ -620,6 +601,21 @@ namespace IR {
       else if(newOp->str == ">>"){
         newOp->op = SHR;
       }
+      else if(newOp->str == "<"){
+        newOp->op = LT;
+      }
+      else if(newOp->str == "<="){
+        newOp->op = LTE;
+      }
+      else if(newOp->str == "="){
+        newOp->op = EQ;
+      }
+      else if(newOp->str == ">="){
+        newOp->op = GTE;
+      }
+      else if(newOp->str == ">"){
+        newOp->op = GT;
+      }
       else{
         newOp->op = NO_OP;
       }
@@ -627,6 +623,9 @@ namespace IR {
 
     }
   };
+
+
+
 
   template<> struct action < assignOp > {
     template< typename Input >
@@ -941,7 +940,7 @@ namespace IR {
     static void apply( const Input & in, IR::Program & p){
         if(DEBUGGING) std::cout << "found a return_val " <<  in.string() << std::endl;
         
-        IR::Function *currentF = p.functions.back();
+        IR::BasicBlock *currentB = p.functions.back()->basicBlocks.back();
         
         IR::Instruction_ReturnVal *instruction = new IR::Instruction_ReturnVal();
 
@@ -953,8 +952,7 @@ namespace IR {
         instruction->instruction = "return " + val->name;
   
         instruction->retVal = val;
-        instruction->parentFunction = currentF;
-        currentF->instructions.push_back(instruction);
+        currentB->te = instruction;
         if (DEBUG_S) std::cout << "--> added an Return_val instruction: " <<  instruction->instruction << std::endl;
       }
   };
@@ -964,13 +962,13 @@ namespace IR {
     static void apply( const Input & in, IR::Program & p){
         if(DEBUGGING) std::cout << "found a return_nothing " <<  in.string() << std::endl;
         
-        IR::Function *currentF = p.functions.back();
+        IR::BasicBlock *currentB = p.functions.back()->basicBlocks.back();
+        
         
         IR::Instruction_Return *instruction = new IR::Instruction_Return();
 
         instruction->instruction = "return" ;
-        instruction->parentFunction = currentF;
-        currentF->instructions.push_back(instruction);
+        currentB->te = instruction;
         if (DEBUG_S) std::cout << "--> added a Return_nothing instruction: " <<  instruction->instruction << std::endl;
     }
   };
@@ -1062,7 +1060,7 @@ namespace IR {
     static void apply( const Input & in, IR::Program & p){
         if(DEBUGGING) std::cout << "found a br_single " <<  in.string() << std::endl;
         
-        IR::Function *currentF = p.functions.back();
+        IR::BasicBlock *currentB = p.functions.back()->basicBlocks.back();
         
         IR::Instruction_br *instruction = new IR::Instruction_br();
 
@@ -1071,8 +1069,7 @@ namespace IR {
 
         instruction->instruction = "br " + label->name;
         instruction->label = label;
-        instruction->parentFunction = currentF;
-        currentF->instructions.push_back(instruction);
+        currentB->te = instruction;
         if(DEBUG_S) std::cout << "--> added a br_single instruction: " <<  instruction->instruction << std::endl;
 
     }
@@ -1083,7 +1080,8 @@ namespace IR {
     static void apply( const Input & in, IR::Program & p){
         if(DEBUGGING) std::cout << "found a br_cmp " <<  in.string() << std::endl;
         
-        IR::Function *currentF = p.functions.back();
+        IR::BasicBlock *currentB = p.functions.back()->basicBlocks.back();
+        
         
         IR::Instruction_brCmp *instruction = new IR::Instruction_brCmp();
         
@@ -1100,8 +1098,7 @@ namespace IR {
         instruction->comparitor = comparitor;
         instruction->trueLabel = trueLabel;
         instruction->falseLabel = falseLabel;
-        instruction->parentFunction = currentF;
-        currentF->instructions.push_back(instruction);
+        currentB->te = instruction;
         if (DEBUG_S) std::cout << "--> added an br_cmp instruction: " <<  instruction->instruction << std::endl;
 
     }
@@ -1110,20 +1107,18 @@ namespace IR {
   template<> struct action < label_inst > {
     template< typename Input >
     static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found a label_inst " <<  in.string() << std::endl;
+        if(DEBUGGING) std::cout << "found the beginning of a new basic block " <<  in.string() << std::endl;
         
         IR::Function *currentF = p.functions.back();
         
-        IR::Instruction_Label *instruction = new IR::Instruction_Label();
+        BasicBlock* bb = new BasicBlock();
+
+
 
         IR::Arg* label = parsed_registers.back();
         parsed_registers.pop_back();
-
-        instruction->instruction = label->name;
-        instruction->label = label;
-        instruction->parentFunction = currentF;
-        currentF->instructions.push_back(instruction);
-        if(DEBUG_S) std::cout << "--> added a label_inst instruction " <<  instruction->instruction << std::endl;
+        bb->label = label;
+        currentF->basicBlocks.push_back(bb);
 
     }
   };

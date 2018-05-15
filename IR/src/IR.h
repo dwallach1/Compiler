@@ -11,7 +11,8 @@ namespace IR {
     CALLEE,
     PAA,
     S_ARG,
-    RSPMEM
+    RSPMEM,
+    ARRAY
   };
 
   enum Op {
@@ -32,7 +33,7 @@ namespace IR {
 
 
   struct Operation {
-    std::string str;
+    std::string name;
     Op op;
   };
 
@@ -46,6 +47,10 @@ namespace IR {
     struct Number : Arg {
       int num;
     };
+
+    struct Array : Arg {
+      int dims;
+    }
 
 
   struct Instruction {
