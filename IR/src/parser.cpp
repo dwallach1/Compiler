@@ -15,7 +15,7 @@
 #include <tao/pegtl/contrib/raw_string.hpp>
 
 #define DEBUGGING 0
-#define DEBUG_S 0
+#define DEBUG_S 1
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
 using namespace pegtl;
@@ -365,7 +365,7 @@ namespace IR {
       pegtl::one< ')' >
     >{};
 
- struct label_inst:
+  struct label_inst:
     pegtl::seq<
       seps,
       label
@@ -1190,7 +1190,7 @@ namespace IR {
     
     parse< IR::grammar, IR::action >(fileInput, p);
 
-    if(DEBUGGING) std::cout << "Done parsing!\n";
+    if(DEBUGGING | DEBUG_S) std::cout << "Done parsing!\n";
     return p;
   }
 
@@ -1200,7 +1200,7 @@ namespace IR {
     if (Number* num = dynamic_cast<Number *> (arg)) { return arg; }
 
     // reverse so we get the latest declaration -- can you redefine variables with new types?
-    std::reverse(f->declared_variables.begin(), f->declared_variables.end());
+    // std::reverse(f->declared_variables.begin(), f->declared_variables.end());
     for(Arg* var : f->declared_variables) {
       if (var->name == arg->name ) { return var; }
     }
