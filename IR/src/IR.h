@@ -112,7 +112,7 @@ namespace IR {
     struct Instruction_Declaration : Instruction {
       Arg* type;
       Arg* var;
-    }
+    };
 
     struct Instruction_Lea : Instruction {
 
@@ -199,7 +199,7 @@ namespace IR {
   
     };
   
-    struct Instruction_Return : Instruction {
+    struct Instruction_ReturnVal : Instruction {
       Arg* retVal;
     };
   
