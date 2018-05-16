@@ -21,6 +21,14 @@ using namespace std;
 
 namespace IR {
 
+    void convertInstruction(Function* f, Instruction* I) {
+
+        if(Instruction_Declaration* i = dynamic_cast<Instruction_Declaration *> (I)) {
+
+            f->declared_variables.insert(i->var);
+        }
+        
+    }
 
     BasicBlock* findBasicBlock(Function* f, std::string label) {
 
@@ -38,7 +46,6 @@ namespace IR {
             Instruction_brCmp* iBrCmp = dynamic_cast<Instruction_brCmp *> (bb->te);
             Instruction_Return* iRet = dynamic_cast<Instruction_Return *> ( bb->te);
             Instruction_ReturnVal* iRetVal = dynamic_cast<Instruction_ReturnVal *> (bb->te);
-
 
             if (iBr) {
                 // we only have one successor
@@ -69,11 +76,8 @@ namespace IR {
         }
     }
 
-
     void L3_generate_code(Program p) {
         
-        
-
         // set up file stream
         std::fstream fs;
         fs.open("prog.L3", std::fstream::in | std::fstream::out | std::fstream::app);
@@ -81,6 +85,11 @@ namespace IR {
         for (Function* f : p.functions) {
 
             orderBasicBlocks(f);
+            
+            for (Instruction* I : f->instructions) {
+
+                convertInstruction(f, I);
+            }
         }
         
         fs.close();

@@ -4,16 +4,25 @@
 
 namespace IR {
 
-  enum ArgType {
-    NUM,
-    VAR, 
-    LBL,
-    CALLEE,
-    PA,
-    S_ARG,
-    RSPMEM,
-    ARRAY
-  };
+  // enum ArgType {
+  //   NUM,
+  //   VAR, 
+  //   LBL,
+  //   CALLEE,
+  //   PA,
+  //   S_ARG,
+  //   RSPMEM,
+  //   ARRAY
+  // };
+
+  // enum Type {
+  //   INT64,
+  //   ARRAY,
+  //   CODE,
+  //   LBL
+  // };
+
+
 
   enum Op {
     ASSIGN, //<-
@@ -38,19 +47,58 @@ namespace IR {
   };
 
 
+  struct Type {
+    virtual ~Type() = default;
+  };
+
+    struct Int64 : Type {
+
+    };
+
+    struct Code : Type {
+
+    };
+
+    struct Tuple : Type {
+
+    };
+
+    struct Array : Type {
+      int dims;
+    };
+
+    struct VoidT : Type {
+
+    };
+
+
+
+
   struct Arg {
     virtual ~Arg() = default;
     std::string name;
-    ArgType type;
+    Type* type;
   };
+
+    struct Label : Arg {
+
+    };
+
+    struct Callee : Arg {
+      virtual ~Callee() = default;
+    };
+
+    struct PA : Callee {
+
+    };
 
     struct Number : Arg {
       int num;
     };
 
-    struct Array : Arg {
-      int dims;
-    }
+    // struct Array : Arg {
+    //   int dims;
+    // };
 
 
   struct Instruction {
@@ -178,14 +226,15 @@ namespace IR {
   };
 
   struct Function{
-    std::string name;
+    Label*  name;
     int64_t arguments;
     int64_t locals;
-    std::set<Arg *> variables;
-    std::set<Instruction_Call *> callers;
+    std::set<Arg *> declared_variables;
     std::vector<Arg *> parameters;
     std::vector<Instruction *> instructions;
     std::vector<BasicBlock *> basicBlocks;
+
+    Type* returnType;
   };
 
   struct Program{
