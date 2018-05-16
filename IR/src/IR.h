@@ -9,7 +9,7 @@ namespace IR {
     VAR, 
     LBL,
     CALLEE,
-    PAA,
+    PA,
     S_ARG,
     RSPMEM,
     ARRAY
@@ -59,9 +59,12 @@ namespace IR {
     int64_t instNum;
     Instruction* prevInst;
     Instruction* nextInst;
-    Function* parentFunction;
   };
 
+    struct Instruction_Declaration : Instruction {
+      Arg* type;
+      Arg* var;
+    }
 
     struct Instruction_Lea : Instruction {
 

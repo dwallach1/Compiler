@@ -207,7 +207,7 @@ namespace IR {
       >
     >{};
 
-  struct declare:
+  struct declaration:
     pegtl::seq<
       seps,
       type,
@@ -368,7 +368,7 @@ namespace IR {
     pegtl::seq<
       seps,
       pegtl::sor<
-        declare,
+        declaration,
         assign,
         op_assign,
         load,
@@ -458,7 +458,7 @@ namespace IR {
       seps,
       pegtl::seq<
         pegtl::star<
-          declare,
+          declaration,
           seps,
           pegtl::op<
             pegtL::one< ',' >
@@ -560,20 +560,16 @@ namespace IR {
       
       if(DEBUGGING) std::cout << "returning from callee " <<  in.string() << std::endl;
       
-      
       IR::Arg* arg = new IR::Arg;
       arg->name = in.string();
-      if(arg->name == "print" || arg->name == "allocate" || arg->name == "array-error"){
-        arg->type = PAA;
+      if(arg->name == "print" || arg->name == "array-error"){
+        arg->type = PA;
         if(DEBUGGING) std::cout << "Found paa value: " << arg->name << "\n";
       }
       else{
         arg->type = CALLEE;
       }
       parsed_registers.push_back(arg);
-
-      // IR::Function *currentF = p.functions.back();
-      // currentF->variables.insert(arg);
     }
   };
 
@@ -624,18 +620,6 @@ namespace IR {
     }
   };
 
-
-
-
-  template<> struct action < assignOp > {
-    template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-      if(DEBUGGING) std::cout << "Found an assignOp: " << in.string() << std::endl;
-      // operations.push_back(in.string());
-
-    }
-  };
-
   template<> struct action < var > {
     template< typename Input >
     static void apply( const Input & in, IR::Program & p){
@@ -647,10 +631,6 @@ namespace IR {
       arg->type = VAR; 
       parsed_registers.push_back(arg);
 
-      //IR::Function *currentF = p.functions.back();
-      //currentF->variables.insert(arg);
-
-      if(DEBUGGING) std::cout << "Leaving var\n";
     }
   };
 
@@ -666,8 +646,31 @@ namespace IR {
       arg->num = atoi(in.string().c_str());
       parsed_registers.push_back(arg);
 
-      // IR::Function *currentF = p.functions.back();
-      // currentF->variables.insert(arg);
+    }
+  };
+
+  template<> struct action < declaration > {
+    template< typename Input >
+    static void apply( const Input & in, IR::Program & p){
+      if(DEBUGGING) std::cout << "found a declaration " <<  in.string() << std::endl;
+
+      IR::BasicBlock *currentB = p.functions.back()->basicBlocks.back();
+
+      IR::Instruction_Declaration *instruction = new IR::Instruction_Assignment();
+
+
+      // need to discuss how we want to handle the type part and if we want to cast as an Arg or make special type
+      Arg* type = parsed_registers.back();
+      parsed_registers.pop_back();
+
+      Arg* var = parsed_registers.back();
+      parsed_registers.pop_back();
+
+      instruction->instruction = type->name + ' ' + var->name;
+      instruction->type = type;
+      instruction->var = var;
+
+      currentB->te = instruction;
     }
   };
 
@@ -676,7 +679,7 @@ namespace IR {
     static void apply( const Input & in, IR::Program & p){
         if(DEBUGGING) std::cout << "found an assign " <<  in.string() << std::endl;
         
-        IR::Function *currentF = p.functions.back();
+        IR::BasicBlock *currentB = p.functions.back()->basicBlocks.back();
         
         IR::Instruction_Assignment *instruction = new IR::Instruction_Assignment();
 
@@ -709,9 +712,7 @@ namespace IR {
         instruction->operation = op;
 
 
-        instruction->parentFunction = currentF;
-        currentF->instructions.push_back(instruction);
-        if (DEBUG_S) std::cout << "--> added an Assignment instruction: " <<  instruction->instruction << std::endl;
+        currentB->te = instruction;
     }
   };
 
@@ -720,7 +721,7 @@ namespace IR {
     static void apply( const Input & in, IR::Program & p){
         if(DEBUGGING) std::cout << "found an arithmetic_assign " <<  in.string() << std::endl;
         
-        IR::Function *currentF = p.functions.back();
+        IR::BasicBlock *currentB = p.functions.back()->basicBlocks.back();
         
         IR::Operation* operation = operations.back();
         operations.pop_back();
@@ -742,9 +743,8 @@ namespace IR {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
-            instruction->parentFunction = currentF;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_add instruction: " <<  instruction->instruction << std::endl;
+            
+            currentB->te = instruction;
           }
           else if(operation->op == SUB){
             IR::Instruction_subAssignment *instruction = new IR::Instruction_subAssignment();
@@ -753,9 +753,8 @@ namespace IR {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
-            instruction->parentFunction = currentF;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_sub instruction: " <<  instruction->instruction << std::endl;
+            
+            currentB->te = instruction;
           }
           else if(operation->op == AND){
             IR::Instruction_andAssignment *instruction = new IR::Instruction_andAssignment();
@@ -764,9 +763,8 @@ namespace IR {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
-            instruction->parentFunction = currentF;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_and instruction: " <<  instruction->instruction << std::endl;
+            
+            currentB->te = instruction;
           }
           else if(operation->op == SHL){
             IR::Instruction_leftShiftAssignment *instruction = new IR::Instruction_leftShiftAssignment();
@@ -775,9 +773,8 @@ namespace IR {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
-            instruction->parentFunction = currentF;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_leftShift instruction: " <<  instruction->instruction << std::endl;
+            
+            currentB->te = instruction;
           }
           else if(operation->op == SHR){
             IR::Instruction_rightShiftAssignment *instruction = new IR::Instruction_rightShiftAssignment();
@@ -786,9 +783,8 @@ namespace IR {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
-            instruction->parentFunction = currentF;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_rightShift instruction: " <<  instruction->instruction << std::endl;
+            
+            currentB->te = instruction;
           }
           else{
             IR::Instruction_opAssignment *instruction = new IR::Instruction_opAssignment();
@@ -797,9 +793,8 @@ namespace IR {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
-            instruction->parentFunction = currentF;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_assign instruction: " <<  instruction->instruction << std::endl;
+            
+            currentB->te = instruction;
           }  
         }
         //Checking to see if there is a multiply by 2 4 8 or 16
@@ -823,9 +818,8 @@ namespace IR {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
-            instruction->parentFunction = currentF;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_specialMult instruction: " <<  instruction->instruction << std::endl;
+            
+            currentB->te = instruction;
 
           }
           //just a normal mult
@@ -836,14 +830,10 @@ namespace IR {
             instruction->arg1 = arg1;
             instruction->arg2 = arg2;
             instruction->operation = operation;
-            instruction->parentFunction = currentF;
-            currentF->instructions.push_back(instruction);
-            if(DEBUG_S) std::cout << "--> added an arithmetic_mult instruction: " <<  instruction->instruction << std::endl;
-
+            
+            currentB->te = instruction;
           }
         }
-
-        
         return;
     }
   };
@@ -853,7 +843,7 @@ namespace IR {
     static void apply( const Input & in, IR::Program & p){
         if(DEBUGGING) std::cout << "found a compare_assign " <<  in.string() << std::endl;
         
-        IR::Function *currentF = p.functions.back();
+        IR::BasicBlock *currentB = p.functions.back()->basicBlocks.back();
         
         IR::Instruction_cmpAssignment *instruction = new IR::Instruction_cmpAssignment();
 
@@ -875,9 +865,9 @@ namespace IR {
         instruction->arg1 = arg1;
         instruction->arg2 = arg2;
         instruction->operation = operation;
-        instruction->parentFunction = currentF;
-        currentF->instructions.push_back(instruction);
-        if (DEBUG_S) std::cout << "--> added an cmpAssignment instruction: " <<  instruction->instruction << std::endl;
+        
+        currentB->te = instruction;
+        
     }
   };
 
@@ -886,7 +876,7 @@ namespace IR {
     static void apply( const Input & in, IR::Program & p){
         if(DEBUGGING) std::cout << "found a load " <<  in.string() << std::endl;
         
-        IR::Function *currentF = p.functions.back();
+        IR::BasicBlock *currentB = p.functions.back()->basicBlocks.back();
         
         IR::Instruction_Load *instruction = new IR::Instruction_Load();
 
@@ -902,9 +892,8 @@ namespace IR {
   
         instruction->dst = dest;
         instruction->src = src;
-        instruction->parentFunction = currentF;
-        currentF->instructions.push_back(instruction);
-        if (DEBUG_S) std::cout << "--> added an Load instruction: " <<  instruction->instruction << std::endl;
+
+        currentB->te = instruction;
     }
   };
 
@@ -913,7 +902,7 @@ namespace IR {
     static void apply( const Input & in, IR::Program & p){
         if(DEBUGGING) std::cout << "found a store " <<  in.string() << std::endl;
         
-        IR::Function *currentF = p.functions.back();
+        IR::BasicBlock *currentB = p.functions.back()->basicBlocks.back();
         
         IR::Instruction_Store *instruction = new IR::Instruction_Store();
 
@@ -929,9 +918,86 @@ namespace IR {
   
         instruction->dst = dest;
         instruction->src = src;
-        instruction->parentFunction = currentF;
-        currentF->instructions.push_back(instruction);
-        if (DEBUG_S) std::cout << "--> added an Store instruction: " <<  instruction->instruction << std::endl;
+        
+        currentB->te = instruction;
+    }
+  };
+
+  template<> struct action < call > {
+    template< typename Input >
+    static void apply( const Input & in, IR::Program & p){
+        if(DEBUGGING) std::cout << "found a call " <<  in.string() << std::endl;
+        
+        IR::BasicBlock *currentB = p.functions.back()->basicBlocks.back();
+        
+        IR::Instruction_Call *instruction = new IR::Instruction_Call();
+
+        IR::Arg* a = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        while(a->type != CALLEE && a->type != PAA) {
+          if(DEBUGGING) std::cout << "Adding call paramter: " <<  a->name << std::endl;
+          instruction->parameters.push_back(a);
+
+          a = parsed_registers.back();
+          parsed_registers.pop_back();
+        }
+
+        std::reverse(instruction->parameters.begin(), instruction->parameters.end());
+
+        instruction->callee = a;
+
+        instruction->instruction = "call " + instruction->callee->name + " ( ";
+
+        for (auto param : instruction->parameters) {
+          instruction->instruction.append(" " + param->name + ",");
+        }
+        instruction->instruction.append(" )");
+  
+        currentB->te = instruction;
+    }
+  };
+
+  template<> struct action < call_assign > {
+    template< typename Input >
+    static void apply( const Input & in, IR::Program & p){
+        if(DEBUGGING) std::cout << "found a call_assign " <<  in.string() << std::endl;
+        
+        IR::BasicBlock *currentB = p.functions.back()->basicBlocks.back();
+        
+        IR::Instruction_CallAssign *instruction = new IR::Instruction_CallAssign();
+
+        IR::Arg* a = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        while(a->type != CALLEE && a->type != PAA) {
+          if(DEBUGGING) std::cout << "Adding call paramter: " <<  a->name << std::endl;
+          
+          instruction->parameters.push_back(a);
+
+          a = parsed_registers.back();
+          parsed_registers.pop_back();
+        }
+
+        std::reverse(instruction->parameters.begin(), instruction->parameters.end());
+
+        instruction->callee = a;
+
+        parsed_registers.pop_back();
+        
+        IR::Arg* dest = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        instruction->dst = dest;
+
+        instruction->instruction = instruction->dst->name + " <- call " + instruction->callee->name + " ( ";
+
+        for (auto param : instruction->parameters) {
+          instruction->instruction.append(" " + param->name + ",");
+        }
+        instruction->instruction.append(" )");
+  
+        currentB->te = instruction;
     }
   };
 
@@ -970,88 +1036,6 @@ namespace IR {
         instruction->instruction = "return" ;
         currentB->te = instruction;
         if (DEBUG_S) std::cout << "--> added a Return_nothing instruction: " <<  instruction->instruction << std::endl;
-    }
-  };
-
-  template<> struct action < call > {
-    template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found a call " <<  in.string() << std::endl;
-        
-        IR::Function *currentF = p.functions.back();
-        
-        IR::Instruction_Call *instruction = new IR::Instruction_Call();
-
-        IR::Arg* a = parsed_registers.back();
-        parsed_registers.pop_back();
-
-        while(a->type != CALLEE && a->type != PAA) {
-          if(DEBUGGING) std::cout << "Adding call paramter: " <<  a->name << std::endl;
-          instruction->parameters.push_back(a);
-
-          a = parsed_registers.back();
-          parsed_registers.pop_back();
-        }
-
-        std::reverse(instruction->parameters.begin(), instruction->parameters.end());
-
-        instruction->callee = a;
-
-        instruction->instruction = "call " + instruction->callee->name + " ( ";
-
-        for (auto param : instruction->parameters) {
-          instruction->instruction.append(" " + param->name + ",");
-        }
-        instruction->instruction.append(" )");
-  
-        instruction->parentFunction = currentF;
-        currentF->instructions.push_back(instruction);
-        if (DEBUG_S) std::cout << "--> added an Call instruction: " <<  instruction->instruction << std::endl;
-    }
-  };
-
-  template<> struct action < call_assign > {
-    template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found a call_assign " <<  in.string() << std::endl;
-        
-        IR::Function *currentF = p.functions.back();
-        
-        IR::Instruction_CallAssign *instruction = new IR::Instruction_CallAssign();
-
-        IR::Arg* a = parsed_registers.back();
-        parsed_registers.pop_back();
-
-        while(a->type != CALLEE && a->type != PAA) {
-          if(DEBUGGING) std::cout << "Adding call paramter: " <<  a->name << std::endl;
-          
-          instruction->parameters.push_back(a);
-
-          a = parsed_registers.back();
-          parsed_registers.pop_back();
-        }
-
-        std::reverse(instruction->parameters.begin(), instruction->parameters.end());
-
-        instruction->callee = a;
-
-        parsed_registers.pop_back();
-        
-        IR::Arg* dest = parsed_registers.back();
-        parsed_registers.pop_back();
-
-        instruction->dst = dest;
-
-        instruction->instruction = instruction->dst->name + " <- call " + instruction->callee->name + " ( ";
-
-        for (auto param : instruction->parameters) {
-          instruction->instruction.append(" " + param->name + ",");
-        }
-        instruction->instruction.append(" )");
-  
-        instruction->parentFunction = currentF;
-        currentF->instructions.push_back(instruction);
-        if (DEBUG_S) std::cout << "--> added an call_assign instruction: " <<  instruction->instruction << std::endl;
     }
   };
 
