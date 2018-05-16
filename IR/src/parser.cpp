@@ -966,6 +966,79 @@ namespace IR {
     }
   };
 
+  template<> struct action < length > {
+    template< typename Input >
+    static void apply( const Input & in, IR::Program & p){
+        if(DEBUGGING) std::cout << "found a length instruction: " <<  in.string() << std::endl;
+        
+        Function* currentF = p.functions.back();
+        BasicBlock *currentB = currentF->basicBlocks.back();
+        
+        Instruction_Lenth* instruction = new Instruction_Length();
+
+        Arg* src = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        Arg* dest = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        src = findVariable(currentF, src);
+        dest = findVariable(currentF, dest);
+
+        instruction->instruction = dest->name + " <- length " + src->name;
+  
+        instruction->dst = dest;
+        instruction->src = src;
+
+        currentB->instructions.push_back(instruction);
+    }
+  };
+
+  template<> struct action < array > {
+    template< typename Input >
+    static void apply( const Input & in, IR::Program & p){
+        if(DEBUGGING) std::cout << "found an array initialization: " <<  in.string() << std::endl;
+        
+        Function* currentF = p.functions.back();
+        BasicBlock *currentB = currentF->basicBlocks.back();
+        
+        Instruction_ArrayInit* instruction = new Instruction_ArrayInit();
+
+        while(1){
+          Arg* src = parsed_registers.back();
+          if(Array* ar = dynamic_cast<Array*>(src->type)){
+            break;
+          }
+          src = findVariable(currentF, src);
+          instruction->src.push_back(src);
+          parsed_registers.pop_back();
+        }
+        
+
+      
+
+        Arg* dest = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        dest = findVariable(currentF, dest);
+
+
+        instruction->instruction = dest->name + " <- new Array(";
+
+        for(int i = 0; i < instruction->src.size(); i++){
+          instruction->instruction.append(instruction->src[i]);
+          if(i != instruction->src.size() - 1){
+            instruction->instruction.append(", ");
+          }
+        }
+        instruction->instruction.append(")");
+  
+        instruction->dst = dest;
+
+        currentB->instructions.push_back(instruction);
+    }
+  };
+
   template<> struct action < call > {
     template< typename Input >
     static void apply( const Input & in, IR::Program & p){

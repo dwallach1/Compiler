@@ -109,6 +109,11 @@ namespace IR {
     Instruction* nextInst;
   };
 
+    struct Instruction_ArrayInit : Instruction{
+      Arg* dst;
+      std::vector<Arg*> src; 
+    };
+
     struct Instruction_Declaration : Instruction {
       Arg* type;
       Arg* var;
@@ -117,6 +122,7 @@ namespace IR {
     struct Instruction_Lea : Instruction {
 
     };
+
     struct Instruction_MemWithNonZeroConst : Instruction {
 
     };
@@ -127,6 +133,12 @@ namespace IR {
       Arg* dst;
       Operation* operation;
     };
+      
+      struct Instruction_Length : Instruction_Assignment{
+
+      };
+
+
       struct Instruction_Load : Instruction_Assignment {
         virtual ~Instruction_Load() = default;
       };
