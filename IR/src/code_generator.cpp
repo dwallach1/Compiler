@@ -76,7 +76,7 @@ namespace IR {
         }
     }
 
-    void L3_generate_code(Program p) {
+    void IR_generate_code(Program p) {
         
         // set up file stream
         std::fstream fs;

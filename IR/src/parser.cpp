@@ -506,11 +506,6 @@ namespace IR {
       entry_point_rule
     > {};
 
-  /*
-  *
-  *   TODO: Update all actions , and fix bugs in struct declarations
-  *
-  */
 
   /* 
    * Actions attached to grammar rules.
