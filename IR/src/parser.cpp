@@ -14,7 +14,7 @@
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
 
-#define DEBUGGING 0
+#define DEBUGGING 1
 #define DEBUG_S 1
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
@@ -365,11 +365,12 @@ namespace IR {
       pegtl::one< ')' >
     >{};
 
-  struct label_inst:
+  struct label_inst:   
     pegtl::seq<
       seps,
-      label
-    >{};
+      label,
+      seps
+  >{};
 
   struct i:
     pegtl::seq<
@@ -549,18 +550,25 @@ namespace IR {
   template<> struct action < label > {
     template< typename Input >
     static void apply( const Input & in, IR::Program & p){
+      if(DEBUGGING) std::cout << "Found label: " <<  in.string() << std::endl;
       
-      if(DEBUGGING) std::cout << "returning from label: " <<  in.string() << std::endl;
       
       // get rid of var part of label
-      parsed_registers.pop_back(); 
+      if(parsed_registers.size() > 0){
+        parsed_registers.pop_back();
+      }
+       
       
+
       Label* label = new Label();
       label->name = in.string();
       parsed_registers.push_back(label);
 
+
       VoidT* noType = new VoidT();
       label->type = noType;
+      if(DEBUGGING) std::cout << "returning from label: " <<  in.string() << std::endl;
+
 
     }
   };
@@ -974,7 +982,7 @@ namespace IR {
         Function* currentF = p.functions.back();
         BasicBlock *currentB = currentF->basicBlocks.back();
         
-        Instruction_Lenth* instruction = new Instruction_Length();
+        Instruction_Length* instruction = new Instruction_Length();
 
         Arg* src = parsed_registers.back();
         parsed_registers.pop_back();
@@ -1026,7 +1034,7 @@ namespace IR {
         instruction->instruction = dest->name + " <- new Array(";
 
         for(int i = 0; i < instruction->src.size(); i++){
-          instruction->instruction.append(instruction->src[i]);
+          instruction->instruction.append(instruction->src[i]->name);
           if(i != instruction->src.size() - 1){
             instruction->instruction.append(", ");
           }
