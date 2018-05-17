@@ -33,6 +33,8 @@ namespace IR {
   std::vector<Type *> type_declarations;
   std::vector<Arg *> index_holder;
   std::vector<Operation *> operations;
+  std::vector<Instruction* > basicBlockInsts;
+  std::vector<Arg *> newFunctionArgs;
 
   /* 
    * Grammar rules from now on.
@@ -60,9 +62,9 @@ namespace IR {
 
   struct keyword:
     pegtl::sor<
-        pegtl::string< 'c', 'a', 'l', 'l'>,
+        pegtl::string< 'c', 'a', 'l', 'l', ' '>,
         pa,
-        pegtl::string<  'r', 'e', 't', 'u', 'r', 'n' >
+        pegtl::string<  'r', 'e', 't', 'u', 'r', 'n', ' ' >
       >{};
 
   struct word:
@@ -150,13 +152,18 @@ namespace IR {
     >{};
 
   struct args:
-    pegtl::star<
-      pegtl::seq<
-        seps,
-        t,
-        seps,
-        pegtl::opt<
-          pegtl::one<','>
+    seq<
+      seps,
+      pegtl::star<
+        pegtl::seq<
+          seps,
+          t,
+          pegtl::opt<
+            seq<
+              seps,
+              pegtl::one<','>
+            >
+          >
         >
       >
     >{};
@@ -185,6 +192,7 @@ namespace IR {
       pegtl::sor<
         pegtl::seq<
           pegtl::string< 'i', 'n', 't', '6', '4' >,
+          seps,
           pegtl::star<
             pegtl::seq<
               seps,
@@ -222,6 +230,15 @@ namespace IR {
       pegtl::string< '<', '-' >
     >{};
 
+  struct index:
+    pegtl::seq<
+      seps,
+      pegtl::one< '[' >,
+      t,
+      pegtl::one< ']' > 
+    >{};
+
+
   struct assignment:
     pegtl::seq<
       seps,
@@ -230,9 +247,12 @@ namespace IR {
       assignOp,
       seps,
       not_at<
-      keyword
+        sor<
+          keyword
+        >
       >,
-      s
+      s,
+      not_at<index>
     >{};
 
   struct op_assign:
@@ -249,13 +269,6 @@ namespace IR {
       t
     >{};
 
-  struct index:
-    pegtl::seq<
-      seps,
-      pegtl::one< '[' >,
-      t,
-      pegtl::one< ']' > 
-    >{};
 
   struct indexes:
     pegtl::plus<  
@@ -319,7 +332,15 @@ namespace IR {
       seps,
       assignOp,
       seps,
-      call
+      pegtl::string< 'c', 'a', 'l', 'l'>,
+      seps,
+      callee,
+      seps,
+      pegtl::one< '(' >,
+      seps,
+      args,
+      seps,
+      pegtl::one< ')' >
     >{};
 
   struct array:
@@ -368,8 +389,7 @@ namespace IR {
   struct label_inst:   
     pegtl::seq<
       seps,
-      label,
-      seps
+      label
   >{};
 
   struct i:
@@ -529,20 +549,23 @@ namespace IR {
 
       while(funcName == NULL) {
         
+        newF->declared_variables.insert(newFunctionArgs.back());
+        if(DEBUGGING) cout << "Added arg: " << newFunctionArgs.back()->name << " to declared_variables\n";
+        newFunctionArgs.pop_back();
         newF->parameters.push_back(parameter);
         parameter = parsed_registers.back();
         parsed_registers.pop_back();
 
         funcName = dynamic_cast<Label *> (parameter);
       }
-
+      newFunctionArgs = {};
       newF->name = funcName;
 
       Type* returnType = type_declarations.back();
       type_declarations.pop_back();
 
       newF->returnType = returnType;
-
+      if(DEBUGGING) cout << "Pushing back new function\n";
       p.functions.push_back(newF);
     }
   };
@@ -552,11 +575,6 @@ namespace IR {
     static void apply( const Input & in, IR::Program & p){
       if(DEBUGGING) std::cout << "Found label: " <<  in.string() << std::endl;
       
-      
-      // get rid of var part of label
-      if(parsed_registers.size() > 0){
-        parsed_registers.pop_back();
-      }
        
       
 
@@ -579,9 +597,38 @@ namespace IR {
       if(DEBUGGING) std::cout << "Found an index: " << in.string() << std::endl;
 
         // it will be a number -- get the number part [ num ]
-        Arg* newIndex = parsed_registers.back();
-        parsed_registers.pop_back();
-        index_holder.push_back(newIndex);
+        // Arg* newIndex = parsed_registers.back();
+        // parsed_registers.pop_back();
+        // index_holder.push_back(newIndex);
+    }
+  };
+
+  template<> struct action < type > {
+    template< typename Input >
+    static void apply( const Input & in, IR::Program & p){
+      if(DEBUGGING) std::cout << "Found a type: " << in.string() << std::endl;
+
+      if(in.string() == "int64") {
+        Int64* int64 = new Int64();
+        type_declarations.push_back(int64);
+      }
+      else if (in.string() == "code") {
+        Code* code = new Code();
+        type_declarations.push_back(code);
+      } 
+      else if (in.string() == "tuple") {
+        Tuple* tuple = new Tuple();
+        type_declarations.push_back(tuple);
+
+      }
+      else {
+        Array* array = new Array();
+
+        int dims = index_holder.size();
+        array->dims = dims;
+
+        type_declarations.push_back(array);
+      }
     }
   };
 
@@ -724,17 +771,26 @@ namespace IR {
       if(DEBUGGING) std::cout << "found a declaration " <<  in.string() << std::endl;
 
       Function* currentF = p.functions.back();
-      BasicBlock* currentB = currentF->basicBlocks.back();
 
       Type* type = type_declarations.back();
       type_declarations.pop_back();
 
       Arg* arg = parsed_registers.back();
-      parsed_registers.pop_back();
-
+      Arg* test = parsed_registers.back();
       arg->type = type;
 
-      currentF->declared_variables.insert(arg);
+
+      test = findVariable(currentF, test);
+      if(test){
+        newFunctionArgs.push_back(arg);
+        parsed_registers.pop_back();
+      }
+      else{
+        currentF->declared_variables.insert(arg);
+        newFunctionArgs.push_back(arg);
+
+      }
+      
 
     }
   };
@@ -745,19 +801,23 @@ namespace IR {
         if(DEBUGGING) std::cout << "found an assign " <<  in.string() << std::endl;
         
         Function* currentF = p.functions.back();
-        BasicBlock* currentB = currentF->basicBlocks.back();
         
         Instruction_Assignment *instruction = new IR::Instruction_Assignment();
-
+        if(DEBUGGING) cout << "Getting source\n";
         Arg* source = parsed_registers.back();
         parsed_registers.pop_back();
+        if(DEBUGGING) cout << "Getting dest\n";
 
         Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
 
+        if(DEBUGGING) cout << "Mapping source\n";
         // map the variables to the declared variables 
         source = findVariable(currentF, source);
+        if(DEBUGGING) cout << "Mapping dest\n";
+
         dest = findVariable(currentF, dest);
+        if(DEBUGGING) cout << "Found dest\n";
 
         instruction->instruction = dest->name + " <- " + source->name;
   
@@ -771,7 +831,8 @@ namespace IR {
         instruction->operation = op;
 
 
-        currentB->instructions.push_back(instruction);
+        basicBlockInsts.push_back(instruction);
+        if(DEBUGGING) cout << "Leaving assignment\n";
     }
   };
 
@@ -781,7 +842,6 @@ namespace IR {
         if(DEBUGGING) std::cout << "found an op_assign " <<  in.string() << std::endl;
         
         Function*   currentF = p.functions.back();
-        BasicBlock* currentB = currentF->basicBlocks.back();
         
         Operation* operation = operations.back();
         operations.pop_back();
@@ -813,7 +873,7 @@ namespace IR {
           instruction->arg2 = arg2;
           instruction->operation = operation;
           
-          currentB->instructions.push_back(instruction);
+          basicBlockInsts.push_back(instruction);
 
         } 
         else if(operation->op != MUL){
@@ -825,7 +885,7 @@ namespace IR {
             instruction->arg2 = arg2;
             instruction->operation = operation;
             
-            currentB->instructions.push_back(instruction);
+            basicBlockInsts.push_back(instruction);
           }
           else if(operation->op == SUB){
             IR::Instruction_subAssignment *instruction = new IR::Instruction_subAssignment();
@@ -835,7 +895,7 @@ namespace IR {
             instruction->arg2 = arg2;
             instruction->operation = operation;
             
-            currentB->instructions.push_back(instruction);
+            basicBlockInsts.push_back(instruction);
           }
           else if(operation->op == AND){
             IR::Instruction_andAssignment *instruction = new IR::Instruction_andAssignment();
@@ -845,7 +905,7 @@ namespace IR {
             instruction->arg2 = arg2;
             instruction->operation = operation;
             
-            currentB->instructions.push_back(instruction);
+            basicBlockInsts.push_back(instruction);
           }
           else if(operation->op == SHL){
             IR::Instruction_leftShiftAssignment *instruction = new IR::Instruction_leftShiftAssignment();
@@ -855,7 +915,7 @@ namespace IR {
             instruction->arg2 = arg2;
             instruction->operation = operation;
             
-            currentB->instructions.push_back(instruction);
+            basicBlockInsts.push_back(instruction);
           }
           else if(operation->op == SHR){
             IR::Instruction_rightShiftAssignment *instruction = new IR::Instruction_rightShiftAssignment();
@@ -865,7 +925,7 @@ namespace IR {
             instruction->arg2 = arg2;
             instruction->operation = operation;
             
-            currentB->te = instruction;
+            basicBlockInsts.push_back(instruction);
           }
           else{
             IR::Instruction_opAssignment *instruction = new IR::Instruction_opAssignment();
@@ -875,7 +935,7 @@ namespace IR {
             instruction->arg2 = arg2;
             instruction->operation = operation;
             
-            currentB->instructions.push_back(instruction);
+            basicBlockInsts.push_back(instruction);
           }  
         }
         //Checking to see if there is a multiply by 2 4 8 or 16
@@ -900,7 +960,7 @@ namespace IR {
             instruction->arg2 = arg2;
             instruction->operation = operation;
             
-            currentB->instructions.push_back(instruction);
+            basicBlockInsts.push_back(instruction);
 
           }
           //just a normal mult
@@ -912,7 +972,7 @@ namespace IR {
             instruction->arg2 = arg2;
             instruction->operation = operation;
             
-            currentB->instructions.push_back(instruction);
+            basicBlockInsts.push_back(instruction);
           }
         }
     }
@@ -924,17 +984,34 @@ namespace IR {
         if(DEBUGGING) std::cout << "found a load " <<  in.string() << std::endl;
         
         Function* currentF = p.functions.back();
-        BasicBlock *currentB = currentF->basicBlocks.back();
         
         Instruction_Load* instruction = new Instruction_Load();
+
+         while(1){
+          Arg* idx = parsed_registers.back();
+          if (DEBUGGING) cout << "Finding the src with findVar\n";
+          idx = findVariable(currentF, idx);
+          if(DEBUGGING) cout << "Dealing with arg: " << idx->name << "\n";
+          if(Array* ar = dynamic_cast<Array*>(idx->type)){
+            if(DEBUGGING) cout << "This is the array\n";
+            break;
+          }
+          
+          if(DEBUGGING) cout << "Pushing it back\n";
+          instruction->indexes.push_back(idx);
+          parsed_registers.pop_back();
+        }
+
+
 
         Arg* src = parsed_registers.back();
         parsed_registers.pop_back();
 
+        src = findVariable(currentF, src);
+
+
         Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
-
-        src = findVariable(currentF, src);
         dest = findVariable(currentF, dest);
 
         instruction->instruction = dest->name + " <- load " + src->name;
@@ -942,7 +1019,7 @@ namespace IR {
         instruction->dst = dest;
         instruction->src = src;
 
-        currentB->instructions.push_back(instruction);
+        basicBlockInsts.push_back(instruction);
     }
   };
 
@@ -952,25 +1029,45 @@ namespace IR {
         if(DEBUGGING) std::cout << "found a store " <<  in.string() << std::endl;
         
         Function*   currentF = p.functions.back();
-        BasicBlock* currentB = currentF->basicBlocks.back();
         
         Instruction_Store *instruction = new Instruction_Store();
+
 
         Arg* src = parsed_registers.back();
         parsed_registers.pop_back();
 
+
+        while(1){
+          Arg* idx = parsed_registers.back();
+          if (DEBUGGING) cout << "Finding the src with findVar\n";
+          idx = findVariable(currentF, idx);
+          if(DEBUGGING) cout << "Dealing with arg: " << idx->name << "\n";
+          if(Array* ar = dynamic_cast<Array*>(idx->type)){
+            if(DEBUGGING) cout << "This is the array\n";
+            break;
+          }
+          
+          if(DEBUGGING) cout << "Pushing it back\n";
+          instruction->indexes.push_back(idx);
+          parsed_registers.pop_back();
+        }
+
         Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
 
+        if (DEBUGGING) cout << "Finding Variables src: " << src->name << "\n";
         src = findVariable(currentF, src);
+        if (DEBUGGING) cout << "Finding Variables dst: " << dest->name << "\n";
         dest = findVariable(currentF, dest);
+        if (DEBUGGING) cout << "Found dest: " << dest->name <<  "and found source: " << src->name <<"\n";
 
         instruction->instruction = "store " + dest->name + " <- " + src->name;
   
         instruction->dst = dest;
         instruction->src = src;
         
-        currentB->instructions.push_back(instruction);
+
+        basicBlockInsts.push_back(instruction);
     }
   };
 
@@ -980,7 +1077,6 @@ namespace IR {
         if(DEBUGGING) std::cout << "found a length instruction: " <<  in.string() << std::endl;
         
         Function* currentF = p.functions.back();
-        BasicBlock *currentB = currentF->basicBlocks.back();
         
         Instruction_Length* instruction = new Instruction_Length();
 
@@ -998,7 +1094,43 @@ namespace IR {
         instruction->dst = dest;
         instruction->src = src;
 
-        currentB->instructions.push_back(instruction);
+        basicBlockInsts.push_back(instruction);
+    }
+  };
+
+  template<> struct action < tuple > {
+    template< typename Input >
+    static void apply( const Input & in, IR::Program & p){
+        if(DEBUGGING) std::cout << "found an tuple initialization: " <<  in.string() << std::endl;
+        
+        Function* currentF = p.functions.back();
+        
+        Instruction_TupleInit* instruction = new Instruction_TupleInit();
+
+        Arg* src = parsed_registers.back();
+        src = findVariable(currentF, src);
+        parsed_registers.pop_back();
+      
+        if(DEBUGGING) cout << "Found the tuple\n";
+        Arg* dest = parsed_registers.back();
+        parsed_registers.pop_back();
+
+        dest = findVariable(currentF, dest);
+
+
+        // instruction->instruction = dest->name + " <- new Array(";
+
+        // for(int i = 0; i < instruction->src.size(); i++){
+        //   instruction->instruction.append(instruction->src[i]->name);
+        //   if(i != instruction->src.size() - 1){
+        //     instruction->instruction.append(", ");
+        //   }
+        // }
+        // instruction->instruction.append(")");
+        instruction->src.push_back(src);
+        instruction->dst = dest;
+
+        basicBlockInsts.push_back(instruction);
     }
   };
 
@@ -1008,42 +1140,33 @@ namespace IR {
         if(DEBUGGING) std::cout << "found an array initialization: " <<  in.string() << std::endl;
         
         Function* currentF = p.functions.back();
-        BasicBlock *currentB = currentF->basicBlocks.back();
         
         Instruction_ArrayInit* instruction = new Instruction_ArrayInit();
 
         while(1){
           Arg* src = parsed_registers.back();
+          if (DEBUGGING) cout << "Finding the src with findVar\n";
+          src = findVariable(currentF, src);
+          if(DEBUGGING) cout << "Dealing with arg: " << src->name << "\n";
           if(Array* ar = dynamic_cast<Array*>(src->type)){
+            if(DEBUGGING) cout << "Found the array\n";
+            Arg* dest = parsed_registers.back();
+            parsed_registers.pop_back();
+            dest = findVariable(currentF, dest);
+            instruction->dst = dest;
             break;
           }
-          src = findVariable(currentF, src);
+          
+          if(DEBUGGING) cout << "Pushing it back\n";
           instruction->src.push_back(src);
           parsed_registers.pop_back();
         }
         
 
       
+        
 
-        Arg* dest = parsed_registers.back();
-        parsed_registers.pop_back();
-
-        dest = findVariable(currentF, dest);
-
-
-        instruction->instruction = dest->name + " <- new Array(";
-
-        for(int i = 0; i < instruction->src.size(); i++){
-          instruction->instruction.append(instruction->src[i]->name);
-          if(i != instruction->src.size() - 1){
-            instruction->instruction.append(", ");
-          }
-        }
-        instruction->instruction.append(")");
-  
-        instruction->dst = dest;
-
-        currentB->instructions.push_back(instruction);
+        basicBlockInsts.push_back(instruction);
     }
   };
 
@@ -1053,7 +1176,6 @@ namespace IR {
         if(DEBUGGING) std::cout << "found a call " <<  in.string() << std::endl;
         
         Function*   currentF = p.functions.back();
-        BasicBlock* currentB = currentF->basicBlocks.back();
         
         Instruction_Call* instruction = new Instruction_Call();
 
@@ -1084,7 +1206,7 @@ namespace IR {
         }
         instruction->instruction.append(" )");
   
-        currentB->instructions.push_back(instruction);
+        basicBlockInsts.push_back(instruction);
     }
   };
 
@@ -1094,35 +1216,38 @@ namespace IR {
         if(DEBUGGING) std::cout << "found a call_assign " <<  in.string() << std::endl;
         
         Function*   currentF = p.functions.back();
-        BasicBlock* currentB = currentF->basicBlocks.back();
+        
         
         Instruction_CallAssign* instruction = new Instruction_CallAssign();
 
         Arg* parameter = parsed_registers.back();
         parsed_registers.pop_back();
 
+        if(DEBUGGING) cout << "Attempting to cast as a Callee: " << parameter->name << "\n";
         Callee* callee = dynamic_cast<Callee *> (parameter);
 
         while(callee == NULL) {
-          
+          if(DEBUGGING) cout << "Is a parameter: " << parameter->name << "\n";
           parameter = findVariable(currentF, parameter);
           instruction->parameters.push_back(parameter);
 
           parameter = parsed_registers.back();
           parsed_registers.pop_back();
-
+          if(DEBUGGING) cout << "Attempting to cast as a Callee: " << parameter->name << "\n";
           callee =  dynamic_cast<Callee *> (parameter);
         }
 
         std::reverse(instruction->parameters.begin(), instruction->parameters.end());
-
+        if(DEBUGGING) cout << "Found Callee: " << callee->name << "\n";
         instruction->callee = callee;
         parsed_registers.pop_back();
         
         Arg* dest = parsed_registers.back();
+
         parsed_registers.pop_back();
 
         dest = findVariable(currentF, dest);
+        if(DEBUGGING) cout << "Found destination: " << dest->name << "\n";
         instruction->dst = dest;
 
         instruction->instruction = instruction->dst->name + " <- call " + instruction->callee->name + " ( ";
@@ -1132,7 +1257,7 @@ namespace IR {
         }
         instruction->instruction.append(" )");
   
-        currentB->instructions.push_back(instruction);
+        basicBlockInsts.push_back(instruction);
     }
   };
 
@@ -1142,7 +1267,6 @@ namespace IR {
         if(DEBUGGING) std::cout << "found a return_val " <<  in.string() << std::endl;
         
         Function*   currentF = p.functions.back();
-        BasicBlock* currentB = currentF->basicBlocks.back();
         
         Instruction_ReturnVal* instruction = new Instruction_ReturnVal();
 
@@ -1153,7 +1277,7 @@ namespace IR {
         instruction->instruction = "return " + val->name;
   
         instruction->retVal = val;
-        currentB->te = instruction;
+        basicBlockInsts.push_back(instruction);
       }
   };
 
@@ -1162,11 +1286,10 @@ namespace IR {
     static void apply( const Input & in, IR::Program & p){
         if(DEBUGGING) std::cout << "found a return_nothing " <<  in.string() << std::endl;
         
-        BasicBlock* currentB = p.functions.back()->basicBlocks.back();
         
         Instruction_Return* instruction = new Instruction_Return();
         instruction->instruction = "return" ;
-        currentB->te = instruction;
+        basicBlockInsts.push_back(instruction);
     }
   };
 
@@ -1175,7 +1298,6 @@ namespace IR {
     static void apply( const Input & in, IR::Program & p){
         if(DEBUGGING) std::cout << "found a br_single " <<  in.string() << std::endl;
         
-        BasicBlock* currentB = p.functions.back()->basicBlocks.back();
         
         Instruction_br* instruction = new Instruction_br();
 
@@ -1184,7 +1306,8 @@ namespace IR {
 
         instruction->instruction = "br " + label->name;
         instruction->label = label;
-        currentB->te = instruction;
+        basicBlockInsts.push_back(instruction);
+        
 
     }
   };
@@ -1195,7 +1318,6 @@ namespace IR {
         if(DEBUGGING) std::cout << "found a br_cmp " <<  in.string() << std::endl;
         
         Function*   currentF = p.functions.back();
-        BasicBlock* currentB = currentF->basicBlocks.back();
         
         Instruction_brCmp* instruction = new Instruction_brCmp();
         
@@ -1214,23 +1336,49 @@ namespace IR {
         instruction->comparitor = comparitor;
         instruction->trueLabel = trueLabel;
         instruction->falseLabel = falseLabel;
-        currentB->te = instruction;
+        basicBlockInsts.push_back(instruction);
+        
 
     }
   };
 
-  template<> struct action < label_inst > {
+  template<> struct action < bb > {
     template< typename Input >
     static void apply( const Input & in, IR::Program & p){
         if(DEBUGGING) std::cout << "found the beginning of a new basic block " <<  in.string() << std::endl;
         
         Function* currentF = p.functions.back();
+        if(DEBUGGING) cout << "p.functions.back() suceeded\n";
         BasicBlock* bb = new BasicBlock();
+        if(DEBUGGING) cout << "Created a new bb\n";
 
-        Label* label = dynamic_cast<Label *> (parsed_registers.back());
+        if(parsed_registers.size() == 0 && DEBUGGING){
+          cout << "Parsed parsed_registers is empty\n";
+        }
+        if(DEBUGGING) cout << "Attempting to cast " << parsed_registers.back()->name << " as a label\n";
+
+        Label* label;
+        while(!(label = dynamic_cast<Label *> (parsed_registers.back()))){
+          parsed_registers.pop_back();
+        if(DEBUGGING) cout << "Attempting to cast " << parsed_registers.back()->name << " as a label\n";
+
+        }
+        // if(label == NULL){
+        //   cout << "Not the label\n";
+        // }
+        // else{
+        //   cout << "It is a label\n";
+        // }
+        if(DEBUGGING) cout << "Label name for bb is : " << label->name << endl;
         parsed_registers.pop_back();
         bb->label = label;
+        Instruction* te = basicBlockInsts.back();
+        basicBlockInsts.pop_back();
+        bb->instructions = basicBlockInsts;
+        basicBlockInsts = {};
+        bb->te = te;
         currentF->basicBlocks.push_back(bb);
+        if(DEBUGGING) cout << "Setting terminating inst to be: " << bb->te->instruction << " \n";
 
     }
   };
@@ -1274,6 +1422,8 @@ namespace IR {
     
     // if it is just a number, then it wont be stored in declared vars
     if (Number* num = dynamic_cast<Number *> (arg)) { return arg; }
+
+    if(Label* label = dynamic_cast<Label *>(arg)) { return arg; }
 
     // reverse so we get the latest declaration -- can you redefine variables with new types?
     // std::reverse(f->declared_variables.begin(), f->declared_variables.end());

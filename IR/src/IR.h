@@ -59,12 +59,13 @@ namespace IR {
 
     };
 
-    struct Tuple : Type {
-
+    struct Array : Type {
+      virtual ~Array() = default;
+      int dims;
     };
 
-    struct Array : Type {
-      int dims;
+    struct Tuple : Array {
+
     };
 
     struct VoidT : Type {
@@ -114,6 +115,9 @@ namespace IR {
       std::vector<Arg*> src; 
     };
 
+      struct Instruction_TupleInit : Instruction_ArrayInit{
+      };
+
     struct Instruction_Declaration : Instruction {
       Arg* type;
       Arg* var;
@@ -141,12 +145,14 @@ namespace IR {
 
       struct Instruction_Load : Instruction_Assignment {
         virtual ~Instruction_Load() = default;
+        std::vector<Arg*> indexes;
       };
         struct Instruction_stackArg : Instruction_Load {
         };
     
       struct Instruction_Store : Instruction_Assignment {
         virtual ~Instruction_Store() = default;
+        std::vector<Arg*> indexes;
       };
         struct Instruction_stackStore : Instruction_Store {
 
