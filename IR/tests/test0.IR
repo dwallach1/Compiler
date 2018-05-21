@@ -1,0 +1,7 @@
+define void :main ( ){
+
+  :entry
+  %ar <- new Array(3)
+  return
+
+}

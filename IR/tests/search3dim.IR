@@ -5,7 +5,7 @@ define void :main ( ){
   int64 %v
   int64 %var
 
-  %A <- new Array(10,8,15)
+  %A <- new Array(21,17,31) // 10, 8, 15 decoded
 
   %A[1][4][5] <- 5
   %v <- 5

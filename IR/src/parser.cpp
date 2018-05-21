@@ -29,12 +29,12 @@ namespace IR {
    */ 
 
 
-  std::vector<Arg *> parsed_registers;
-  std::vector<Type *> type_declarations;
-  std::vector<Arg *> index_holder;
-  std::vector<Operation *> operations;
-  std::vector<Instruction* > basicBlockInsts;
-  std::vector<Arg *> newFunctionArgs;
+  vector<Arg *> parsed_registers;
+  vector<Type *> type_declarations;
+  vector<Arg *> index_holder;
+  vector<Operation *> operations;
+  vector<Instruction* > basicBlockInsts;
+  vector<Arg *> newFunctionArgs;
 
   /* 
    * Grammar rules from now on.
@@ -238,7 +238,6 @@ namespace IR {
       pegtl::one< ']' > 
     >{};
 
-
   struct assignment:
     pegtl::seq<
       seps,
@@ -268,7 +267,6 @@ namespace IR {
       seps,
       t
     >{};
-
 
   struct indexes:
     pegtl::plus<  
@@ -536,9 +534,9 @@ namespace IR {
 
   template<> struct action < f_name > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
+    static void apply( const Input & in, Program & p){
       
-      if(DEBUGGING) std::cout << "Found a new function " <<  in.string() << std::endl;
+      if(DEBUGGING) cout << "Found a new function " <<  in.string() << endl;
       
       Function *newF = new Function();
       
@@ -572,8 +570,8 @@ namespace IR {
 
   template<> struct action < label > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-      if(DEBUGGING) std::cout << "Found label: " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+      if(DEBUGGING) cout << "Found label: " <<  in.string() << endl;
       
        
       
@@ -585,7 +583,7 @@ namespace IR {
 
       VoidT* noType = new VoidT();
       label->type = noType;
-      if(DEBUGGING) std::cout << "returning from label: " <<  in.string() << std::endl;
+      if(DEBUGGING) cout << "returning from label: " <<  in.string() << endl;
 
 
     }
@@ -593,8 +591,8 @@ namespace IR {
 
   template<> struct action < index > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-      if(DEBUGGING) std::cout << "Found an index: " << in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+      if(DEBUGGING) cout << "Found an index: " << in.string() << endl;
 
         // it will be a number -- get the number part [ num ]
         // Arg* newIndex = parsed_registers.back();
@@ -605,8 +603,8 @@ namespace IR {
 
   template<> struct action < type > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-      if(DEBUGGING) std::cout << "Found a type: " << in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+      if(DEBUGGING) cout << "Found a type: " << in.string() << endl;
 
       if(in.string() == "int64") {
         Int64* int64 = new Int64();
@@ -634,9 +632,9 @@ namespace IR {
 
   template<> struct action < callee > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
+    static void apply( const Input & in, Program & p){
       
-      if(DEBUGGING) std::cout << "returning from callee " <<  in.string() << std::endl;
+      if(DEBUGGING) cout << "returning from callee " <<  in.string() << endl;
       
       if (in.string() == "print" || in.string() == "array-error") {
           PA* pa = new PA();
@@ -658,8 +656,8 @@ namespace IR {
 
   template<> struct action < op > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-      if(DEBUGGING) std::cout << "Found a op: " << in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+      if(DEBUGGING) cout << "Found a op: " << in.string() << endl;
       
       Operation* newOp = new Operation();
       newOp->name = in.string();
@@ -707,9 +705,9 @@ namespace IR {
 
   template<> struct action < var > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
+    static void apply( const Input & in, Program & p){
       
-      if(DEBUGGING) std::cout << "Found a var: " <<  in.string() << std::endl;
+      if(DEBUGGING) cout << "Found a var: " <<  in.string() << endl;
       
       Arg* arg = new Arg();
       arg->name = in.string();
@@ -720,9 +718,9 @@ namespace IR {
 
   template<> struct action < number > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
+    static void apply( const Input & in, Program & p){
       
-      if(DEBUGGING) std::cout << "Found a number " << in.string() << std::endl;
+      if(DEBUGGING) cout << "Found a number " << in.string() << endl;
 
       Number* num = new Number();
       num->name = in.string();
@@ -735,7 +733,7 @@ namespace IR {
   template<> struct action < T > {
     template< typename Input >
     static void apply( const Input & in, Program & p){
-      if(DEBUGGING) std::cout << "found a Type: " <<  in.string() << std::endl;
+      if(DEBUGGING) cout << "found a Type: " <<  in.string() << endl;
 
       if(in.string() == "void") {
         VoidT* voidT = new VoidT();
@@ -767,8 +765,8 @@ namespace IR {
 
   template<> struct action < declaration > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-      if(DEBUGGING) std::cout << "found a declaration " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+      if(DEBUGGING) cout << "found a declaration " <<  in.string() << endl;
 
       Function* currentF = p.functions.back();
 
@@ -797,12 +795,12 @@ namespace IR {
 
   template<> struct action < assignment > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found an assign " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "found an assign " <<  in.string() << endl;
         
         Function* currentF = p.functions.back();
         
-        Instruction_Assignment *instruction = new IR::Instruction_Assignment();
+        Instruction_Assignment *instruction = new Instruction_Assignment();
         if(DEBUGGING) cout << "Getting source\n";
         Arg* source = parsed_registers.back();
         parsed_registers.pop_back();
@@ -838,21 +836,21 @@ namespace IR {
 
   template<> struct action < op_assign > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found an op_assign " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "found an op_assign " <<  in.string() << endl;
         
         Function*   currentF = p.functions.back();
         
         Operation* operation = operations.back();
         operations.pop_back();
 
-        IR::Arg* arg2 = parsed_registers.back();
+        Arg* arg2 = parsed_registers.back();
         parsed_registers.pop_back();
 
-        IR::Arg* arg1 = parsed_registers.back();
+        Arg* arg1 = parsed_registers.back();
         parsed_registers.pop_back();
 
-        IR::Arg* dest = parsed_registers.back();
+        Arg* dest = parsed_registers.back();
         parsed_registers.pop_back();
 
         dest = findVariable(currentF, dest);
@@ -888,7 +886,7 @@ namespace IR {
             basicBlockInsts.push_back(instruction);
           }
           else if(operation->op == SUB){
-            IR::Instruction_subAssignment *instruction = new IR::Instruction_subAssignment();
+            Instruction_subAssignment *instruction = new Instruction_subAssignment();
             instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
             instruction->dst = dest;
             instruction->arg1 = arg1;
@@ -898,7 +896,7 @@ namespace IR {
             basicBlockInsts.push_back(instruction);
           }
           else if(operation->op == AND){
-            IR::Instruction_andAssignment *instruction = new IR::Instruction_andAssignment();
+            Instruction_andAssignment *instruction = new Instruction_andAssignment();
             instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
             instruction->dst = dest;
             instruction->arg1 = arg1;
@@ -908,7 +906,7 @@ namespace IR {
             basicBlockInsts.push_back(instruction);
           }
           else if(operation->op == SHL){
-            IR::Instruction_leftShiftAssignment *instruction = new IR::Instruction_leftShiftAssignment();
+            Instruction_leftShiftAssignment *instruction = new Instruction_leftShiftAssignment();
             instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
             instruction->dst = dest;
             instruction->arg1 = arg1;
@@ -918,7 +916,7 @@ namespace IR {
             basicBlockInsts.push_back(instruction);
           }
           else if(operation->op == SHR){
-            IR::Instruction_rightShiftAssignment *instruction = new IR::Instruction_rightShiftAssignment();
+            Instruction_rightShiftAssignment *instruction = new Instruction_rightShiftAssignment();
             instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
             instruction->dst = dest;
             instruction->arg1 = arg1;
@@ -928,7 +926,7 @@ namespace IR {
             basicBlockInsts.push_back(instruction);
           }
           else{
-            IR::Instruction_opAssignment *instruction = new IR::Instruction_opAssignment();
+            Instruction_opAssignment *instruction = new Instruction_opAssignment();
             instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
             instruction->dst = dest;
             instruction->arg1 = arg1;
@@ -941,18 +939,18 @@ namespace IR {
         //Checking to see if there is a multiply by 2 4 8 or 16
         else if(operation->op == MUL){
           unsigned loc = 0;
-          if(IR::Number* number = dynamic_cast<IR::Number*>(arg1)){
+          if(Number* number = dynamic_cast<Number*>(arg1)){
             if(number->num == 2 || number->num == 4 || number->num == 8 || number->num == 16){
               loc = 1;
             }
           }
-          else if(IR::Number* number = dynamic_cast<IR::Number*>(arg2)){
+          else if(Number* number = dynamic_cast<Number*>(arg2)){
             if(number->num == 2 || number->num == 4 || number->num == 8 || number->num == 16){
               loc = 2;
             }
           }
           if (loc){
-            IR::Instruction_specialMultAssignment *instruction = new IR::Instruction_specialMultAssignment();
+            Instruction_specialMultAssignment *instruction = new Instruction_specialMultAssignment();
             instruction->locOfNum = loc;
             instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
             instruction->dst = dest;
@@ -965,7 +963,7 @@ namespace IR {
           }
           //just a normal mult
           else{
-            IR::Instruction_multAssignment *instruction = new IR::Instruction_multAssignment();
+            Instruction_multAssignment *instruction = new Instruction_multAssignment();
             instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
             instruction->dst = dest;
             instruction->arg1 = arg1;
@@ -980,8 +978,8 @@ namespace IR {
 
   template<> struct action < load > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found a load " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "found a load " <<  in.string() << endl;
         
         Function* currentF = p.functions.back();
         
@@ -1025,8 +1023,8 @@ namespace IR {
 
   template<> struct action < store > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found a store " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "found a store " <<  in.string() << endl;
         
         Function*   currentF = p.functions.back();
         
@@ -1073,35 +1071,50 @@ namespace IR {
 
   template<> struct action < length > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found a length instruction: " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "found a length instruction: " <<  in.string() << endl;
         
         Function* currentF = p.functions.back();
         
         Instruction_Length* instruction = new Instruction_Length();
 
-        Arg* src = parsed_registers.back();
+        Arg* dimension = parsed_registers.back();
         parsed_registers.pop_back();
 
-        Arg* dest = parsed_registers.back();
+        Arg* array = parsed_registers.back();
         parsed_registers.pop_back();
 
-        src = findVariable(currentF, src);
-        dest = findVariable(currentF, dest);
+        Arg* dst = parsed_registers.back();
+        parsed_registers.pop_back();
 
-        instruction->instruction = dest->name + " <- length " + src->name;
+        if(DEBUGGING) cout << "dimension name is: " << dimension->name << endl;
+        if(DEBUGGING) cout << "array name is: " << array->name << endl;
+        if(DEBUGGING) cout << "dst name is: " << dst->name << endl;
+
+        dimension = findVariable(currentF, dimension);
+        array = findVariable(currentF, array);
+        dst = findVariable(currentF, dst);
+
+        if(DEBUGGING) cout << "After matching vars --> dimension name is: " << dimension->name << endl;
+        if(DEBUGGING) cout << "After matching vars --> array name is: " << array->name << endl;
+        if(DEBUGGING) cout << "After matching vars --> dst name is: " << dst->name << endl;
+
+        instruction->instruction = dst->name + " <- length " + array->name + " " + dimension->name;
   
-        instruction->dst = dest;
-        instruction->src = src;
+        instruction->dimension = dimension;
+        instruction->array = array;
+        instruction->dst = dst;
 
         basicBlockInsts.push_back(instruction);
+
+        if(DEBUGGING) cout << "Pushed back the length instruction: " <<  in.string() << endl;
     }
   };
 
   template<> struct action < tuple > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found an tuple initialization: " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "found an tuple initialization: " <<  in.string() << endl;
         
         Function* currentF = p.functions.back();
         
@@ -1136,8 +1149,8 @@ namespace IR {
 
   template<> struct action < array > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found an array initialization: " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "found an array initialization: " <<  in.string() << endl;
         
         Function* currentF = p.functions.back();
         
@@ -1172,8 +1185,8 @@ namespace IR {
 
   template<> struct action < call > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found a call " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "found a call " <<  in.string() << endl;
         
         Function*   currentF = p.functions.back();
         
@@ -1195,7 +1208,7 @@ namespace IR {
           callee = dynamic_cast<Callee *>(parameter);
         }
 
-        std::reverse(instruction->parameters.begin(), instruction->parameters.end());
+        reverse(instruction->parameters.begin(), instruction->parameters.end());
 
         instruction->callee = callee;
 
@@ -1212,8 +1225,8 @@ namespace IR {
 
   template<> struct action < call_assign > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found a call_assign " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "found a call_assign " <<  in.string() << endl;
         
         Function*   currentF = p.functions.back();
         
@@ -1237,7 +1250,7 @@ namespace IR {
           callee =  dynamic_cast<Callee *> (parameter);
         }
 
-        std::reverse(instruction->parameters.begin(), instruction->parameters.end());
+        reverse(instruction->parameters.begin(), instruction->parameters.end());
         if(DEBUGGING) cout << "Found Callee: " << callee->name << "\n";
         instruction->callee = callee;
         parsed_registers.pop_back();
@@ -1263,8 +1276,8 @@ namespace IR {
 
   template<> struct action < return_val > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found a return_val " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "found a return_val " <<  in.string() << endl;
         
         Function*   currentF = p.functions.back();
         
@@ -1283,8 +1296,8 @@ namespace IR {
 
   template<> struct action < return_nothing > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found a return_nothing " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "found a return_nothing " <<  in.string() << endl;
         
         
         Instruction_Return* instruction = new Instruction_Return();
@@ -1295,8 +1308,8 @@ namespace IR {
 
   template<> struct action < br_single > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found a br_single " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "found a br_single " <<  in.string() << endl;
         
         
         Instruction_br* instruction = new Instruction_br();
@@ -1314,8 +1327,8 @@ namespace IR {
 
   template<> struct action < br_cmp > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found a br_cmp " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "found a br_cmp " <<  in.string() << endl;
         
         Function*   currentF = p.functions.back();
         
@@ -1344,8 +1357,8 @@ namespace IR {
 
   template<> struct action < bb > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "found the beginning of a new basic block " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "found the beginning of a new basic block " <<  in.string() << endl;
         
         Function* currentF = p.functions.back();
         if(DEBUGGING) cout << "p.functions.back() suceeded\n";
@@ -1385,8 +1398,8 @@ namespace IR {
 
   template<> struct action < comment > {
     template< typename Input >
-    static void apply( const Input & in, IR::Program & p){
-        if(DEBUGGING) std::cout << "Found a comment " <<  in.string() << std::endl;
+    static void apply( const Input & in, Program & p){
+        if(DEBUGGING) cout << "Found a comment " <<  in.string() << endl;
     }
   };
 
@@ -1403,18 +1416,18 @@ namespace IR {
     /* 
      * Check the grammar for some possible issues.
      */
-    pegtl::analyze< IR::grammar >();
+    pegtl::analyze< grammar >();
 
 
     /*
      * Parse.
      */   
     file_input< > fileInput(fileName);
-    IR::Program p;
+    Program p;
     
-    parse< IR::grammar, IR::action >(fileInput, p);
+    parse< grammar, action >(fileInput, p);
 
-    if(DEBUGGING | DEBUG_S) std::cout << "Done parsing!\n";
+    if(DEBUGGING | DEBUG_S) cout << "Done parsing!\n";
     return p;
   }
 
@@ -1426,7 +1439,7 @@ namespace IR {
     if(Label* label = dynamic_cast<Label *>(arg)) { return arg; }
 
     // reverse so we get the latest declaration -- can you redefine variables with new types?
-    // std::reverse(f->declared_variables.begin(), f->declared_variables.end());
+    // reverse(f->declared_variables.begin(), f->declared_variables.end());
     for(Arg* var : f->declared_variables) {
       if (var->name == arg->name ) { return var; }
     }

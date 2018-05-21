@@ -32,7 +32,7 @@ define int64 :callMyClosure (tuple %c, int64 %argClosure){
   :entry
   code %fp
   %fp <- %c[0]
-  int64 %numberOfArgs
+  int64 %arityOfC
   %arityOfC <- %c[1]
   int64 %checkArgs
   %checkArgs <- %arityOfC = 1

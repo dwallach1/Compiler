@@ -115,11 +115,6 @@ int main(
    * Generate the code.
    */
   if (enable_code_generator){
-    // if(DEBUGGING) std::cout << "Linking calls to functions\n";
-    // renameAllLabels(&p);
-    // linkCallsToFunctions(&p);
-    // gatherAllSpecialCalls(&p);
-    // if(DEBUGGING) std::cout << "Generating new code\n";
     IR::IR_generate_code(p);
   }
 

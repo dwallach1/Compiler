@@ -4,26 +4,6 @@
 
 namespace IR {
 
-  // enum ArgType {
-  //   NUM,
-  //   VAR, 
-  //   LBL,
-  //   CALLEE,
-  //   PA,
-  //   S_ARG,
-  //   RSPMEM,
-  //   ARRAY
-  // };
-
-  // enum Type {
-  //   INT64,
-  //   ARRAY,
-  //   CODE,
-  //   LBL
-  // };
-
-
-
   enum Op {
     ASSIGN, //<-
     ADD, //+
@@ -138,9 +118,11 @@ namespace IR {
       Operation* operation;
     };
       
-      struct Instruction_Length : Instruction_Assignment{
-
-      };
+    struct Instruction_Length : Instruction_Assignment{
+      Arg* dimension;
+      Arg* array;
+      Arg* dst;
+    };
 
 
       struct Instruction_Load : Instruction_Assignment {
