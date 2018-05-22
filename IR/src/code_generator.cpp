@@ -89,7 +89,7 @@ namespace IR {
             //This section will decode the arguments 
             vector<string> placeholdVars = {};
             for(Arg* a : i->src){
-                string newName = a->name + "DavidAndBrian";
+                string newName = "DavidAndBrian" + a->name ;
                 placeholdVars.push_back(newName);
                 string decodeLine = "";
                 decodeLine = newName + " <- " + a->name + " >> 1";
@@ -117,7 +117,7 @@ namespace IR {
 
             //and array lengths
             int count = 0;
-            for(int j = 16; j < placeholdVars.size() * 8 + 8; j += 8){
+            for(int j = 16; j <= placeholdVars.size() * 8 + 8; j += 8){
                 arrayInit.push_back(placeholdVars[0] + " <- " + i->dst->name + " + " + to_string(j));
                 arrayInit.push_back("store " + placeholdVars[0] + " <- " + i->src[count]->name);
                 count++;
@@ -207,15 +207,26 @@ namespace IR {
         fs.open("prog.L3", std::fstream::in | std::fstream::out | std::fstream::app);
         
         for (Function* f : p.functions) {
-
+            fs << "define " << f->name->name << "(";
+            for(Arg* param : f->parameters){
+                fs << param->name;
+                if(param != f->parameters[f->parameters.size()-1]){
+                    fs << ", ";
+                }
+            }
+            fs << "){\n";
             //orderBasicBlocks(f);
             
             for (BasicBlock* B : f->basicBlocks) {
+                fs << "\t\t" << B->label->name << endl;
                 for(Instruction* I : B->instructions){
                     convertInstruction(f, I);
-                    fs << I->instruction << endl;
+                    fs << "\t\t" << I->instruction << endl;
                 }
+                fs << "\t\t" << B->te->instruction << endl;
             }
+
+            fs << "}\n";
         }
         
         fs.close();
