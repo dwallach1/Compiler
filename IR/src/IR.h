@@ -90,6 +90,12 @@ namespace IR {
     Instruction* nextInst;
   };
 
+    struct Instruction_Length : Instruction{
+      Arg* dimension;
+      Arg* array;
+      Arg* dst;
+    };
+
     struct Instruction_ArrayInit : Instruction{
       Arg* dst;
       std::vector<Arg*> src; 
@@ -103,14 +109,6 @@ namespace IR {
       Arg* var;
     };
 
-    struct Instruction_Lea : Instruction {
-
-    };
-
-    struct Instruction_MemWithNonZeroConst : Instruction {
-
-    };
-
     struct Instruction_Assignment : Instruction {
       virtual ~Instruction_Assignment() = default;
       Arg* src;
@@ -118,27 +116,15 @@ namespace IR {
       Operation* operation;
     };
       
-    struct Instruction_Length : Instruction_Assignment{
-      Arg* dimension;
-      Arg* array;
-      Arg* dst;
-    };
-
-
       struct Instruction_Load : Instruction_Assignment {
         virtual ~Instruction_Load() = default;
         std::vector<Arg*> indexes;
       };
-        struct Instruction_stackArg : Instruction_Load {
-        };
     
       struct Instruction_Store : Instruction_Assignment {
         virtual ~Instruction_Store() = default;
         std::vector<Arg*> indexes;
       };
-        struct Instruction_stackStore : Instruction_Store {
-
-        };
   
     struct Instruction_opAssignment : Instruction {
       virtual ~Instruction_opAssignment() = default;
@@ -147,43 +133,7 @@ namespace IR {
       Arg*  arg2;
       Operation* operation;
     };
-  
-      struct Instruction_cmpAssignment : Instruction_opAssignment {
-    
-      };
-    
-      struct Instruction_addAssignment : Instruction_opAssignment {
-    
-      };
-    
-      struct Instruction_subAssignment : Instruction_opAssignment {
-    
-      };
 
-      struct Instruction_andAssignment : Instruction_opAssignment {
-    
-      };
-    
-      struct Instruction_shiftAssignment : Instruction_opAssignment {
-        virtual ~Instruction_shiftAssignment() = default;
-      };
-  
-        struct Instruction_leftShiftAssignment : Instruction_shiftAssignment {
-  
-        };
-        struct Instruction_rightShiftAssignment : Instruction_shiftAssignment {
-  
-        };
-    
-      struct Instruction_multAssignment : Instruction_opAssignment {
-        virtual ~Instruction_multAssignment() = default;
-      };
-        //This is for a multiply by 2 4 8 or 16
-        struct Instruction_specialMultAssignment : Instruction_multAssignment {
-          unsigned locOfNum;
-        };
-  
-  
     struct Instruction_br : Instruction {
       Arg* label;
     };

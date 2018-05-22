@@ -14,8 +14,8 @@
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
 
-#define DEBUGGING 1
-#define DEBUG_S 1
+#define DEBUGGING 0
+#define DEBUG_S 0
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
 using namespace pegtl;
@@ -545,6 +545,7 @@ namespace IR {
 
       Label* funcName = dynamic_cast<Label *> (parameter);
 
+
       while(funcName == NULL) {
         
         newF->declared_variables.insert(newFunctionArgs.back());
@@ -553,7 +554,6 @@ namespace IR {
         newF->parameters.push_back(parameter);
         parameter = parsed_registers.back();
         parsed_registers.pop_back();
-
         funcName = dynamic_cast<Label *> (parameter);
       }
       newFunctionArgs = {};
@@ -781,7 +781,7 @@ namespace IR {
       test = findVariable(currentF, test);
       if(test){
         newFunctionArgs.push_back(arg);
-        parsed_registers.pop_back();
+        //parsed_registers.pop_back();
       }
       else{
         currentF->declared_variables.insert(arg);
