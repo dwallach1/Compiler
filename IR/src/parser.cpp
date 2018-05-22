@@ -251,7 +251,12 @@ namespace IR {
         >
       >,
       s,
-      not_at<index>
+      not_at<
+        sor<
+          index,
+          op
+        >
+      >
     >{};
 
   struct op_assign:

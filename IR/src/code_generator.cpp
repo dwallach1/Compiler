@@ -223,6 +223,8 @@ namespace IR {
                     convertInstruction(f, I);
                     fs << "\t\t" << I->instruction << endl;
                 }
+                B->te->instruction.erase(remove(B->te->instruction.begin(), B->te->instruction.end(), '%'), B->te->instruction.end());
+
                 fs << "\t\t" << B->te->instruction << endl;
             }
 
