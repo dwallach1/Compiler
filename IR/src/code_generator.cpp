@@ -27,7 +27,7 @@ namespace IR {
 
             I->instruction = "//" + I->instruction;
         }
-        else if(Instruction_Store i = dynamic_cast<Instruction_Store *> (I)){
+        else if(Instruction_Store* i = dynamic_cast<Instruction_Store *> (I)){
             string storeLine = "";
             if(Tuple* t = dynamic_cast<Tuple *>(i->dst->type)){
                 string uniqueVar = "uniqueVariableForTupleByDavidAndBrian";
@@ -35,14 +35,26 @@ namespace IR {
                 storeLine.append(uniqueVar + " <- " + i->indexes[0]->name + " * 8\n");
                 storeLine.append(uniqueVar + " <- " + uniqueVar + " + 8\n");
                 storeLine.append( "store " + uniqueVar + " <- " + i->src->name);
-                I->instruction = storeLine;
             }
             //Dealing with an array
             else{
-
+                int B = i->indexes.size() * 8 + 16;
+                string uniqueVar = "BrianAndDavidsUniqueOffsetVar";
+                string uniqueVar1 = uniqueVar + "1";
+                storeLine.append(uniqueVar + " <- " + i->dst->name + " + " + to_string(B) + "\n");
+                for(int j = 0; j < i->indexes.size(); j++) {
+                    storeLine.append(uniqueVar1 + " <- " + i->dst->name + " + " + to_string(16 + (j*8)) + "\n");
+                    storeLine.append(uniqueVar1 + " <- load " + uniqueVar1 + "\n");
+                    storeLine.append(uniqueVar1 + " <- " + uniqueVar1 + " * " + i->indexes[j]->name + "\n");
+                    storeLine.append(uniqueVar + " <- " + uniqueVar + " + " + uniqueVar1 + "\n");
+                }
+                storeLine.append("store " + uniqueVar + " <- " + i->src->name);
             }
+
+            I->instruction = storeLine;
+
         }
-        else if(Instruction_Load i = dynamic_cast<Instruction_Load *> (I)){
+        else if(Instruction_Load* i = dynamic_cast<Instruction_Load *> (I)){
             string loadLine = "";
             if(Tuple* t = dynamic_cast<Tuple *>(i->src->type)){
                 string uniqueVar = "uniqueVariableForTupleByDavidAndBrian";
@@ -50,17 +62,27 @@ namespace IR {
                 loadLine.append(uniqueVar + " <- " + i->indexes[0]->name + " * 8\n");
                 loadLine.append(uniqueVar + " <- " + uniqueVar + " + 8\n");
                 loadLine.append(i->dst->name + " <- load " + uniqueVar);
-                I->instruction = loadLine;
             }
             //Dealing with an array
             else{
-
+                int B = i->indexes.size() * 8 + 16;
+                string uniqueVar = "BrianAndDavidsUniqueOffsetVar";
+                string uniqueVar1 = uniqueVar + "1";
+                loadLine.append(uniqueVar + " <- " + i->src->name + " + " + to_string(B) + "\n");
+                for(int j = 0; j < i->indexes.size(); j++) {
+                    loadLine.append(uniqueVar1 + " <- " + i->src->name + " + " + to_string(16 + (j*8)) + "\n");
+                    loadLine.append(uniqueVar1 + " <- load " + uniqueVar1 + "\n");
+                    loadLine.append(uniqueVar1 + " <- " + uniqueVar1 + " * " + i->indexes[j]->name + "\n");
+                    loadLine.append(uniqueVar + " <- " + uniqueVar + " + " + uniqueVar1 + "\n");
+                }
+                loadLine.append(i->dst->name + " <- load " +  uniqueVar);
             }
+            I->instruction = loadLine;
         }
-        else if(Instruction_TupleInit i = dynamic_cast<Instruction_TupleInit *> (I)){
-            i->Instruction = i->dst->name + " <- call allocate(" + i->src[0]->name + ",1)"; 
+        else if(Instruction_TupleInit* i = dynamic_cast<Instruction_TupleInit *> (I)){
+            i->instruction = i->dst->name + " <- call allocate(" + i->src[0]->name + ",1)"; 
         }
-        else if(Instruction_ArrayInit i = dynamic_cast<Instruction_ArrayInit *> (I)){
+        else if(Instruction_ArrayInit* i = dynamic_cast<Instruction_ArrayInit *> (I)){
             vector<string> arrayInit = {};
 
 
@@ -79,7 +101,7 @@ namespace IR {
                 arrayInit.push_back(multLine);
             }
             //Add space for holding dimensionalities
-            arrayInit.push_back(placeholdVars[0] + " <- " + placeholdVars[0] + " + " + placeholdVars.size()+1);
+            arrayInit.push_back(placeholdVars[0] + " <- " + placeholdVars[0] + " + " + to_string(placeholdVars.size()+1) );
 
             //And then encode the value
             arrayInit.push_back(placeholdVars[0] + " <- " + placeholdVars[0] + " << 1");
@@ -91,12 +113,12 @@ namespace IR {
 
             //Storing dimensions 
             arrayInit.push_back(placeholdVars[0] + " <- " + i->dst->name + " + 8");
-            arrayInit.push_back("store " + placeholdVars[0] + " <- " + (placeholdVars.size()*2 + 1) );
+            arrayInit.push_back("store " + placeholdVars[0] + " <- " + to_string(placeholdVars.size()*2 + 1) );
 
             //and array lengths
             int count = 0;
-            for(int i = 16; i < placeholdVars.size() * 8 + 8; i += 8){
-                arrayInit.push_back(placeholdVars[0] + " <- " + i->dst->name + " + " + to_string(i));
+            for(int j = 16; j < placeholdVars.size() * 8 + 8; j += 8){
+                arrayInit.push_back(placeholdVars[0] + " <- " + i->dst->name + " + " + to_string(j));
                 arrayInit.push_back("store " + placeholdVars[0] + " <- " + i->src[count]->name);
                 count++;
             }
@@ -110,7 +132,7 @@ namespace IR {
             }
 
         }
-        else if(Instruction_Length i = dynamic_cast<Instruction_Length *> (I)){
+        else if(Instruction_Length* i = dynamic_cast<Instruction_Length *> (I)){
             string uniqueVar = "DavidAndBrianMakeALengthUnique";
             string lengthLine = "";
             lengthLine.append(uniqueVar + " <- " + i->dimension->name + " * 8\n");
@@ -191,6 +213,7 @@ namespace IR {
             for (BasicBlock* B : f->basicBlocks) {
                 for(Instruction* I : B->instructions){
                     convertInstruction(f, I);
+                    fs << I->instruction << endl;
                 }
             }
         }

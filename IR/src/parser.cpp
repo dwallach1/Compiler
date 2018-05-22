@@ -857,122 +857,13 @@ namespace IR {
         arg1 = findVariable(currentF, arg1);
         arg2 = findVariable(currentF, arg2);
 
-        if(operation->op == LT  || 
-           operation->op == LTE ||
-           operation->op == EQ  ||
-           operation->op == GTE ||
-           operation->op == GT   ) {
-
-          Instruction_cmpAssignment* instruction = new Instruction_cmpAssignment();
-
-          instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
-          instruction->dst = dest;
-          instruction->arg1 = arg1;
-          instruction->arg2 = arg2;
-          instruction->operation = operation;
-          
-          basicBlockInsts.push_back(instruction);
-
-        } 
-        else if(operation->op != MUL){
-          if(operation->op == ADD){
-            Instruction_addAssignment *instruction = new Instruction_addAssignment();
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            
-            basicBlockInsts.push_back(instruction);
-          }
-          else if(operation->op == SUB){
-            Instruction_subAssignment *instruction = new Instruction_subAssignment();
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            
-            basicBlockInsts.push_back(instruction);
-          }
-          else if(operation->op == AND){
-            Instruction_andAssignment *instruction = new Instruction_andAssignment();
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            
-            basicBlockInsts.push_back(instruction);
-          }
-          else if(operation->op == SHL){
-            Instruction_leftShiftAssignment *instruction = new Instruction_leftShiftAssignment();
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            
-            basicBlockInsts.push_back(instruction);
-          }
-          else if(operation->op == SHR){
-            Instruction_rightShiftAssignment *instruction = new Instruction_rightShiftAssignment();
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            
-            basicBlockInsts.push_back(instruction);
-          }
-          else{
-            Instruction_opAssignment *instruction = new Instruction_opAssignment();
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            
-            basicBlockInsts.push_back(instruction);
-          }  
-        }
-        //Checking to see if there is a multiply by 2 4 8 or 16
-        else if(operation->op == MUL){
-          unsigned loc = 0;
-          if(Number* number = dynamic_cast<Number*>(arg1)){
-            if(number->num == 2 || number->num == 4 || number->num == 8 || number->num == 16){
-              loc = 1;
-            }
-          }
-          else if(Number* number = dynamic_cast<Number*>(arg2)){
-            if(number->num == 2 || number->num == 4 || number->num == 8 || number->num == 16){
-              loc = 2;
-            }
-          }
-          if (loc){
-            Instruction_specialMultAssignment *instruction = new Instruction_specialMultAssignment();
-            instruction->locOfNum = loc;
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            
-            basicBlockInsts.push_back(instruction);
-
-          }
-          //just a normal mult
-          else{
-            Instruction_multAssignment *instruction = new Instruction_multAssignment();
-            instruction->instruction = dest->name + " <- " + arg1->name + ' ' + operation->name + ' ' + arg2->name;
-            instruction->dst = dest;
-            instruction->arg1 = arg1;
-            instruction->arg2 = arg2;
-            instruction->operation = operation;
-            
-            basicBlockInsts.push_back(instruction);
-          }
-        }
+        Instruction_opAssignment* instruction = new Instruction_opAssignment();
+        instruction->dst = dest;
+        instruction->arg1 = arg1;
+        instruction->arg2 = arg2;
+        instruction->operation = operation;
+        instruction->instruction = dest->name + " <- " + arg1->name + " " + operation->name + " " + arg2->name;
+        basicBlockInsts.push_back(instruction);
     }
   };
 
