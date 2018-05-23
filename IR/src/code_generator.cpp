@@ -45,7 +45,7 @@ namespace IR {
                 string uniqueVar1 = uniqueVar + "1";
                 storeLine.append(uniqueVar + " <- 0\n");
                 for(int j = 0; j < i->indexes.size(); j++) {
-                    storeLine.append(uniqueVar1 + " <- " + i->dst->name + " + " + to_string(16 + (j*8)) + "\n");
+                    storeLine.append(uniqueVar1 + " <- " + i->dst->name + " + " + to_string(16 + (j*8 + 8)) + "\n");
                     storeLine.append(uniqueVar1 + " <- load " + uniqueVar1 + "\n");
                     storeLine.append(uniqueVar1 + " <- " + uniqueVar1 + " >> 1\n");
                     storeLine.append(uniqueVar1 + " <- " + uniqueVar1 + " * " + i->indexes[i->indexes.size() - 1 - j]->name + "\n");
@@ -79,7 +79,7 @@ namespace IR {
                 string uniqueVar1 = uniqueVar + "1";
                 loadLine.append(uniqueVar + " <- 0\n");
                 for(int j = 0; j < i->indexes.size(); j++) {
-                    loadLine.append(uniqueVar1 + " <- " + i->src->name + " + " + to_string(16 + (j*8)) + "\n");
+                    loadLine.append(uniqueVar1 + " <- " + i->src->name + " + " + to_string(16 + (j*8 + 8)) + "\n");
                     loadLine.append(uniqueVar1 + " <- load " + uniqueVar1 + "\n");
                     loadLine.append(uniqueVar1 + " <- " + uniqueVar1 + " >> 1\n");
                     loadLine.append(uniqueVar1 + " <- " + uniqueVar1 + " * " + i->indexes[i->indexes.size() - 1 - j]->name + "\n");
