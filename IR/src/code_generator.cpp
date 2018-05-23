@@ -41,13 +41,15 @@ namespace IR {
                 int B = i->indexes.size() * 8 + 16;
                 string uniqueVar = "BrianAndDavidsUniqueOffsetVar";
                 string uniqueVar1 = uniqueVar + "1";
-                storeLine.append(uniqueVar + " <- " + i->dst->name + " + " + to_string(B) + "\n");
+                storeLine.append(uniqueVar + " <- " + i->dst->name + "\n");
                 for(int j = 0; j < i->indexes.size(); j++) {
                     storeLine.append(uniqueVar1 + " <- " + i->dst->name + " + " + to_string(16 + (j*8)) + "\n");
                     storeLine.append(uniqueVar1 + " <- load " + uniqueVar1 + "\n");
                     storeLine.append(uniqueVar1 + " <- " + uniqueVar1 + " * " + i->indexes[j]->name + "\n");
                     storeLine.append(uniqueVar + " <- " + uniqueVar + " + " + uniqueVar1 + "\n");
                 }
+                storeLine.append(uniqueVar + " <- " + uniqueVar + " * 8\n");
+                storeLine.append(uniqueVar + " <- " + uniqueVar + " + " + to_string(B) + "\n");
                 storeLine.append("store " + uniqueVar + " <- " + i->src->name);
             }
 
@@ -68,13 +70,15 @@ namespace IR {
                 int B = i->indexes.size() * 8 + 16;
                 string uniqueVar = "BrianAndDavidsUniqueOffsetVar";
                 string uniqueVar1 = uniqueVar + "1";
-                loadLine.append(uniqueVar + " <- " + i->src->name + " + " + to_string(B) + "\n");
+                loadLine.append(uniqueVar + " <- " + i->src->name + "\n");
                 for(int j = 0; j < i->indexes.size(); j++) {
                     loadLine.append(uniqueVar1 + " <- " + i->src->name + " + " + to_string(16 + (j*8)) + "\n");
                     loadLine.append(uniqueVar1 + " <- load " + uniqueVar1 + "\n");
                     loadLine.append(uniqueVar1 + " <- " + uniqueVar1 + " * " + i->indexes[j]->name + "\n");
                     loadLine.append(uniqueVar + " <- " + uniqueVar + " + " + uniqueVar1 + "\n");
                 }
+                loadLine.append(uniqueVar + " <- " + uniqueVar + " * 8\n");
+                loadLine.append(uniqueVar + " <- " + uniqueVar + " + " + to_string(B) + "\n");
                 loadLine.append(i->dst->name + " <- load " +  uniqueVar);
             }
             I->instruction = loadLine;
@@ -209,6 +213,7 @@ namespace IR {
         for (Function* f : p.functions) {
             fs << "define " << f->name->name << "(";
             for(Arg* param : f->parameters){
+                param->name.erase(remove(param->name.begin(), param->name.end(), '%'), param->name.end());
                 fs << param->name;
                 if(param != f->parameters[f->parameters.size()-1]){
                     fs << ", ";
@@ -229,6 +234,46 @@ namespace IR {
             }
 
             fs << "}\n";
+        }
+        
+        fs.close();
+        if(DEBUG){
+            IR_generate_code2(p);
+        }
+      }
+
+
+
+
+      void IR_generate_code2(Program p) {
+        
+        // set up file stream
+        std::fstream fs;
+        fs.open("progIR.IRL", std::fstream::in | std::fstream::out | std::fstream::app);
+        
+        for (Function* f : p.functions) {
+            fs << "define " << f->name->name << "(";
+            for(Arg* param : f->parameters){
+                fs << param->name;
+                if(param != f->parameters[f->parameters.size()-1]){
+                    fs << ", ";
+                }
+            }
+            fs << "){\n";
+            //orderBasicBlocks(f);
+            
+            for (BasicBlock* B : f->basicBlocks) {
+                fs << "\t\t" << B->label->name << endl;
+                for(Instruction* I : B->instructions){
+                    //convertInstruction(f, I);
+                    fs << "\t\t" << I->instruction << endl;
+                }
+                B->te->instruction.erase(remove(B->te->instruction.begin(), B->te->instruction.end(), '%'), B->te->instruction.end());
+
+                fs << "\t\t" << B->te->instruction << endl;
+            }
+
+            fs << "}\n\n";
         }
         
         fs.close();

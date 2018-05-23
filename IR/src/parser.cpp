@@ -30,6 +30,7 @@ namespace IR {
 
 
   vector<Arg *> parsed_registers;
+  vector<Arg *> parsed_labels;
   vector<Type *> type_declarations;
   vector<Arg *> index_holder;
   vector<Operation *> operations;
@@ -70,7 +71,7 @@ namespace IR {
   struct word:
     pegtl::seq<
       seps,
-      pegtl::not_at< keyword >,
+      //pegtl::not_at< keyword >,
       seps,
       pegtl::plus< 
         pegtl::sor<
@@ -570,6 +571,7 @@ namespace IR {
       newF->returnType = returnType;
       if(DEBUGGING) cout << "Pushing back new function\n";
       p.functions.push_back(newF);
+      parsed_labels = {};
     }
   };
 
@@ -584,7 +586,7 @@ namespace IR {
       Label* label = new Label();
       label->name = in.string();
       parsed_registers.push_back(label);
-
+      parsed_labels.push_back(label);
 
       VoidT* noType = new VoidT();
       label->type = noType;
@@ -1260,27 +1262,10 @@ namespace IR {
         if(DEBUGGING) cout << "p.functions.back() suceeded\n";
         BasicBlock* bb = new BasicBlock();
         if(DEBUGGING) cout << "Created a new bb\n";
-
-        if(parsed_registers.size() == 0 && DEBUGGING){
-          cout << "Parsed parsed_registers is empty\n";
-        }
-        if(DEBUGGING) cout << "Attempting to cast " << parsed_registers.back()->name << " as a label\n";
-
-        Label* label;
-        while(!(label = dynamic_cast<Label *> (parsed_registers.back()))){
-          parsed_registers.pop_back();
-        if(DEBUGGING) cout << "Attempting to cast " << parsed_registers.back()->name << " as a label\n";
-
-        }
-        // if(label == NULL){
-        //   cout << "Not the label\n";
-        // }
-        // else{
-        //   cout << "It is a label\n";
-        // }
-        if(DEBUGGING) cout << "Label name for bb is : " << label->name << endl;
-        parsed_registers.pop_back();
-        bb->label = label;
+        
+        bb->label = parsed_labels[0];
+        if(DEBUGGING) cout << "BB label is: " << bb->label->name << endl;
+        parsed_labels = {};
         Instruction* te = basicBlockInsts.back();
         basicBlockInsts.pop_back();
         bb->instructions = basicBlockInsts;

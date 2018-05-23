@@ -43,7 +43,7 @@ void replaceKeywordLabels(char* fileName){
             if(index == std::string::npos){
                 break;
             }
-            str.replace(index, repSearch.size(), ":SuchyAndWallach" + str1);
+            str.replace(index, repSearch.size(), ":SuchyAndWallachIR" + str1);
         }
     }
     std::ofstream out;
