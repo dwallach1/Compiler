@@ -613,26 +613,27 @@ namespace IR {
     static void apply( const Input & in, Program & p){
       if(DEBUGGING) cout << "Found a type: " << in.string() << endl;
 
-      if(in.string() == "int64") {
-        Int64* int64 = new Int64();
-        type_declarations.push_back(int64);
-      }
-      else if (in.string() == "code") {
+      
+      if (in.string().find("code") != std::string::npos) {
         Code* code = new Code();
         type_declarations.push_back(code);
       } 
-      else if (in.string() == "tuple") {
+      else if (in.string().find("tuple") != std::string::npos) {
         Tuple* tuple = new Tuple();
         type_declarations.push_back(tuple);
 
       }
-      else {
+      else if (in.string().find("[") != std::string::npos){
         Array* array = new Array();
-
+        if(DEBUGGING) cout << "This is an array \n";
         int dims = index_holder.size();
         array->dims = dims;
 
         type_declarations.push_back(array);
+      }
+      else{
+        Int64* int64 = new Int64();
+        type_declarations.push_back(int64);
       }
     }
   };
@@ -760,6 +761,7 @@ namespace IR {
 
       }
       else {
+        if(DEBUGGING) cout << "Making a new array\n";
         Array* array = new Array();
 
         int dims = index_holder.size();
@@ -885,7 +887,6 @@ namespace IR {
 
          while(1){
           Arg* idx = parsed_registers.back();
-          if (DEBUGGING) cout << "Finding the src with findVar\n";
           idx = findVariable(currentF, idx);
           if(DEBUGGING) cout << "Dealing with arg: " << idx->name << "\n";
           if(Array* ar = dynamic_cast<Array*>(idx->type)){
@@ -896,22 +897,31 @@ namespace IR {
           if(DEBUGGING) cout << "Pushing it back\n";
           instruction->indexes.push_back(idx);
           parsed_registers.pop_back();
+          
+
         }
 
 
 
+        //Add this to get to correct parsed regs
+        for(int k = 0; k < instruction->indexes.size(); k++){
+          parsed_registers.pop_back();
+        }
         Arg* src = parsed_registers.back();
+        if(DEBUGGING) cout << "Source of load is: " << src->name << endl;
         parsed_registers.pop_back();
 
         src = findVariable(currentF, src);
 
 
         Arg* dest = parsed_registers.back();
+        if(DEBUGGING) cout << "dest of load is: " << dest->name << endl;
+
         parsed_registers.pop_back();
         dest = findVariable(currentF, dest);
 
         instruction->instruction = dest->name + " <- load " + src->name;
-  
+    if(DEBUGGING) cout << instruction->instruction << endl;
         instruction->dst = dest;
         instruction->src = src;
 

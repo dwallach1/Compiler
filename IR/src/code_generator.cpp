@@ -220,6 +220,7 @@ namespace IR {
         
         for (Function* f : p.functions) {
             fs << "define " << f->name->name << "(";
+            reverse(f->parameters.begin(),f->parameters.end());
             for(Arg* param : f->parameters){
                 param->name.erase(remove(param->name.begin(), param->name.end(), '%'), param->name.end());
                 fs << param->name;
