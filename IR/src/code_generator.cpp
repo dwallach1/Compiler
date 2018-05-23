@@ -41,15 +41,17 @@ namespace IR {
                 int B = i->indexes.size() * 8 + 16;
                 string uniqueVar = "BrianAndDavidsUniqueOffsetVar";
                 string uniqueVar1 = uniqueVar + "1";
-                storeLine.append(uniqueVar + " <- " + i->dst->name + "\n");
+                storeLine.append(uniqueVar + " <- 0\n");
                 for(int j = 0; j < i->indexes.size(); j++) {
                     storeLine.append(uniqueVar1 + " <- " + i->dst->name + " + " + to_string(16 + (j*8)) + "\n");
                     storeLine.append(uniqueVar1 + " <- load " + uniqueVar1 + "\n");
-                    storeLine.append(uniqueVar1 + " <- " + uniqueVar1 + " * " + i->indexes[j]->name + "\n");
+                    storeLine.append(uniqueVar1 + " <- " + uniqueVar1 + " >> 1\n");
+                    storeLine.append(uniqueVar1 + " <- " + uniqueVar1 + " * " + i->indexes[i->indexes.size() - 1 - j]->name + "\n");
                     storeLine.append(uniqueVar + " <- " + uniqueVar + " + " + uniqueVar1 + "\n");
                 }
                 storeLine.append(uniqueVar + " <- " + uniqueVar + " * 8\n");
                 storeLine.append(uniqueVar + " <- " + uniqueVar + " + " + to_string(B) + "\n");
+                storeLine.append(uniqueVar + " <- " + i->dst->name + " + " + uniqueVar + "\n");
                 storeLine.append("store " + uniqueVar + " <- " + i->src->name);
             }
 
@@ -70,15 +72,17 @@ namespace IR {
                 int B = i->indexes.size() * 8 + 16;
                 string uniqueVar = "BrianAndDavidsUniqueOffsetVar";
                 string uniqueVar1 = uniqueVar + "1";
-                loadLine.append(uniqueVar + " <- " + i->src->name + "\n");
+                loadLine.append(uniqueVar + " <- 0\n");
                 for(int j = 0; j < i->indexes.size(); j++) {
                     loadLine.append(uniqueVar1 + " <- " + i->src->name + " + " + to_string(16 + (j*8)) + "\n");
                     loadLine.append(uniqueVar1 + " <- load " + uniqueVar1 + "\n");
-                    loadLine.append(uniqueVar1 + " <- " + uniqueVar1 + " * " + i->indexes[j]->name + "\n");
+                    loadLine.append(uniqueVar1 + " <- " + uniqueVar1 + " >> 1\n");
+                    loadLine.append(uniqueVar1 + " <- " + uniqueVar1 + " * " + i->indexes[i->indexes.size() - 1 - j]->name + "\n");
                     loadLine.append(uniqueVar + " <- " + uniqueVar + " + " + uniqueVar1 + "\n");
                 }
                 loadLine.append(uniqueVar + " <- " + uniqueVar + " * 8\n");
                 loadLine.append(uniqueVar + " <- " + uniqueVar + " + " + to_string(B) + "\n");
+                loadLine.append(uniqueVar + " <- " + i->src->name + " + " + uniqueVar + "\n");
                 loadLine.append(i->dst->name + " <- load " +  uniqueVar);
             }
             I->instruction = loadLine;
@@ -92,24 +96,28 @@ namespace IR {
 
             //This section will decode the arguments 
             vector<string> placeholdVars = {};
+            string appender = "";
             for(Arg* a : i->src){
-                string newName = "DavidAndBrian" + a->name ;
+                string newName = "DavidAndBrian" + a->name + appender;
+                appender.append("DaB");
                 placeholdVars.push_back(newName);
                 string decodeLine = "";
                 decodeLine = newName + " <- " + a->name + " >> 1";
                 arrayInit.push_back(decodeLine);
+
             }
             //and then multiply them all together so we can get correct amount of space to allocate 
             for(int i = 1; i < placeholdVars.size(); i ++){
                 string multLine = placeholdVars[0] + " <- " + placeholdVars[0] + " * " + placeholdVars[i];
                 arrayInit.push_back(multLine);
             }
-            //Add space for holding dimensionalities
-            arrayInit.push_back(placeholdVars[0] + " <- " + placeholdVars[0] + " + " + to_string(placeholdVars.size()+1) );
 
             //And then encode the value
             arrayInit.push_back(placeholdVars[0] + " <- " + placeholdVars[0] + " << 1");
             arrayInit.push_back(placeholdVars[0] + " <- " + placeholdVars[0] + " + 1");
+
+            //Add space for holding dimensionalities
+            arrayInit.push_back(placeholdVars[0] + " <- " + placeholdVars[0] + " + " + to_string(2*(placeholdVars.size()+1)) );
 
             //Then we make the allocate instruction
             string allocateLine = i->dst->name + " <- call allocate(" + placeholdVars[0] + ", 1)";
