@@ -106,7 +106,8 @@ namespace IR {
                 arrayInit.push_back(decodeLine);
 
             }
-            //and then multiply them all together so we can get correct amount of space to allocate 
+            //and then multiply them all together so we can get correct amount of space to allocate
+
             for(int i = 1; i < placeholdVars.size(); i ++){
                 string multLine = placeholdVars[0] + " <- " + placeholdVars[0] + " * " + placeholdVars[i];
                 arrayInit.push_back(multLine);
@@ -128,6 +129,7 @@ namespace IR {
             arrayInit.push_back("store " + placeholdVars[0] + " <- " + to_string(placeholdVars.size()*2 + 1) );
 
             //and array lengths
+            reverse(i->src.begin(),i->src.end());
             int count = 0;
             for(int j = 16; j <= placeholdVars.size() * 8 + 8; j += 8){
                 arrayInit.push_back(placeholdVars[0] + " <- " + i->dst->name + " + " + to_string(j));
@@ -147,6 +149,7 @@ namespace IR {
         else if(Instruction_Length* i = dynamic_cast<Instruction_Length *> (I)){
             string uniqueVar = "DavidAndBrianMakeALengthUnique";
             string lengthLine = "";
+            lengthLine.append(uniqueVar + " <- 0\n");
             lengthLine.append(uniqueVar + " <- " + i->dimension->name + " * 8\n");
             lengthLine.append(uniqueVar + " <- " + uniqueVar + " + 16\n");
             lengthLine.append(uniqueVar + " <- " + i->array->name + " + " + uniqueVar + "\n");
