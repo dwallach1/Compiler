@@ -31,10 +31,12 @@ namespace IR {
             string storeLine = "";
             if(Tuple* t = dynamic_cast<Tuple *>(i->dst->type)){
                 string uniqueVar = "uniqueVariableForTupleByDavidAndBrian";
+                string uniqueVar1 = "uniqueVariableForTupleByDavidAndBrianHolder";
                 //calculate the offset
                 storeLine.append(uniqueVar + " <- " + i->indexes[0]->name + " * 8\n");
                 storeLine.append(uniqueVar + " <- " + uniqueVar + " + 8\n");
-                storeLine.append( "store " + uniqueVar + " <- " + i->src->name);
+                storeLine.append(uniqueVar1 + " <- "+  i->dst->name + " + " + uniqueVar + "\n");
+                storeLine.append( "store " + uniqueVar1 + " <- " + i->src->name);
             }
             //Dealing with an array
             else{
@@ -62,10 +64,13 @@ namespace IR {
             string loadLine = "";
             if(Tuple* t = dynamic_cast<Tuple *>(i->src->type)){
                 string uniqueVar = "uniqueVariableForTupleByDavidAndBrian";
+                string uniqueVar1 = "uniqueVariableForTupleByDavidAndBrianHolder";
                 //calculate the offset
                 loadLine.append(uniqueVar + " <- " + i->indexes[0]->name + " * 8\n");
+             //   loadLine.append(uniqueVar + " <- " + i->dst->name + "\n");
                 loadLine.append(uniqueVar + " <- " + uniqueVar + " + 8\n");
-                loadLine.append(i->dst->name + " <- load " + uniqueVar);
+                loadLine.append(uniqueVar1 + " <- " + i->src->name + " + " + uniqueVar + "\n");
+                loadLine.append(i->dst->name + " <- load " + uniqueVar1);
             }
             //Dealing with an array
             else{
