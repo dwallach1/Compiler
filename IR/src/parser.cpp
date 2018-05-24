@@ -126,10 +126,10 @@ namespace IR {
         pegtl::one< '&' >,
         pegtl::string< '<', '<' >,
         pegtl::string< '>', '>' >,
-        pegtl::one< '<' >,
         pegtl::string< '<', '=' >,
-        pegtl::one< '=' >,
         pegtl::string< '>', '=' >,
+        pegtl::one< '<' >,
+        pegtl::one< '=' >,
         pegtl::one< '>' >
       >
     >{};
