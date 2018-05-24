@@ -907,6 +907,14 @@ namespace IR {
         for(int k = 0; k < instruction->indexes.size(); k++){
           parsed_registers.pop_back();
         }
+
+        Arg* dest = parsed_registers.back();
+        if(DEBUGGING) cout << "dest of load is: " << dest->name << endl;
+
+        parsed_registers.pop_back();
+        dest = findVariable(currentF, dest);
+
+
         Arg* src = parsed_registers.back();
         if(DEBUGGING) cout << "Source of load is: " << src->name << endl;
         parsed_registers.pop_back();
@@ -914,11 +922,7 @@ namespace IR {
         src = findVariable(currentF, src);
 
 
-        Arg* dest = parsed_registers.back();
-        if(DEBUGGING) cout << "dest of load is: " << dest->name << endl;
-
-        parsed_registers.pop_back();
-        dest = findVariable(currentF, dest);
+        
 
         instruction->instruction = dest->name + " <- load " + src->name;
     if(DEBUGGING) cout << instruction->instruction << endl;
