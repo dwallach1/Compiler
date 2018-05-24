@@ -43,12 +43,18 @@ namespace IR {
                 int B = i->indexes.size() * 8 + 16;
                 string uniqueVar = "BrianAndDavidsUniqueOffsetVar";
                 string uniqueVar1 = uniqueVar + "1";
+                string uniqueDim = "uniqueDim";
                 storeLine.append(uniqueVar + " <- 0\n");
                 for(int j = 0; j < i->indexes.size(); j++) {
-                    storeLine.append(uniqueVar1 + " <- " + i->dst->name + " + " + to_string(16 + (j*8 + 8)) + "\n");
-                    storeLine.append(uniqueVar1 + " <- load " + uniqueVar1 + "\n");
-                    storeLine.append(uniqueVar1 + " <- " + uniqueVar1 + " >> 1\n");
-                    storeLine.append(uniqueVar1 + " <- " + uniqueVar1 + " * " + i->indexes[i->indexes.size() - 1 - j]->name + "\n");
+                    storeLine.append(uniqueVar1 + " <- " + i->indexes[i->indexes.size() - 1 - j]->name + "\n");
+                    for(int k = i->indexes.size() - j - 1 - 1; k >= 0; k--){
+                        string curDim = uniqueDim + to_string(k);
+                        storeLine.append(curDim + " <- " + i->dst->name + " + " + to_string(16 + (k*8 )) + "\n");
+                        storeLine.append(curDim + "len" + " <- load " + curDim + "\n");
+                        storeLine.append(curDim + "len" + " <- " + curDim + "len" + " >> 1\n");
+                        storeLine.append(uniqueVar1 + " <- " + curDim + "len" + " * " + uniqueVar1 + "\n");
+                    }
+                    
                     storeLine.append(uniqueVar + " <- " + uniqueVar + " + " + uniqueVar1 + "\n");
                 }
                 storeLine.append(uniqueVar + " <- " + uniqueVar + " * 8\n");
@@ -78,11 +84,19 @@ namespace IR {
                 string uniqueVar = "BrianAndDavidsUniqueOffsetVar";
                 string uniqueVar1 = uniqueVar + "1";
                 loadLine.append(uniqueVar + " <- 0\n");
+                string uniqueDim = "uniqueDim";
                 for(int j = 0; j < i->indexes.size(); j++) {
-                    loadLine.append(uniqueVar1 + " <- " + i->src->name + " + " + to_string(16 + (j*8 + 8)) + "\n");
-                    loadLine.append(uniqueVar1 + " <- load " + uniqueVar1 + "\n");
-                    loadLine.append(uniqueVar1 + " <- " + uniqueVar1 + " >> 1\n");
-                    loadLine.append(uniqueVar1 + " <- " + uniqueVar1 + " * " + i->indexes[i->indexes.size() - 1 - j]->name + "\n");
+
+                    loadLine.append(uniqueVar1 + " <- " + i->indexes[i->indexes.size() - 1 - j]->name + "\n");
+                    for(int k = i->indexes.size() - j - 1 - 1; k >= 0; k--){
+                        string curDim = uniqueDim + to_string(k);
+                        loadLine.append(curDim + " <- " + i->src->name + " + " + to_string(16 + (k*8 )) + "\n");
+                        loadLine.append(curDim + "len" + " <- load " + curDim + "\n");
+                        loadLine.append(curDim + "len" + " <- " + curDim + "len" + " >> 1\n");
+                        loadLine.append(uniqueVar1 + " <- " + curDim + "len" + " * " + uniqueVar1 + "\n");
+                    }
+                    
+
                     loadLine.append(uniqueVar + " <- " + uniqueVar + " + " + uniqueVar1 + "\n");
                 }
                 loadLine.append(uniqueVar + " <- " + uniqueVar + " * 8\n");
