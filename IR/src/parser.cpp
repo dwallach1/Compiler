@@ -901,12 +901,23 @@ namespace IR {
 
         }
 
-
-
-        //Add this to get to correct parsed regs
-        for(int k = 0; k < instruction->indexes.size(); k++){
-          parsed_registers.pop_back();
+        if (DEBUGGING) cout << "-----> parsed_registers is\n";
+        for(int j=0; j<parsed_registers.size(); j++) {
+          if (DEBUGGING) cout << parsed_registers[j]->name << endl;
         }
+
+
+        // //Add this to get to correct parsed regs
+        // for(int k = 0; k < instruction->indexes.size(); k++){
+        //   parsed_registers.pop_back();
+        // }
+
+
+        Arg* src = parsed_registers.back();
+        if(DEBUGGING) cout << "Source of load is: " << src->name << endl;
+        parsed_registers.pop_back();
+
+        src = findVariable(currentF, src);
 
         Arg* dest = parsed_registers.back();
         if(DEBUGGING) cout << "dest of load is: " << dest->name << endl;
@@ -915,11 +926,7 @@ namespace IR {
         dest = findVariable(currentF, dest);
 
 
-        Arg* src = parsed_registers.back();
-        if(DEBUGGING) cout << "Source of load is: " << src->name << endl;
-        parsed_registers.pop_back();
-
-        src = findVariable(currentF, src);
+        
 
 
         
