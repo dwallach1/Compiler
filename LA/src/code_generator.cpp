@@ -120,24 +120,32 @@ namespace LA {
 		Instruction_Store* i_store = dynamic_cast<Instruction_Store*>(I)
 		int i = 0;
 		string newInst = "";
-		string legnthVar = "uniqueLengthHolderBrianDavid";
+		string legnthVar = "uniqueLengthHolderBrianDavid" + to_string(I->num);
 	
 		// check if load 
 		if (i_load) {
 			
 			// check if array is 0
-			newInst.append(legnthVar + " <- " + i_load->src->name + " = 0\n");
+
+			Instruction_BrCmp* i_brcmp = new Instruction_BrCmp();
 			string trueLabel = ":" + legnthVar + "trueLabel" + to_string(i_load->num);
 			string falseLabel = ":" + legnthVar + "falseLabel" + to_string(i_load->num);
-			newInst.append("br " + legnthVar + trueLabel + " " + falseLabel + "\n");
+			i_brcmp->instruction = "br " + i_load->src->name + " " + trueLabel + " " + falseLabel;
+			newInsts->push_back(i_brcmp)
 			
 			// if it is zero, call array-error
-			newInst.append(trueLabel +  "\n");
-			newInst.append("call array-error(0,0)\n");
+			Instruction_Label i_lbl = new Instruction_Label();
+			i_lbl->instruction = falseLabel;
+			newInsts->push_back(i_lbl);
+
+			Instruction_Call i_call = new Instruction_Call();
+			i_call->instruction = "call array-error(0,0)";
+			newInsts->push_back(i_call);
 			
 			// if it isnt zero, continue execution
-			newInst.append(falseLabel);
-			
+			Instruction_Label* i_lbl2 = new Instruction_Label();
+			i_lbl2->instruction = trueLabel;
+			newInsts->push_back(i_lbl2);			
 
 
 

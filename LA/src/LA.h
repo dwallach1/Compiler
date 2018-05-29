@@ -92,6 +92,10 @@ namespace LA {
     Instruction* nextInst;
   };
 
+    struct Instruction_Label : Instruction {
+      
+    };
+
     struct Instruction_Length : Instruction{
       Arg* dimension;
       Arg* array;
