@@ -14,6 +14,7 @@
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
 
+
 #define DEBUGGING 0
 #define DEBUG_S 0
 
@@ -486,7 +487,7 @@ namespace LA {
       seps,
       pegtl::one< '{' >,
       seps,
-      pegtl::plus< bb >,
+      i_star ,
       seps,
       pegtl::one< '}' >
     >{};  
@@ -1194,7 +1195,8 @@ namespace LA {
     template< typename Input >
     static void apply( const Input & in, Program & p){
         if(DEBUGGING) cout << "found a return_nothing " <<  in.string() << endl;
-        
+          
+        Function*   currentF = p.functions.back();
         
         Instruction_Return* instruction = new Instruction_Return();
         instruction->instruction = "return" ;
@@ -1206,7 +1208,8 @@ namespace LA {
     template< typename Input >
     static void apply( const Input & in, Program & p){
         if(DEBUGGING) cout << "found a br_single " <<  in.string() << endl;
-        
+      
+        Function*   currentF = p.functions.back();
         
         Instruction_br* instruction = new Instruction_br();
 
