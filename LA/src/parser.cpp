@@ -35,7 +35,6 @@ namespace LA {
   vector<Type *> type_declarations;
   vector<Arg *> index_holder;
   vector<Operation *> operations;
-  vector<Instruction* > basicBlockInsts;
   vector<Arg *> newFunctionArgs;
 
   /* 
@@ -397,32 +396,6 @@ namespace LA {
       label
    >{};
 
-  struct i:
-    pegtl::seq<
-      seps,
-      pegtl::sor<
-        declaration,
-        assignment,
-        op_assign,
-        load,
-        store,
-        length,
-        call,
-        call_assign,
-        array,
-        tuple,
-        label_inst
-      >
-    >{};
-
-  struct i_star:
-    pegtl::star<
-      pegtl::seq<
-        seps,
-        i
-      >
-    >{};
-
   struct br_single:
     pegtl::seq<
       seps,
@@ -456,6 +429,36 @@ namespace LA {
       pegtl::string<'r', 'e', 't', 'u', 'r', 'n'>,
       seps,
       t
+    >{};
+
+  struct i:
+    pegtl::seq<
+      seps,
+      pegtl::sor<
+        declaration,
+        assignment,
+        op_assign,
+        load,
+        store,
+        length,
+        call,
+        call_assign,
+        array,
+        tuple,
+        label_inst,
+        br_cmp,
+        br_single,
+        return_nothing,
+        return_val
+      >
+    >{};
+
+  struct i_star:
+    pegtl::star<
+      pegtl::seq<
+        seps,
+        i
+      >
     >{};
 
   struct f_name: 
@@ -524,32 +527,43 @@ namespace LA {
       
       Function *newF = new Function();
       
-      Arg* parameter = parsed_registers.back();
-      parsed_registers.pop_back();
-
-      Label* funcName = dynamic_cast<Label *> (parameter);
 
 
-      while(funcName == NULL) {
+      while(parsed_registers.size() && newFunctionArgs.size()) {
+
+        if (parsed_registers.size() == 1) {
+          newF->name = parsed_registers.back();
+          parsed_registers.pop_back();
+
+          newF->returnType = type_declarations.back();
+          type_declarations.pop_back();
+
+          break;
+        }
+
+        Arg* parameter = parsed_registers.back();
+        parsed_registers.pop_back();
         
         newF->declared_variables.insert(newFunctionArgs.back());
+        
         if(DEBUGGING) cout << "Added arg: " << newFunctionArgs.back()->name << " to declared_variables\n";
+        
         newFunctionArgs.pop_back();
         newF->parameters.push_back(parameter);
         parameter = parsed_registers.back();
         parsed_registers.pop_back();
-        funcName = dynamic_cast<Label *> (parameter);
+
       }
-      newFunctionArgs = {};
-      newF->name = funcName;
 
-      Type* returnType = type_declarations.back();
-      type_declarations.pop_back();
-
-      newF->returnType = returnType;
-      if(DEBUGGING) cout << "Pushing back new function\n";
-      p.functions.push_back(newF);
+      parsed_registers = {};
       parsed_labels = {};
+      type_declarations = {};
+      index_holder = {};
+      operations = {};
+      
+      p.functions.push_back(newF);
+      if(DEBUGGING) cout << "Pushing back new function\n";
+      
     }
   };
 
@@ -778,9 +792,10 @@ namespace LA {
 
       Instruction_Declaration* instruction = new Instruction_Declaration();
       instruction->type = type;
-      instruction->arg = arg;
+      instruction->var = arg;
 
-      currentF->instruction.push_back(instruction);
+      currentF->instructions.push_back(instruction);
+
     }
   };
 
@@ -820,6 +835,7 @@ namespace LA {
         instruction->operation = op;
 
         currentF->instructions.push_back(instruction);
+
         if(DEBUGGING) cout << "Leaving assignment\n";
     }
   };
@@ -854,6 +870,7 @@ namespace LA {
         instruction->operation = operation;
         instruction->instruction = dest->name + " <- " + arg1->name + " " + operation->name + " " + arg2->name;
         
+
         currentF->instructions.push_back(instruction);
     }
   };
@@ -889,12 +906,6 @@ namespace LA {
         }
 
 
-        // //Add this to get to correct parsed regs
-        // for(int k = 0; k < instruction->indexes.size(); k++){
-        //   parsed_registers.pop_back();
-        // }
-
-
         Arg* src = parsed_registers.back();
         if(DEBUGGING) cout << "Source of load is: " << src->name << endl;
         parsed_registers.pop_back();
@@ -907,16 +918,12 @@ namespace LA {
         parsed_registers.pop_back();
         dest = findVariable(currentF, dest);
 
-
-        
-
-
-        
-
         instruction->instruction = dest->name + " <- load " + src->name;
-    if(DEBUGGING) cout << instruction->instruction << endl;
+        if(DEBUGGING) cout << instruction->instruction << endl;
         instruction->dst = dest;
         instruction->src = src;
+
+
 
         currentF->instructions.push_back(instruction);
     }
@@ -1030,17 +1037,6 @@ namespace LA {
         parsed_registers.pop_back();
 
         dest = findVariable(currentF, dest);
-
-
-        // instruction->instruction = dest->name + " <- new Array(";
-
-        // for(int i = 0; i < instruction->src.size(); i++){
-        //   instruction->instruction.append(instruction->src[i]->name);
-        //   if(i != instruction->src.size() - 1){
-        //     instruction->instruction.append(", ");
-        //   }
-        // }
-        // instruction->instruction.append(")");
         instruction->src.push_back(src);
         instruction->dst = dest;
 
@@ -1076,10 +1072,6 @@ namespace LA {
           parsed_registers.pop_back();
         }
         
-
-      
-        
-
         currentF->instructions.push_back(instruction);
     }
   };
@@ -1121,6 +1113,9 @@ namespace LA {
         instruction->instruction.append(" )");
   
         currentF->instructions.push_back(instruction);
+
+
+        if (DEBUGGING) cout << "leaving from call inst\n";
     }
   };
 
@@ -1172,6 +1167,7 @@ namespace LA {
         instruction->instruction.append(" )");
   
         currentF->instructions.push_back(instruction);
+
     }
   };
 
@@ -1192,6 +1188,8 @@ namespace LA {
   
         instruction->retVal = val;
         currentF->instructions.push_back(instruction);
+
+
       }
   };
 
@@ -1200,11 +1198,12 @@ namespace LA {
     static void apply( const Input & in, Program & p){
         if(DEBUGGING) cout << "found a return_nothing " <<  in.string() << endl;
           
-        Function*   currentF = p.functions.back();
+        Function* currentF = p.functions.back();
         
         Instruction_Return* instruction = new Instruction_Return();
         instruction->instruction = "return" ;
         currentF->instructions.push_back(instruction);
+
     }
   };
 
@@ -1223,7 +1222,6 @@ namespace LA {
         instruction->instruction = "br " + label->name;
         instruction->label = label;
         currentF->instructions.push_back(instruction);
-        
 
     }
   };
@@ -1253,8 +1251,6 @@ namespace LA {
         instruction->trueLabel = trueLabel;
         instruction->falseLabel = falseLabel;
         currentF->instructions.push_back(instruction);
-        
-
     }
   };
 

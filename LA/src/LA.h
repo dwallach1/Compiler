@@ -32,25 +32,25 @@ namespace LA {
   };
 
     struct Int64 : Type {
-      string name = "Int64";
+      std::string name = "Int64";
     };
 
     struct Code : Type {
-      string name = "code";
+      std::string name = "code";
     };
 
     struct Array : Type {
       virtual ~Array() = default;
-      string name = "Int64";
+      std::string name = "Int64";
       int dims;
     };
 
     struct Tuple : Array {
-      string name = "tuple";
+      std::string name = "tuple";
     };  
 
     struct VoidT : Type {
-      string name = "void";
+      std::string name = "void";
 
     };
 
@@ -92,11 +92,6 @@ namespace LA {
     Instruction* nextInst;
   };
 
-    struct Instruction_Declaration : Instruction {
-      Type* type;
-      Arg* arg;
-    }
-
     struct Instruction_Length : Instruction{
       Arg* dimension;
       Arg* array;
@@ -112,7 +107,7 @@ namespace LA {
       };
 
     struct Instruction_Declaration : Instruction {
-      Arg* type;
+      Type* type;
       Arg* var;
     };
 
@@ -183,7 +178,7 @@ namespace LA {
   };
 
   struct Function{
-    Label*  name;
+    Arg*  name;
     int64_t arguments;
     int64_t locals;
     std::set<Arg *> declared_variables;
