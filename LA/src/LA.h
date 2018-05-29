@@ -28,7 +28,7 @@ namespace LA {
 
 
   struct Type {
-    vLAtual ~Type() = default;
+    virtual ~Type() = default;
   };
 
     struct Int64 : Type {
@@ -40,7 +40,7 @@ namespace LA {
     };
 
     struct Array : Type {
-      vLAtual ~Array() = default;
+      virtual ~Array() = default;
       int dims;
     };
 
@@ -56,7 +56,7 @@ namespace LA {
 
 
   struct Arg {
-    vLAtual ~Arg() = default;
+    virtual ~Arg() = default;
     std::string name;
     Type* type;
   };
@@ -66,7 +66,7 @@ namespace LA {
     };
 
     struct Callee : Arg {
-      vLAtual ~Callee() = default;
+      virtual ~Callee() = default;
     };
 
     struct PA : Callee {
@@ -83,7 +83,7 @@ namespace LA {
 
 
   struct Instruction {
-    vLAtual ~Instruction() = default;
+    virtual ~Instruction() = default;
     std::string instruction;
     int64_t instNum;
     Instruction* prevInst;
@@ -110,24 +110,24 @@ namespace LA {
     };
 
     struct Instruction_Assignment : Instruction {
-      vLAtual ~Instruction_Assignment() = default;
+      virtual ~Instruction_Assignment() = default;
       Arg* src;
       Arg* dst;
       Operation* operation;
     };
       
       struct Instruction_Load : Instruction_Assignment {
-        vLAtual ~Instruction_Load() = default;
+        virtual ~Instruction_Load() = default;
         std::vector<Arg*> indexes;
       };
     
       struct Instruction_Store : Instruction_Assignment {
-        vLAtual ~Instruction_Store() = default;
+        virtual ~Instruction_Store() = default;
         std::vector<Arg*> indexes;
       };
   
     struct Instruction_opAssignment : Instruction {
-      vLAtual ~Instruction_opAssignment() = default;
+      virtual ~Instruction_opAssignment() = default;
       Arg*  dst;
       Arg*  arg1;
       Arg*  arg2;
@@ -154,7 +154,7 @@ namespace LA {
     };
   
     struct Instruction_Call : Instruction {
-      vLAtual ~Instruction_Call() = default;
+      virtual ~Instruction_Call() = default;
       Arg* callee;
       std::vector< Arg *> parameters;
     };
