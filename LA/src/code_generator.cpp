@@ -20,15 +20,17 @@
 using namespace std;
 
 namespace LA {
+	string UE = "uniqueEncodedDavidBrian";
+	string UD = "uniqueDecodedDavidBrian";
 
 	string decodeName(string name) {
 
-		return name + " <- " + name + " >> 1\n";
+		return UD + name + " <- " + name + " >> 1\n";
 	}
 
 	string encodeName(string name) {
 
-		return name + " <- " + name + " << 1\n" + name + " <- " + name + " + 1\n";
+		return UE + name + " <- " + name + " << 1\n" + UE + name + " <- " + UE + name + " + 1\n";
 	}
 
 	void check_memory_access(Instruction_Assignment* I) {
@@ -122,6 +124,7 @@ namespace LA {
 	void parse_instruction(Instruction* I) {
 		string newInst = "";
 
+
 		if (Instruction_Declaration* i = dynamic_cast<Instruction_Declaration*>(I)) {
 
 			if (Tuple* t = dynamic_cast<Tuple*>(i->type)) {
@@ -147,14 +150,14 @@ namespace LA {
 		else if (Instruction_BrCmp* i = dynamic_cast<Instruction_BrCmp*>(I)) {
 			// decode t 
 			newInst.append(decodeName(i->comparitor->name));
-			newInst.append("br " + i->comparitor->name + " " + i->trueLabel->name + " " + i->falseLabel->name);
+			newInst.append("br " + UD + i->comparitor->name + " " + i->trueLabel->name + " " + i->falseLabel->name);
 
 			i->instruction = newInst;
 		}
 		else if (Instruction_Length* i = dynamic_cast<Instruction_Length*>(I)) {
 			// decode var3 (dimension)
 			newInst.append(decodeName(i->dimension->name));
-			newInst.append(i->dst->name + " <- length " + i->array->name + " " + i->dimension->name);
+			newInst.append(i->dst->name + " <- length " + i->array->name + " " + UD + i->dimension->name);
 			i->instruction = newInst;
 		}
 		else if (Instruction_Load* i = dynamic_cast<Instruction_Load*>(I)) {
@@ -171,7 +174,7 @@ namespace LA {
 			newInst.append(i->dst->name + " <- " + i->src->name);
 
 			for (Arg* idx : i->indexes) {
-				newInst.append('[' + idx->name + ']');
+				newInst.append('[' + UD + idx->name + ']');
 			}
 		}
 		else if (Instruction_Store* i = dynamic_cast<Instruction_Store*>(I)) {
@@ -188,7 +191,7 @@ namespace LA {
 			newInst.append(i->dst->name);
 
 			for (Arg* idx : i->indexes) {
-				newInst.append('[' + idx->name + ']');
+				newInst.append('[' + UD + idx->name + ']');
 			}
 
 			newInst.append(" <- " + i->src->name);
@@ -199,7 +202,7 @@ namespace LA {
 			newInst.append(decodeName(i->arg1->name));
 			newInst.append(decodeName(i->arg2->name));
 			newInst.append(encodeName(i->dst->name));
-			newInst.append(i->dst->name + " <- " + i->arg1->name + " " + i->operation->name + " " + i->arg2->name);
+			newInst.append(UE + i->dst->name + " <- " + UD + i->arg1->name + " " + i->operation->name + " " + UD + i->arg2->name);
 		}
 
 		else {
