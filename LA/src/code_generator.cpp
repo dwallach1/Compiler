@@ -25,7 +25,7 @@ namespace LA {
 
 	void decodeArg(Arg* arg, vector<Instruction *>* newInsts) {
 
-		Instruction_Declaration i_dec = new Instruction_Declaration();
+		Instruction_Declaration* i_dec = new Instruction_Declaration();
 
 		Int64* i64 = new Int64();
 
@@ -39,7 +39,7 @@ namespace LA {
 
 		newInsts->push_back(i_dec);
 
-		Instruction_opAssignment i_opAssign = new Instruction_opAssignment();
+		Instruction_opAssignment* i_opAssign = new Instruction_opAssignment();
 		i_opAssign->dst = var;
 		i_opAssign->arg1 = arg;
 
@@ -55,14 +55,14 @@ namespace LA {
 
 		i_opAssign->operation = op;
 
-		i_opAssign->instruction = dst->name + " <- " + arg1->name + " " + op->name + " " + arg2->name;
+		i_opAssign->instruction = var->name + " <- " + arg->name + " " + op->name + " " + one->name;
 
 		newInsts->push_back(i_opAssign);
 	}
 
 	void encodeArg(Arg* arg, vector<Instruction *>* newInsts) {
 
-		Instruction_Declaration i_dec = new Instruction_Declaration();
+		Instruction_Declaration* i_dec = new Instruction_Declaration();
 
 		Int64* i64 = new Int64();
 
@@ -76,7 +76,7 @@ namespace LA {
 
 		newInsts->push_back(i_dec);
 
-		Instruction_opAssignment i_opAssign = new Instruction_opAssignment();
+		Instruction_opAssignment* i_opAssign = new Instruction_opAssignment();
 		i_opAssign->dst = var;
 		i_opAssign->arg1 = arg;
 
@@ -97,7 +97,7 @@ namespace LA {
 		newInsts->push_back(i_opAssign);
 
 
-		Instruction_opAssignment i_opAssign2 = new Instruction_opAssignment();
+		Instruction_opAssignment* i_opAssign2 = new Instruction_opAssignment();
 		i_opAssign2->dst = var;
 		i_opAssign2->arg1 = var;
 		
@@ -117,9 +117,8 @@ namespace LA {
 
 	void check_memory_access(Instruction_Assignment* I, vector<Instruction*>* newInsts) {
 		Instruction_Load* i_load = dynamic_cast<Instruction_Load*>(I);
-		Instruction_Store* i_store = dynamic_cast<Instruction_Store*>(I)
+		Instruction_Store* i_store = dynamic_cast<Instruction_Store*>(I);
 		int i = 0;
-		string newInst = "";
 		string legnthVar = "uniqueLengthHolderBrianDavid" + to_string(I->num);
 	
 		// check if load 
@@ -127,18 +126,18 @@ namespace LA {
 			
 			// check if array is 0
 
-			Instruction_BrCmp* i_brcmp = new Instruction_BrCmp();
+			Instruction_brCmp* i_brcmp = new Instruction_brCmp();
 			string trueLabel = ":" + legnthVar + "trueLabel" + to_string(i_load->num);
 			string falseLabel = ":" + legnthVar + "falseLabel" + to_string(i_load->num);
 			i_brcmp->instruction = "br " + i_load->src->name + " " + trueLabel + " " + falseLabel;
-			newInsts->push_back(i_brcmp)
+			newInsts->push_back(i_brcmp);
 			
 			// if it is zero, call array-error
-			Instruction_Label i_lbl = new Instruction_Label();
+			Instruction_Label* i_lbl = new Instruction_Label();
 			i_lbl->instruction = falseLabel;
 			newInsts->push_back(i_lbl);
 
-			Instruction_Call i_call = new Instruction_Call();
+			Instruction_Call* i_call = new Instruction_Call();
 			i_call->instruction = "call array-error(0,0)";
 			newInsts->push_back(i_call);
 			
@@ -152,61 +151,93 @@ namespace LA {
 			for (Arg* idx : i_load->indexes) {
 
 				// load the current dimensions length
-				newInst.append(legnthVar + " <- length " + i_load->src->name + " " + idx->name + "\n");
+				Instruction_Length* i_length = new Instruction_Length();
+				i_length->instruction = legnthVar + " <- length " + i_load->src->name + " " + idx->name;
+				newInsts->push_back(i_length);
 
 				// check if less than length 
-				newInst.append(legnthVar + to_string(i) + " <- " + idx->name + " < " + legnthVar + "\n");
-				newInst.append("br " + legnthVar + to_string(i) + ":" + legnthVar + to_string(i) + "trueLabel" + " " + ":" + legnthVar + to_string(i) + "falseLabel\n");
+				Instruction_opAssignment* i_opAssign = new Instruction_opAssignment();
+				i_opAssign->instruction = legnthVar + to_string(i) + " <- " + idx->name + " < " + legnthVar;
+				newInsts->push_back(i_opAssign);
+
+				Instruction_brCmp* i_brcmp2 = new Instruction_brCmp();
+				i_brcmp2->instruction = "br " + legnthVar + to_string(i) + ":" + legnthVar + to_string(i) + "trueLabel" + " " + ":" + legnthVar + to_string(i) + "falseLabel";
+				newInsts->push_back(i_brcmp2);
 				
 				// jump for array error
-				newInst.append(":" + legnthVar + to_string(i) + "falseLabel\n");
-				newInst.append("call array-error(" + i->src->name + "," + idx->name);
+				Instruction_Label* i_lbl3 = new Instruction_Label();
+				i_lbl3->instruction = ":" + legnthVar + to_string(i) + "falseLabel";
+				newInsts->push_back(i_lbl3);
+
+				Instruction_Call* i_call2 = new Instruction_Call();
+				i_call2->instruction = "call array-error(" + i_load->src->name + "," + idx->name + ")";
+				newInsts->push_back(i_call2);
 
 				// jump for no error
-				newInst.append(":" + legnthVar + to_string(i) + "trueLabel\n");
+				Instruction_Label* i_lbl4 = new Instruction_Label();
+				i_lbl4->instruction = ":" + legnthVar + to_string(i) + "trueLabel";
+				newInsts->push_back(i_lbl4);
 
 				i++;
 			}
-			i_load->instruction = newInst;
 		}
 		// otherwise its a store
 		else {
 
 			// check if array is 0
-			newInst.append(legnthVar + " <- " + i_store->dst->name + " = 0\n");
+			Instruction_brCmp* i_brcmp3 = new Instruction_brCmp();
 			string trueLabel = ":" + legnthVar + "trueLabel" + to_string(i_store->num);
 			string falseLabel = ":" + legnthVar + "falseLabel" + to_string(i_store->num);
-			newInst.append("br " + legnthVar + trueLabel + " " + falseLabel + "\n");
+			i_brcmp3->instruction = "br " + i_store->dst->name + " " + trueLabel + " " + falseLabel;
+			newInsts->push_back(i_brcmp3);
 			
 			// if it is zero, call array-error
-			newInst.append(trueLabel +  "\n");
-			newInst.append("call array-error(0,0)\n");
+			Instruction_Label* i_lbl5 = new Instruction_Label();
+			i_lbl5->instruction = falseLabel;
+			newInsts->push_back(i_lbl5);
+
+			Instruction_Call* i_call3 = new Instruction_Call();
+			i_call3->instruction = "call array-error(0,0)";
+			newInsts->push_back(i_call3);
 			
 			// if it isnt zero, continue execution
-			newInst.append(falseLabel);
+			Instruction_Label* i_lbl6 = new Instruction_Label();
+			i_lbl6->instruction = trueLabel;
+			newInsts->push_back(i_lbl6);
 
 
 			for (Arg* idx : i_store->indexes) {
 
 				// load the current dimensions length
-				newInst.append(legnthVar + " <- length " + i_load->dst->name + " " + idx->name + "\n");
+				Instruction_Length* i_length2 = new Instruction_Length();
+				i_length2->instruction = legnthVar + " <- length " + i_load->dst->name + " " + idx->name;
+				newInsts->push_back(i_length2);
 
 				// check if less than length 
-				newInst.append(legnthVar + to_string(i) + " <- " + idx->name + " < " + legnthVar + "\n");
-				newInst.append("br " + legnthVar + to_string(i) + ":" + legnthVar + to_string(i) + "trueLabel" + " " + ":" + legnthVar + to_string(i) + "falseLabel\n");
+				Instruction_opAssignment* i_opAssign3 = new Instruction_opAssignment();
+				i_opAssign3->instruction = legnthVar + to_string(i) + " <- " + idx->name + " < " + legnthVar;
+				newInsts->push_back(i_opAssign3);
+
+				Instruction_brCmp* i_brcmp4 = new Instruction_brCmp();
+				i_brcmp4->instruction = "br " + legnthVar + to_string(i) + ":" + legnthVar + to_string(i) + "trueLabel" + " " + ":" + legnthVar + to_string(i) + "falseLabel";
+				newInsts->push_back(i_brcmp4);
 				
 				// jump for array error
-				newInst.append(":" + legnthVar + to_string(i) + "falseLabel\n");
-				newInst.append("call array-error(" + i->dst->name + "," + idx->name);
+				Instruction_Label* i_lbl7 = new Instruction_Label();
+				i_lbl7->instruction = ":" + legnthVar + to_string(i) + "falseLabel";
+				newInsts->push_back(i_lbl7);
+
+				Instruction_Call* i_call4 = new Instruction_Call();
+				i_call4->instruction = "call array-error(" + i_store->dst->name + "," + idx->name + ")";
+				newInsts->push_back(i_call4);
 
 				// jump for no error
-				newInst.append(":" + legnthVar + to_string(i) + "trueLabel\n");
+				Instruction_Label* i_lbl8 = new Instruction_Label();
+				i_lbl8->instruction = ":" + legnthVar + to_string(i) + "trueLabel\n";
+				newInsts->push_back(i_lbl8);
 
 				i++;
 			}
-
-			i->store->instruction = newInst;
-
 		}
 	}
 
@@ -216,16 +247,16 @@ namespace LA {
 
 			if (Tuple* t = dynamic_cast<Tuple*>(i->type)) {
 				
-				i->instruction = type->name + " " + vale->name;
+				i->instruction = i->type->name + " " + i->var->name;
 
 				newInsts->push_back(i);
 
 				Instruction_Assignment* i_assign = new Instruction_Assignment();
-				i_assign->dst = i->val;
+				i_assign->dst = i->var;
 
 				Number* zero = new Number();
-				Number->name = "0";
-				Number->num = 0;
+				zero->name = "0";
+				zero->num = 0;
 
 				i_assign->src = zero;
 				i_assign->instruction = i_assign->dst->name + " <- " + zero->name;
@@ -237,20 +268,20 @@ namespace LA {
 				i->instruction = "";
 
 				i->instruction = i->type->name;
-
-				for (int i = 0; i < i->dims; i++) {
+				Array* array = dynamic_cast<Array*>(i->type);
+				for (int j = 0; j < array->dims; j++) {
 					i->instruction.append("[]");
 				}
-				i->instruction.append(" " + var->name);
+				i->instruction.append(" " + i->var->name);
 
 				newInsts->push_back(i);
 
 				Instruction_Assignment* i_assign = new Instruction_Assignment();
-				i_assign->dst = i->val;
+				i_assign->dst = i->var;
 
 				Number* zero = new Number();
-				Number->name = "0";
-				Number->num = 0;
+				zero->name = "0";
+				zero->num = 0;
 
 				i_assign->src = zero;
 				i_assign->instruction = i_assign->dst->name + " <- " + zero->name;
@@ -258,15 +289,14 @@ namespace LA {
 				newInsts->push_back(i_assign);
 			}	
 			else {
-				i->instruction = type->name + " " + var->name;
+				i->instruction = i->type->name + " " + i->var->name;
 				newInsts->push_back(i);
 			}
 		}
-		else if (Instruction_BrCmp* i = dynamic_cast<Instruction_BrCmp*>(I)) {
+		else if (Instruction_brCmp* i = dynamic_cast<Instruction_brCmp*>(I)) {
 			// decode t 
 			decodeArg(i->comparitor, newInsts);
 			i->instruction = "br " + UD + i->comparitor->name + " " + i->trueLabel->name + " " + i->falseLabel->name;
-
 		}
 		else if (Instruction_Length* i = dynamic_cast<Instruction_Length*>(I)) {
 			// decode var3 (dimension)
@@ -276,8 +306,7 @@ namespace LA {
 		else if (Instruction_Load* i = dynamic_cast<Instruction_Load*>(I)) {
 
 			// set the begining of the instruction to be the memory check
-			check_memory_access(i);
-			newInst = i->instruction;
+			check_memory_access(i, newInsts);
 
 			// decode vari(s)
 			for (Arg* idx : i->indexes) {
@@ -294,8 +323,7 @@ namespace LA {
 		else if (Instruction_Store* i = dynamic_cast<Instruction_Store*>(I)) {
 			
 			// set the begining of the instruction to be the memory check
-			check_memory_access(i);
-			newInst = i->instruction;
+			check_memory_access(i, newInsts);
 
 			// decode vari(s)
 			for (Arg* idx : i->indexes) {
@@ -320,7 +348,6 @@ namespace LA {
 			i->instruction = "";
 			i->instruction = UE + i->dst->name + " <- " + UD + i->arg1->name + " " + i->operation->name + " " + UD + i->arg2->name;
 		}
-
 		else {
 			// instruction remains the same
 			return;
@@ -357,6 +384,8 @@ namespace LA {
         	for (Instruction* I : f->instructions) {
         		parse_instruction(I, &newInsts);
         	}
+        	f->instructions = newInsts;
+
         	// generate_basic_blocks(f);
         	fs << "}\n";
         }

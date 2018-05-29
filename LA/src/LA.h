@@ -29,6 +29,7 @@ namespace LA {
 
   struct Type {
     virtual ~Type() = default;
+    std::string name;
   };
 
     struct Int64 : Type {
@@ -93,7 +94,7 @@ namespace LA {
   };
 
     struct Instruction_Label : Instruction {
-      
+
     };
 
     struct Instruction_Length : Instruction{
