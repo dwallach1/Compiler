@@ -112,7 +112,6 @@ namespace LA {
 		i_opAssign2->instruction = var->name + " <- " + var->name + " " + op2->name + " " + one->name;
 
 		newInsts->push_back(i_opAssign);
-
 	}
 
 	void check_memory_access(Instruction_Assignment* I, vector<Instruction*>* newInsts) {
@@ -355,6 +354,44 @@ namespace LA {
 		return;
 	}
 
+	void generate_basic_blocks(Function* f, vector<Instruction *>* newInsts) {
+		Instruction* inst = f->instructions[0];
+		bool startBB = true;
+		string uniqueLabel = "uniqueLabelDavidAndBrian";
+		int i = 0;
+		while (inst) {
+			Instruction_Label* i_lbl = dynamic_cast<Instruction_Label*>(inst);
+			if (startBB) {
+				if (!i_lbl) {
+					Instruction_Label* new_label = new Instruction_Label();
+					new_label->instruction = uniqueLabel + to_string(i);
+					newInsts->push_back(new_label);
+				}
+				startBB = false;
+			}
+			else if (i_lbl) {
+				Instruction_br* i_br = new Instruction_br();
+				i_br->instruction = uniqueLabel + to_string(i);
+				newInsts->push_back(i_br);
+			}
+			newInsts->push_back(inst);
+
+			Instruction_br* i_brr = dynamic_cast<Instruction_br*>(inst);
+			Instruction_brCmp* i_brcmp = dynamic_cast<Instruction_brCmp*>(inst);
+			Instruction_Return* i_ret = dynamic_cast<Instruction_Return*>(inst);
+			Instruction_ReturnVal* i_retVal = dynamic_cast<Instruction_ReturnVal*>(inst);
+			bool terminator = i_brr || i_brcmp || i_ret || i_retVal;
+			
+			if (terminator) {
+				startBB = true;
+			}
+
+			i++;
+
+			if (i > f->instructions.size() - 1) { inst = NULL; }
+		}
+	}
+
 	void number_instructions(Function* f) {
 		int i = 0;
 		for (Instruction* I : f->instructions) {
@@ -386,7 +423,13 @@ namespace LA {
         	}
         	f->instructions = newInsts;
 
-        	// generate_basic_blocks(f);
+        	newInsts = {};
+        	generate_basic_blocks(f, &newInsts);
+        	
+        	f->instructions = newInsts;
+        	for (Instruction* I : f->instructions) {
+        		fs << I->instruction << endl;
+        	}
         	fs << "}\n";
         }
         
