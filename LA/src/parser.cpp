@@ -775,8 +775,12 @@ namespace LA {
         newFunctionArgs.push_back(arg);
 
       }
-      
 
+      Instruction_Declaration* instruction = new Instruction_Declaration();
+      instruction->type = type;
+      instruction->arg = arg;
+
+      currentF->instruction.push_back(instruction);
     }
   };
 

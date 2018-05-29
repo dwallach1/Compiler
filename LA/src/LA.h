@@ -32,23 +32,25 @@ namespace LA {
   };
 
     struct Int64 : Type {
-
+      string name = "Int64";
     };
 
     struct Code : Type {
-
+      string name = "code";
     };
 
     struct Array : Type {
       virtual ~Array() = default;
+      string name = "Int64";
       int dims;
     };
 
     struct Tuple : Array {
-
-    };
+      string name = "tuple";
+    };  
 
     struct VoidT : Type {
+      string name = "void";
 
     };
 
@@ -85,10 +87,15 @@ namespace LA {
   struct Instruction {
     virtual ~Instruction() = default;
     std::string instruction;
-    int64_t instNum;
+    int64_t num;
     Instruction* prevInst;
     Instruction* nextInst;
   };
+
+    struct Instruction_Declaration : Instruction {
+      Type* type;
+      Arg* arg;
+    }
 
     struct Instruction_Length : Instruction{
       Arg* dimension;
