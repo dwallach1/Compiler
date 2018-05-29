@@ -4,9 +4,9 @@
 
 
 namespace LA {
-	std::string decodeName(std::string name);
-	std::string encodeName(std::string name);
-	void check_memory_access(Instruction_Assignment* I);
+	void decodeArg(Arg*, std::vector<Instruction*>*);
+	void encodeArg(Arg*, std::vector<Instruction*>*);
+	void check_memory_access(Instruction_Assignment* I, std::vector<Instruction*>*);
 	void number_instructions(Function* f);
   	void LA_generate_code(Program p);
 }
