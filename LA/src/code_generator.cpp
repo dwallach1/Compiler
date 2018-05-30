@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <stdlib.h>
 #include <code_generator.h>
-#define DEBUGGING 0
+#define DEBUGGING 1
 #define DEBUG_S 0
 
 using namespace std;
@@ -296,12 +296,14 @@ namespace LA {
 			// decode t 
 			decodeArg(i->comparitor, newInsts);
 			i->instruction = "br " + UD + i->comparitor->name + " " + i->trueLabel->name + " " + i->falseLabel->name;
-		}
+		    newInsts->push_back(i);
+        }
 		else if (Instruction_Length* i = dynamic_cast<Instruction_Length*>(I)) {
 			// decode var3 (dimension)
 			decodeArg(i->dimension, newInsts);
 			i->instruction = i->dst->name + " <- length " + i->array->name + " " + UD + i->dimension->name;
-		}
+		    newInsts->push_back(i);
+        }
 		else if (Instruction_Load* i = dynamic_cast<Instruction_Load*>(I)) {
 
 			// set the begining of the instruction to be the memory check
@@ -318,7 +320,8 @@ namespace LA {
 			for (Arg* idx : i->indexes) {
 				i->instruction.append('[' + UD + idx->name + ']');
 			}
-		}
+		    newInsts->push_back(i);
+        }
 		else if (Instruction_Store* i = dynamic_cast<Instruction_Store*>(I)) {
 			
 			// set the begining of the instruction to be the memory check
@@ -337,7 +340,8 @@ namespace LA {
 			}
 
 			i->instruction.append(" <- " + i->src->name);
-		}
+		    newInsts->push_back(i);
+        }
 		else if (Instruction_opAssignment* i = dynamic_cast<Instruction_opAssignment*>(I)) {
 			// decode arg1, arg2 (t1, t2)
 
@@ -346,10 +350,11 @@ namespace LA {
 			encodeArg(i->dst, newInsts);
 			i->instruction = "";
 			i->instruction = UE + i->dst->name + " <- " + UD + i->arg1->name + " " + i->operation->name + " " + UD + i->arg2->name;
-		}
+		    newInsts->push_back(i);
+        }
 		else {
 			// instruction remains the same
-			return;
+			newInsts->push_back(I);
 		}
 		return;
 	}
@@ -357,24 +362,28 @@ namespace LA {
 	void generate_basic_blocks(Function* f, vector<Instruction *>* newInsts) {
 		Instruction* inst = f->instructions[0];
 		bool startBB = true;
-		string uniqueLabel = "uniqueLabelDavidAndBrian";
+		string uniqueLabel = ":uniqueLabelDavidAndBrian";
 		int i = 0;
 		while (inst) {
-			Instruction_Label* i_lbl = dynamic_cast<Instruction_Label*>(inst);
+            if (DEBUGGING) cout << "iterating for: " << inst->instruction << endl;
+            Instruction_Label* i_lbl = dynamic_cast<Instruction_Label*>(inst);
 			if (startBB) {
 				if (!i_lbl) {
-					Instruction_Label* new_label = new Instruction_Label();
+					if (DEBUGGING) cout << "creating new label to begin BB" << endl;
+                    Instruction_Label* new_label = new Instruction_Label();
 					new_label->instruction = uniqueLabel + to_string(i);
 					newInsts->push_back(new_label);
 				}
 				startBB = false;
 			}
 			else if (i_lbl) {
-				Instruction_br* i_br = new Instruction_br();
+				if (DEBUGGING) cout << "creating new goto instruction" << endl;
+                Instruction_br* i_br = new Instruction_br();
 				i_br->instruction = uniqueLabel + to_string(i);
 				newInsts->push_back(i_br);
 			}
-			newInsts->push_back(inst);
+			if (DEBUGGING) cout << "adding the new inst" << endl;
+            newInsts->push_back(inst);
 
 			Instruction_br* i_brr = dynamic_cast<Instruction_br*>(inst);
 			Instruction_brCmp* i_brcmp = dynamic_cast<Instruction_brCmp*>(inst);
@@ -383,13 +392,15 @@ namespace LA {
 			bool terminator = i_brr || i_brcmp || i_ret || i_retVal;
 			
 			if (terminator) {
+                if (DEBUGGING) cout << "instruction is a terminator" << endl;
 				startBB = true;
 			}
 
 			i++;
-
+            if (DEBUGGING) cout << "i is: " << i << " and numInsts are: " << f->instructions.size() - 1 << endl;
 			if (i > f->instructions.size() - 1) { inst = NULL; }
-		}
+		    else { inst = f->instructions[i]; }
+        }
 	}
 
 	void number_instructions(Function* f) {
@@ -397,19 +408,31 @@ namespace LA {
 		for (Instruction* I : f->instructions) {
 			I->num = i;
 			i++;
-		}
+		} 
 	}
 
     void LA_generate_code(Program p) {
         
         // set up file stream
         std::fstream fs;
-        fs.open("prog.LA", std::fstream::in | std::fstream::out | std::fstream::app);
-
+        fs.open("prog.IR", std::fstream::in | std::fstream::out | std::fstream::app);
+        
+        if (DEBUGGING) cout << "number of functions are " << to_string(p.functions.size()) << endl;
         for (Function* f : p.functions) {
+            if (DEBUGGING) cout << "Numbering instructions" << endl;
         	number_instructions(f);
-
-        	fs << f->returnType->name << " " << f->name->name << "(";
+            if (DEBUGGING) cout << "Finished numbering instructions" << endl;
+            if (DEBUGGING) cout << "number of parameters are: " << f->parameters.size() << endl;
+            
+            /*
+             *      f->name is erroring. Must be from parser, need to fix
+             *
+             */
+            
+            //if (DEBUGGING) cout << "func name is (pointer): " << f->name << endl;
+            //if (DEBUGGING) cout << "func name is " << f->name->name << endl;
+        	//fs << f->name->name << "(";
+            
             for(Arg* param : f->parameters){
                 fs << param->name;
                 if(param != f->parameters[f->parameters.size()-1]){
@@ -418,18 +441,29 @@ namespace LA {
             }
             fs << "){\n";
             vector<Instruction *> newInsts = {};
-        	for (Instruction* I : f->instructions) {
+        	
+            if (DEBUGGING) cout << "Beginning to parse instructions" << endl; 
+            for (Instruction* I : f->instructions) {
         		parse_instruction(I, &newInsts);
         	}
-        	f->instructions = newInsts;
 
-        	newInsts = {};
+            if (DEBUGGING) cout << "finished parsing instructions" << endl;
+        	if (DEBUGGING) cout << "size of newInsts after parse_instructios is: " << newInsts.size() << endl;
+            f->instructions = newInsts;
+            
+            if (DEBUGGING) cout << "Beginning to generate basic blocks" << endl;
+        	if (DEBUGGING) cout << "Number of instructiosn are " << f->instructions.size() << endl;
+            newInsts = {};
         	generate_basic_blocks(f, &newInsts);
+            if (DEBUGGING) cout << "finished generating basic blocks" << endl;
         	
+            if (DEBUGGING) cout << "Beginning to print instructions" << endl;
         	f->instructions = newInsts;
         	for (Instruction* I : f->instructions) {
         		fs << I->instruction << endl;
         	}
+            if (DEBUGGING) cout << "finished printing instructions" << endl;
+            
         	fs << "}\n";
         }
         
