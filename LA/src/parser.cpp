@@ -16,7 +16,7 @@
 
 
 #define DEBUGGING 0
-#define DEBUG_S 0
+#define DEBUG_S 1
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
 using namespace pegtl;
@@ -524,7 +524,7 @@ namespace LA {
     template< typename Input >
     static void apply( const Input & in, Program & p){
       
-      if(DEBUGGING) cout << "Found a new function " <<  in.string() << endl;
+      if(DEBUGGING || DEBUG_S) cout << "Found a new function " <<  in.string() << endl;
       
       Function *newF = new Function();
 
@@ -544,16 +544,13 @@ namespace LA {
 
       }
 
-      if (DEBUG_S) cout << "setting function name to be: " << names[0]->name << endl;
+      
       newF->name = names[0];
       names.clear();
-
-      if (DEBUG_S) cout << "size of type declarations is: " << type_declarations.size() << endl;
       
       newF->returnType = type_declarations.back();
       type_declarations.pop_back();
-      if (DEBUG_S) cout << "setting return type to be " << newF->returnType->name << endl;
-
+     
       parsed_registers.clear();
       parsed_labels.clear();
       type_declarations.clear();
@@ -600,7 +597,7 @@ namespace LA {
   template<> struct action < type > {
     template< typename Input >
     static void apply( const Input & in, Program & p){
-      if(DEBUGGING || DEBUG_S) cout << "Found a type: " << in.string() << endl;
+      if(DEBUGGING) cout << "Found a type: " << in.string() << endl;
 
       
       if (in.string().find("code") != std::string::npos) {
@@ -742,10 +739,10 @@ namespace LA {
   template<> struct action < T > {
     template< typename Input >
     static void apply( const Input & in, Program & p){
-      if(DEBUG_S || DEBUGGING) cout << "found a T: " <<  in.string() << endl;
+      if(DEBUGGING) cout << "found a T: " <<  in.string() << endl;
 
       if(in.string() == "void") {
-        if (DEBUG_S) cout << "creating new void obj" << endl;
+       
         VoidT* voidT = new VoidT();
         voidT->name = "void";
         type_declarations.push_back(voidT);
@@ -949,7 +946,9 @@ namespace LA {
         if(DEBUGGING) cout << "found a store " <<  in.string() << endl;
         
         Function*   currentF = p.functions.back();
-        
+       
+       if (DEBUG_S) cout << "adding store to function " << currentF->name->name << endl;
+
         Instruction_Store *instruction = new Instruction_Store();
 
 
@@ -1213,7 +1212,7 @@ namespace LA {
         if(DEBUGGING) cout << "found a return_nothing " <<  in.string() << endl;
           
         Function* currentF = p.functions.back();
-        
+        if (DEBUG_S) cout << "adding return nothing inst to " << currentF->name->name << endl;     
         Instruction_Return* instruction = new Instruction_Return();
         instruction->instruction = "return" ;
         currentF->instructions.push_back(instruction);
@@ -1267,7 +1266,6 @@ namespace LA {
         currentF->instructions.push_back(instruction);
     }
   };
-
 
   template<> struct action < comment > {
     template< typename Input >

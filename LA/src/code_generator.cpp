@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <stdlib.h>
 #include <code_generator.h>
-#define DEBUGGING 0
+#define DEBUGGING 1
 #define DEBUG_S 0
 
 using namespace std;
@@ -30,7 +30,7 @@ namespace LA {
 		Int64* i64 = new Int64();
 
 		i_dec->type = i64;
-
+        i_dec->type->name = "int64";
 		Arg* var = new Arg();
 		var->name = UD + arg->name;
 		var->type = i64;
@@ -67,6 +67,7 @@ namespace LA {
 		Int64* i64 = new Int64();
 
 		i_dec->type = i64;
+        i_dec->type->name = "int64";
 
 		Arg* var = new Arg();
 		var->name = UE + arg->name;
@@ -243,10 +244,10 @@ namespace LA {
 	void parse_instruction(Instruction* I, vector<Instruction *>* newInsts) {
 
 		if (Instruction_Declaration* i = dynamic_cast<Instruction_Declaration*>(I)) {
-
+            
 			if (Tuple* t = dynamic_cast<Tuple*>(i->type)) {
-				
-				i->instruction = i->type->name + " " + i->var->name;
+                				
+				i->instruction = "tuple " + i->var->name;
 
 				newInsts->push_back(i);
 
@@ -266,7 +267,7 @@ namespace LA {
 
 				i->instruction = "";
 
-				i->instruction = i->type->name;
+				i->instruction = "int64";
 				Array* array = dynamic_cast<Array*>(i->type);
 				for (int j = 0; j < array->dims; j++) {
 					i->instruction.append("[]");
@@ -288,7 +289,10 @@ namespace LA {
 				newInsts->push_back(i_assign);
 			}	
 			else {
-				i->instruction = i->type->name + " " + i->var->name;
+				string name = "";
+                if (Code* code = dynamic_cast<Code*>(i->type)) { name = "code"; }
+                else { name = "int64"; }
+                i->instruction = name + " " + i->var->name;
 				newInsts->push_back(i);
 			}
 		}
@@ -364,12 +368,13 @@ namespace LA {
 		bool startBB = true;
 		string uniqueLabel = ":uniqueLabelDavidAndBrian";
 		int i = 0;
-		while (inst) {
-            if (DEBUGGING) cout << "iterating for: " << inst->instruction << endl;
+		if (DEBUGGING) cout << "length of functions instructions are: " << f->instructions.size() << endl;
+        while (inst) {
+
             Instruction_Label* i_lbl = dynamic_cast<Instruction_Label*>(inst);
 			if (startBB) {
 				if (!i_lbl) {
-					if (DEBUGGING) cout << "creating new label to begin BB" << endl;
+
                     Instruction_Label* new_label = new Instruction_Label();
 					new_label->instruction = uniqueLabel + to_string(i);
 					newInsts->push_back(new_label);
@@ -377,12 +382,12 @@ namespace LA {
 				startBB = false;
 			}
 			else if (i_lbl) {
-				if (DEBUGGING) cout << "creating new goto instruction" << endl;
+
                 Instruction_br* i_br = new Instruction_br();
 				i_br->instruction = uniqueLabel + to_string(i);
 				newInsts->push_back(i_br);
 			}
-			if (DEBUGGING) cout << "adding the new inst" << endl;
+	
             newInsts->push_back(inst);
 
 			Instruction_br* i_brr = dynamic_cast<Instruction_br*>(inst);
@@ -392,12 +397,12 @@ namespace LA {
 			bool terminator = i_brr || i_brcmp || i_ret || i_retVal;
 			
 			if (terminator) {
-                if (DEBUGGING) cout << "instruction is a terminator" << endl;
+     
 				startBB = true;
 			}
 
 			i++;
-            if (DEBUGGING) cout << "i is: " << i << " and numInsts are: " << f->instructions.size() - 1 << endl;
+      
 			if (i > f->instructions.size() - 1) { inst = NULL; }
 		    else { inst = f->instructions[i]; }
         }
@@ -417,21 +422,13 @@ namespace LA {
         std::fstream fs;
         fs.open("prog.IR", std::fstream::in | std::fstream::out | std::fstream::app);
         
-        if (DEBUGGING) cout << "number of functions are " << to_string(p.functions.size()) << endl;
+       
         for (Function* f : p.functions) {
-            if (DEBUGGING) cout << "Numbering instructions" << endl;
+        
         	number_instructions(f);
-            if (DEBUGGING) cout << "Finished numbering instructions" << endl;
-            if (DEBUGGING) cout << "number of parameters are: " << f->parameters.size() << endl;
-            
-            /*
-             *      f->name is erroring. Must be from parser, need to fix
-             *
-             */
-            
-            //if (DEBUGGING) cout << "func name is (pointer): " << f->name << endl;
-            //if (DEBUGGING) cout << "func name is " << f->name->name << endl;
-        	
+        
+            fs << "define" << " ";
+
             // handle indexes for arrays of returnType i.e. int64[][][]
         	if (Array* array = dynamic_cast<Array*>(f->returnType)) {
         		fs << f->returnType->name;
@@ -440,7 +437,7 @@ namespace LA {
         	else { fs << f->returnType->name; }
 
 
-        	fs << " " << f->name->name << "(";
+        	fs << " " << ":" << f->name->name << "(";
             
             for(Arg* param : f->parameters){
                 fs << param->name;
@@ -451,29 +448,22 @@ namespace LA {
             fs << "){\n";
             vector<Instruction *> newInsts = {};
         	
-            if (DEBUGGING) cout << "Beginning to parse instructions" << endl; 
+           
             for (Instruction* I : f->instructions) {
         		parse_instruction(I, &newInsts);
         	}
 
-            if (DEBUGGING) cout << "finished parsing instructions" << endl;
-        	if (DEBUGGING) cout << "size of newInsts after parse_instructios is: " << newInsts.size() << endl;
             f->instructions = newInsts;
-            
-            if (DEBUGGING) cout << "Beginning to generate basic blocks" << endl;
-        	if (DEBUGGING) cout << "Number of instructiosn are " << f->instructions.size() << endl;
+        
             newInsts = {};
         	generate_basic_blocks(f, &newInsts);
-            if (DEBUGGING) cout << "finished generating basic blocks" << endl;
-        	
-            if (DEBUGGING) cout << "Beginning to print instructions" << endl;
-        	
+            
+            if(DEBUGGING) cout << "last instruction of basic block is: " << newInsts.back()->instruction << endl;
+                	
         	f->instructions = newInsts;
         	for (Instruction* I : f->instructions) {
         		fs << "\t" << I->instruction << endl;
         	}
-            
-            if (DEBUGGING) cout << "finished printing instructions" << endl;
             
         	fs << "}\n";
         }
