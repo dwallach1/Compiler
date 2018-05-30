@@ -16,7 +16,7 @@
 
 
 #define DEBUGGING 0
-#define DEBUG_S 1
+#define DEBUG_S 0
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
 using namespace pegtl;
@@ -546,7 +546,11 @@ namespace LA {
 
       
       newF->name = names[0];
-      names.clear();
+      if (DEBUGGING) cout << "setting function's name to be " << newF->name->name << endl;
+      if (DEBUGGING) {
+        for (Arg* name : names) { cout << "-->" << name->name << endl; }
+      }
+      // names.clear();
       
       newF->returnType = type_declarations.back();
       type_declarations.pop_back();
@@ -704,7 +708,7 @@ namespace LA {
         Arg* name = new Arg();
 
         name->name = in.string();
-
+        // if (DEBUG_S) cout << "adding new name " << name->name << endl;
         names.push_back(name);
     }
   };
@@ -718,6 +722,7 @@ namespace LA {
       Arg* arg = new Arg();
       arg->name = in.string();
       parsed_registers.push_back(arg);
+      // names.pop_back();
 
     }
   };
@@ -789,7 +794,6 @@ namespace LA {
       Arg* test = parsed_registers.back();
       arg->type = type;
 
-
       test = findVariable(currentF, test);
       if(test){
         newFunctionArgs.push_back(arg);
@@ -806,6 +810,7 @@ namespace LA {
       instruction->var = arg;
 
       currentF->instructions.push_back(instruction);
+      // cnames.clear();
 
     }
   };
@@ -846,6 +851,7 @@ namespace LA {
         instruction->operation = op;
 
         currentF->instructions.push_back(instruction);
+        names.clear();
 
         if(DEBUGGING) cout << "Leaving assignment\n";
     }
@@ -883,6 +889,7 @@ namespace LA {
         
 
         currentF->instructions.push_back(instruction);
+        names.clear();
     }
   };
 
@@ -937,6 +944,7 @@ namespace LA {
 
 
         currentF->instructions.push_back(instruction);
+        names.clear();
     }
   };
 
@@ -987,6 +995,7 @@ namespace LA {
         
 
         currentF->instructions.push_back(instruction);
+        names.clear();
     }
   };
 
@@ -1029,6 +1038,7 @@ namespace LA {
         currentF->instructions.push_back(instruction);
 
         if(DEBUGGING) cout << "Pushed back the length instruction: " <<  in.string() << endl;
+        names.clear();
     }
   };
 
@@ -1054,6 +1064,7 @@ namespace LA {
         instruction->dst = dest;
 
         currentF->instructions.push_back(instruction);
+        names.clear();
     }
   };
 
@@ -1086,6 +1097,7 @@ namespace LA {
         }
         
         currentF->instructions.push_back(instruction);
+        names.clear();
     }
   };
 
@@ -1129,6 +1141,7 @@ namespace LA {
 
 
         if (DEBUGGING) cout << "leaving from call inst\n";
+        names.clear();
     }
   };
 
@@ -1180,7 +1193,7 @@ namespace LA {
         instruction->instruction.append(" )");
   
         currentF->instructions.push_back(instruction);
-
+        names.clear();
     }
   };
 
@@ -1201,6 +1214,7 @@ namespace LA {
   
         instruction->retVal = val;
         currentF->instructions.push_back(instruction);
+        names.clear();
 
 
       }
@@ -1216,6 +1230,7 @@ namespace LA {
         Instruction_Return* instruction = new Instruction_Return();
         instruction->instruction = "return" ;
         currentF->instructions.push_back(instruction);
+        names.clear();
 
     }
   };
@@ -1235,6 +1250,7 @@ namespace LA {
         instruction->instruction = "br " + label->name;
         instruction->label = label;
         currentF->instructions.push_back(instruction);
+        names.clear();
 
     }
   };
@@ -1264,6 +1280,7 @@ namespace LA {
         instruction->trueLabel = trueLabel;
         instruction->falseLabel = falseLabel;
         currentF->instructions.push_back(instruction);
+        names.clear();
     }
   };
 

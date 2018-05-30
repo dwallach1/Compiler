@@ -368,7 +368,9 @@ namespace LA {
 		bool startBB = true;
 		string uniqueLabel = ":uniqueLabelDavidAndBrian";
 		int i = 0;
+		
 		if (DEBUGGING) cout << "length of functions instructions are: " << f->instructions.size() << endl;
+        
         while (inst) {
 
             Instruction_Label* i_lbl = dynamic_cast<Instruction_Label*>(inst);
@@ -424,7 +426,9 @@ namespace LA {
         
        
         for (Function* f : p.functions) {
-        
+        	
+        	if (DEBUGGING) cout << "Function: " << f->name->name << " has " << f->instructions.size() << " instructions" << endl;
+        	
         	number_instructions(f);
         
             fs << "define" << " ";
@@ -454,6 +458,11 @@ namespace LA {
         	}
 
             f->instructions = newInsts;
+
+            if (DEBUGGING) {
+            	cout << "Before BB generation, the instructions are as follows:" << endl;
+            	for (Instruction* inst : f->instructions) {  cout << inst->instruction << endl; }
+            }
         
             newInsts = {};
         	generate_basic_blocks(f, &newInsts);
