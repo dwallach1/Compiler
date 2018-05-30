@@ -33,25 +33,25 @@ namespace LA {
   };
 
     struct Int64 : Type {
-      std::string name = "Int64";
+      // std::string name = "Int64";
     };
 
     struct Code : Type {
-      std::string name = "code";
+      // std::string name = "code";
     };
 
     struct Array : Type {
       virtual ~Array() = default;
-      std::string name = "Int64";
+      // std::string name = "Int64";
       int dims;
     };
 
     struct Tuple : Array {
-      std::string name = "tuple";
+      // std::string name = "tuple";
     };  
 
     struct VoidT : Type {
-      std::string name = "void";
+      // std::string name = "void";
 
     };
 
@@ -190,7 +190,6 @@ namespace LA {
     std::vector<Arg *> parameters;
     std::vector<Instruction *> instructions;
     std::vector<BasicBlock *> basicBlocks;
-
     Type* returnType;
   };
 

@@ -36,6 +36,7 @@ namespace LA {
   vector<Arg *> index_holder;
   vector<Operation *> operations;
   vector<Arg *> newFunctionArgs;
+  vector<Arg *> names;
 
   /* 
    * Grammar rules from now on.
@@ -526,20 +527,8 @@ namespace LA {
       if(DEBUGGING) cout << "Found a new function " <<  in.string() << endl;
       
       Function *newF = new Function();
-      
-
 
       while(parsed_registers.size() && newFunctionArgs.size()) {
-
-        if (parsed_registers.size() == 1) {
-          newF->name = parsed_registers.back();
-          parsed_registers.pop_back();
-
-          newF->returnType = type_declarations.back();
-          type_declarations.pop_back();
-
-          break;
-        }
 
         Arg* parameter = parsed_registers.back();
         parsed_registers.pop_back();
@@ -555,15 +544,23 @@ namespace LA {
 
       }
 
-      parsed_registers = {};
-      parsed_labels = {};
-      type_declarations = {};
-      index_holder = {};
-      operations = {};
+      if (DEBUG_S) cout << "setting function name to be: " << names[0]->name << endl;
+      newF->name = names[0];
+      names.clear();
+
+      if (DEBUG_S) cout << "size of type declarations is: " << type_declarations.size() << endl;
       
-      p.functions.push_back(newF);
-      if(DEBUGGING) cout << "Pushing back new function\n";
+      newF->returnType = type_declarations.back();
+      type_declarations.pop_back();
+      if (DEBUG_S) cout << "setting return type to be " << newF->returnType->name << endl;
+
+      parsed_registers.clear();
+      parsed_labels.clear();
+      type_declarations.clear();
+      index_holder.clear();
+      operations.clear();
       
+      p.functions.push_back(newF);      
     }
   };
 
@@ -603,7 +600,7 @@ namespace LA {
   template<> struct action < type > {
     template< typename Input >
     static void apply( const Input & in, Program & p){
-      if(DEBUGGING) cout << "Found a type: " << in.string() << endl;
+      if(DEBUGGING || DEBUG_S) cout << "Found a type: " << in.string() << endl;
 
       
       if (in.string().find("code") != std::string::npos) {
@@ -703,6 +700,18 @@ namespace LA {
     }
   };
 
+  template<> struct action < name > {
+    template< typename Input >
+    static void apply( const Input & in, Program & p){
+        
+        Arg* name = new Arg();
+
+        name->name = in.string();
+
+        names.push_back(name);
+    }
+  };
+
   template<> struct action < var > {
     template< typename Input >
     static void apply( const Input & in, Program & p){
@@ -733,29 +742,34 @@ namespace LA {
   template<> struct action < T > {
     template< typename Input >
     static void apply( const Input & in, Program & p){
-      if(DEBUGGING) cout << "found a Type: " <<  in.string() << endl;
+      if(DEBUG_S || DEBUGGING) cout << "found a T: " <<  in.string() << endl;
 
       if(in.string() == "void") {
+        if (DEBUG_S) cout << "creating new void obj" << endl;
         VoidT* voidT = new VoidT();
+        voidT->name = "void";
         type_declarations.push_back(voidT);
       }
       else if(in.string() == "int64") {
         Int64* int64 = new Int64();
+        int64->name = "Int64";
         type_declarations.push_back(int64);
       }
       else if (in.string() == "code") {
         Code* code = new Code();
+        code->name = "code";
         type_declarations.push_back(code);
       } 
       else if (in.string() == "tuple") {
         Tuple* tuple = new Tuple();
+        tuple->name = "tuple";
         type_declarations.push_back(tuple);
 
       }
       else {
         if(DEBUGGING) cout << "Making a new array\n";
         Array* array = new Array();
-
+        array->name = "Int64";
         int dims = index_holder.size();
         array->dims = dims;
 

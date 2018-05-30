@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <stdlib.h>
 #include <code_generator.h>
-#define DEBUGGING 1
+#define DEBUGGING 0
 #define DEBUG_S 0
 
 using namespace std;
@@ -431,7 +431,16 @@ namespace LA {
             
             //if (DEBUGGING) cout << "func name is (pointer): " << f->name << endl;
             //if (DEBUGGING) cout << "func name is " << f->name->name << endl;
-        	//fs << f->name->name << "(";
+        	
+            // handle indexes for arrays of returnType i.e. int64[][][]
+        	if (Array* array = dynamic_cast<Array*>(f->returnType)) {
+        		fs << f->returnType->name;
+        		for (int k = 0; k < array->dims; k++) { fs << "[]"; }
+        	}
+        	else { fs << f->returnType->name; }
+
+
+        	fs << " " << f->name->name << "(";
             
             for(Arg* param : f->parameters){
                 fs << param->name;
@@ -458,10 +467,12 @@ namespace LA {
             if (DEBUGGING) cout << "finished generating basic blocks" << endl;
         	
             if (DEBUGGING) cout << "Beginning to print instructions" << endl;
+        	
         	f->instructions = newInsts;
         	for (Instruction* I : f->instructions) {
-        		fs << I->instruction << endl;
+        		fs << "\t" << I->instruction << endl;
         	}
+            
             if (DEBUGGING) cout << "finished printing instructions" << endl;
             
         	fs << "}\n";
