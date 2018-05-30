@@ -218,6 +218,24 @@ namespace LA {
       >
     >{};
 
+  struct declaration_inst:
+    pegtl::seq<
+      seps,
+      type,
+      seps,
+      var,
+      seps,
+      not_at<
+        pegtl::seq<
+          seps,
+          pegtl::sor<
+            one < ',' >,
+            one < ')' >
+          >
+        >
+      >
+    >{};
+
   struct declaration:
     pegtl::seq<
       seps,
@@ -436,6 +454,7 @@ namespace LA {
     pegtl::seq<
       seps,
       pegtl::sor<
+        declaration_inst,
         declaration,
         assignment,
         op_assign,
@@ -558,7 +577,6 @@ namespace LA {
       parsed_registers.clear();
       parsed_labels.clear();
       type_declarations.clear();
-      index_holder.clear();
       operations.clear();
       
       p.functions.push_back(newF);      
@@ -592,9 +610,9 @@ namespace LA {
       if(DEBUGGING) cout << "Found an index: " << in.string() << endl;
 
         // it will be a number -- get the number part [ num ]
-        // Arg* newIndex = parsed_registers.back();
-        // parsed_registers.pop_back();
-        // index_holder.push_back(newIndex);
+        Arg* newIndex = parsed_registers.back();
+        parsed_registers.pop_back();
+        index_holder.push_back(newIndex);
     }
   };
 
@@ -795,6 +813,7 @@ namespace LA {
       arg->type = type;
 
       test = findVariable(currentF, test);
+      if (DEBUG_S && test) cout << "found variable " << test->name << " in the currentF" << endl;
       if(test){
         newFunctionArgs.push_back(arg);
         //parsed_registers.pop_back();
@@ -802,16 +821,37 @@ namespace LA {
       else{
         currentF->declared_variables.insert(arg);
         newFunctionArgs.push_back(arg);
-
+        // Instruction_Declaration* instruction = new Instruction_Declaration();
+        // instruction->type = type;
+        // instruction->var = arg;
+        // currentF->instructions.push_back(instruction);
+        // if (DEBUG_S) cout << "added new declare instruction" << endl;
       }
+
+    }
+  };
+
+  template<> struct action < declaration_inst > {
+    template< typename Input >
+    static void apply( const Input & in, Program & p){
+      if(DEBUGGING || DEBUG_S) cout << "found a declaration_inst " <<  in.string() << endl;
+
+      Function* currentF = p.functions.back();
+
+      Type* type = type_declarations.back();
+      type_declarations.pop_back();
+
+      Arg* arg = parsed_registers.back();
+      arg->type = type;
+
+      currentF->declared_variables.insert(arg);
+      newFunctionArgs.push_back(arg);
 
       Instruction_Declaration* instruction = new Instruction_Declaration();
       instruction->type = type;
       instruction->var = arg;
-
       currentF->instructions.push_back(instruction);
-      // cnames.clear();
-
+      if (DEBUG_S) cout << "successfully added new declare instruction" << endl;
     }
   };
 

@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <stdlib.h>
 #include <code_generator.h>
-#define DEBUGGING 1
+#define DEBUGGING 0
 #define DEBUG_S 0
 
 using namespace std;
@@ -125,7 +125,6 @@ namespace LA {
 		if (i_load) {
 			
 			// check if array is 0
-
 			Instruction_brCmp* i_brcmp = new Instruction_brCmp();
 			string trueLabel = ":" + legnthVar + "trueLabel" + to_string(i_load->num);
 			string falseLabel = ":" + legnthVar + "falseLabel" + to_string(i_load->num);
@@ -265,11 +264,12 @@ namespace LA {
 			}
 			else if (Array* type = dynamic_cast<Array*>(i->type)) {
 
+				if (DEBUGGING) cout << "found a new array and initing to zero" << endl;
+				
 				i->instruction = "";
 
 				i->instruction = "int64";
-				Array* array = dynamic_cast<Array*>(i->type);
-				for (int j = 0; j < array->dims; j++) {
+				for (int j = 0; j < type->dims; j++) {
 					i->instruction.append("[]");
 				}
 				i->instruction.append(" " + i->var->name);
@@ -356,6 +356,20 @@ namespace LA {
 			i->instruction = UE + i->dst->name + " <- " + UD + i->arg1->name + " " + i->operation->name + " " + UD + i->arg2->name;
 		    newInsts->push_back(i);
         }
+        else if (Instruction_TupleInit* i_tuple = dynamic_cast<Instruction_TupleInit*>(I)) {
+        	i_tuple->instruction = i_tuple->dst->name + " <- new Tuple(" + i_tuple->src[0]->name + ")";
+        	newInsts->push_back(i_tuple);
+        } 
+        else if (Instruction_ArrayInit* i_array = dynamic_cast<Instruction_ArrayInit*>(I)) {
+        	i_array->instruction = i_array->dst->name + " <- new Array(";
+        	for (Arg* idx : i_array->src) { i_array->instruction.append(idx->name + ","); }
+        	i_array->instruction.append(")"); 
+        	newInsts->push_back(i_array);
+        }
+        else if (Instruction_Return* i_ret = dynamic_cast<Instruction_Return*>(I)) {
+        	i_ret->instruction = "return";
+        	newInsts->push_back(i_ret);
+        }
 		else {
 			// instruction remains the same
 			newInsts->push_back(I);
@@ -428,6 +442,7 @@ namespace LA {
         for (Function* f : p.functions) {
         	
         	if (DEBUGGING) cout << "Function: " << f->name->name << " has " << f->instructions.size() << " instructions" << endl;
+        	if (DEBUGGING) cout << "--> last instruction is: " << f->instructions.back()->instruction << endl;
         	
         	number_instructions(f);
         
@@ -454,6 +469,7 @@ namespace LA {
         	
            
             for (Instruction* I : f->instructions) {
+            	if (DEBUGGING) cout << "parsing instruction: " << I->instruction << endl;
         		parse_instruction(I, &newInsts);
         	}
 
