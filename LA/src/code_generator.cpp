@@ -27,7 +27,7 @@ namespace LA {
 	string UE = "%uniqueEncodedDavidBrian";
 	string UD = "%uniqueDecodedDavidBrian";
 
-	void decodeArg(Arg* arg, vector<Instruction *>* newInsts) {
+	string decodeArg(Arg* arg, vector<Instruction *>* newInsts) {
 
 		Instruction_Declaration* i_dec = new Instruction_Declaration();
 
@@ -36,7 +36,12 @@ namespace LA {
 		i_dec->type = i64;
         i_dec->type->name = "int64";
 		Arg* var = new Arg();
-		var->name = UD + arg->name;
+		if(Number* num = dynamic_cast<Number*>(arg)){
+			var->name = UD + arg->name;
+		}
+		else{
+			var->name = UD + arg->name.substr(1);
+		}
 		var->type = i64;
 
 		i_dec->instruction = i64->name + " " + var->name;
@@ -62,9 +67,11 @@ namespace LA {
 		i_opAssign->instruction = var->name + " <- " + arg->name + " " + op->name + " " + one->name;
 
 		newInsts->push_back(i_opAssign);
+
+		return var->name;
 	}
 
-	void encodeArg(Arg* arg, vector<Instruction *>* newInsts) {
+	string encodeArg(Arg* arg, vector<Instruction *>* newInsts) {
 
 		Instruction_Declaration* i_dec = new Instruction_Declaration();
 
@@ -74,7 +81,13 @@ namespace LA {
         i_dec->type->name = "int64";
 
 		Arg* var = new Arg();
-		var->name = UE + arg->name;
+
+		if(Number* num = dynamic_cast<Number*> (arg)){
+			var->name = UE + arg->name;
+		}
+		else{
+			var->name = UE + arg->name.substr(1);
+		}
 		var->type = i64;
 
 		i_dec->instruction = i64->name + " " + var->name;
@@ -117,6 +130,7 @@ namespace LA {
 		i_opAssign2->instruction = var->name + " <- " + var->name + " " + op2->name + " " + one->name;
 
 		newInsts->push_back(i_opAssign2);
+		return var->name;
 	}
 
 	void check_memory_access(Instruction_Assignment* I, vector<Instruction*>* newInsts) {
@@ -302,14 +316,13 @@ namespace LA {
 		}
 		else if (Instruction_brCmp* i = dynamic_cast<Instruction_brCmp*>(I)) {
 			// decode t 
-			decodeArg(i->comparitor, newInsts);
-			i->instruction = "br " + UD + i->comparitor->name + " " + i->trueLabel->name + " " + i->falseLabel->name;
+			
+			i->instruction = "br " + decodeArg(i->comparitor, newInsts) + " " + i->trueLabel->name + " " + i->falseLabel->name;
 		    newInsts->push_back(i);
         }
 		else if (Instruction_Length* i = dynamic_cast<Instruction_Length*>(I)) {
 			// decode var3 (dimension)
-			decodeArg(i->dimension, newInsts);
-			i->instruction = i->dst->name + " <- length " + i->array->name + " " + UD + i->dimension->name;
+			i->instruction = i->dst->name + " <- length " + i->array->name + " " + decodeArg(i->dimension, newInsts);
 		    newInsts->push_back(i);
         }
 		else if (Instruction_Load* i = dynamic_cast<Instruction_Load*>(I)) {
@@ -317,16 +330,12 @@ namespace LA {
 			// set the begining of the instruction to be the memory check
 			check_memory_access(i, newInsts);
 
-			// decode vari(s)
-			for (Arg* idx : i->indexes) {
-				decodeArg(idx, newInsts);
-			}
 
 			i->instruction = "";
 			i->instruction = i->dst->name + " <- " + i->src->name;
 
 			for (Arg* idx : i->indexes) {
-				i->instruction.append('[' + UD + idx->name + ']');
+				i->instruction.append('[' + decodeArg(idx, newInsts) + ']');
 			}
 		    newInsts->push_back(i);
         }
@@ -335,16 +344,11 @@ namespace LA {
 			// set the begining of the instruction to be the memory check
 			check_memory_access(i, newInsts);
 
-			// decode vari(s)
-			for (Arg* idx : i->indexes) {
-				decodeArg(idx, newInsts);
-			}
-
 			i->instruction = "";
 			i->instruction = i->dst->name;
 
 			for (Arg* idx : i->indexes) {
-				i->instruction.append('[' + UD + idx->name + ']');
+				i->instruction.append('[' + decodeArg(idx, newInsts) + ']');
 			}
 
 			i->instruction.append(" <- " + i->src->name);
@@ -353,11 +357,8 @@ namespace LA {
 		else if (Instruction_opAssignment* i = dynamic_cast<Instruction_opAssignment*>(I)) {
 			// decode arg1, arg2 (t1, t2)
 
-			decodeArg(i->arg1, newInsts);
-			decodeArg(i->arg2, newInsts);
-			encodeArg(i->dst, newInsts);
 			i->instruction = "";
-			i->instruction = UE + i->dst->name + " <- " + UD + i->arg1->name + " " + i->operation->name + " " + UD + i->arg2->name;
+			i->instruction = encodeArg(i->dst, newInsts) + " <- " + decodeArg(i->arg1, newInsts) + " " + i->operation->name + " " + decodeArg(i->arg2, newInsts);
 		    newInsts->push_back(i);
         }
         else if (Instruction_TupleInit* i_tuple = dynamic_cast<Instruction_TupleInit*>(I)) {
@@ -378,8 +379,8 @@ namespace LA {
         	if(PA* isPA = dynamic_cast<PA*>(i_call->callee)){
         		i_call->instruction = "call " + i_call->callee->name + "(";
         		for(int i = 0; i < i_call->parameters.size(); i++){
-        			encodeArg(i_call->parameters[i], newInsts);
-        			i_call->instruction.append(UE + i_call->parameters[i]->name + ", ");
+        			
+        			i_call->instruction.append(encodeArg(i_call->parameters[i], newInsts) + ", ");
         		}
         		i_call->instruction.append(")");
         		newInsts->push_back(i_call);
