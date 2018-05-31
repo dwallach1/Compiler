@@ -855,6 +855,25 @@ namespace LA {
     }
   };
 
+  template<> struct action < label_inst > {
+    template< typename Input >
+    static void apply( const Input & in, Program & p){
+      if(DEBUGGING || DEBUG_S) cout << "found a label_inst " <<  in.string() << endl;
+
+      Function* currentF = p.functions.back();
+
+      Arg* arg = parsed_labels.back();
+
+
+
+      Instruction_Label* instruction = new Instruction_Label();
+      instruction->instruction = arg->name;
+      instruction->label = arg;
+      currentF->instructions.push_back(instruction);
+      if (DEBUG_S) cout << "successfully added new label instruction" << endl;
+    }
+  };
+
   template<> struct action < assignment > {
     template< typename Input >
     static void apply( const Input & in, Program & p){

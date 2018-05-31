@@ -94,7 +94,7 @@ namespace LA {
   };
 
     struct Instruction_Label : Instruction {
-
+      Arg* label;
     };
 
     struct Instruction_Length : Instruction{

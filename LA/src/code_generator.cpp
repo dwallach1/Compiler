@@ -14,11 +14,15 @@
 #include <cstdio>
 #include <stdlib.h>
 #include <code_generator.h>
-#define DEBUGGING 0
+#include <map>
+#define DEBUGGING 1
 #define DEBUG_S 0
+
+
 
 using namespace std;
 
+map<string,string> renamedVars;
 namespace LA {
 	string UE = "uniqueEncodedDavidBrian";
 	string UD = "uniqueDecodedDavidBrian";
@@ -390,7 +394,7 @@ namespace LA {
             Instruction_Label* i_lbl = dynamic_cast<Instruction_Label*>(inst);
 			if (startBB) {
 				if (!i_lbl) {
-
+					if(DEBUGGING) cout << "Found the beginning of a basic block without a label\n The beginning inst is: " << inst->instruction << endl;
                     Instruction_Label* new_label = new Instruction_Label();
 					new_label->instruction = uniqueLabel + to_string(i);
 					newInsts->push_back(new_label);
@@ -398,7 +402,7 @@ namespace LA {
 				startBB = false;
 			}
 			else if (i_lbl) {
-
+				if(DEBUGGING) cout << "Found a label: " << i_lbl->instruction << "\n";
                 Instruction_br* i_br = new Instruction_br();
 				i_br->instruction = uniqueLabel + to_string(i);
 				newInsts->push_back(i_br);
