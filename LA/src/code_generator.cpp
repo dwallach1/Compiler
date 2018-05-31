@@ -24,8 +24,8 @@ using namespace std;
 
 map<string,string> renamedVars;
 namespace LA {
-	string UE = "uniqueEncodedDavidBrian";
-	string UD = "uniqueDecodedDavidBrian";
+	string UE = "%uniqueEncodedDavidBrian";
+	string UD = "%uniqueDecodedDavidBrian";
 
 	void decodeArg(Arg* arg, vector<Instruction *>* newInsts) {
 
@@ -109,14 +109,14 @@ namespace LA {
 		i_opAssign2->arg2 = one;
 
 		Operation* op2 = new Operation();
-		op->name = "+";
-		op->op = ADD;
+		op2->name = "+";
+		op2->op = ADD;
 
 		i_opAssign2->operation = op2;
 
 		i_opAssign2->instruction = var->name + " <- " + var->name + " " + op2->name + " " + one->name;
 
-		newInsts->push_back(i_opAssign);
+		newInsts->push_back(i_opAssign2);
 	}
 
 	void check_memory_access(Instruction_Assignment* I, vector<Instruction*>* newInsts) {
@@ -373,6 +373,20 @@ namespace LA {
         else if (Instruction_Return* i_ret = dynamic_cast<Instruction_Return*>(I)) {
         	i_ret->instruction = "return";
         	newInsts->push_back(i_ret);
+        }
+        else if (Instruction_Call* i_call = dynamic_cast<Instruction_Call*>(I)){
+        	if(PA* isPA = dynamic_cast<PA*>(i_call->callee)){
+        		i_call->instruction = "call " + i_call->callee->name + "(";
+        		for(int i = 0; i < i_call->parameters.size(); i++){
+        			encodeArg(i_call->parameters[i], newInsts);
+        			i_call->instruction.append(UE + i_call->parameters[i]->name + ", ");
+        		}
+        		i_call->instruction.append(")");
+        		newInsts->push_back(i_call);
+        	}
+        	else{
+				newInsts->push_back(I);
+        	}
         }
 		else {
 			// instruction remains the same
