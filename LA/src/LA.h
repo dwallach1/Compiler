@@ -103,7 +103,7 @@ namespace LA {
       Arg* dst;
     };
 
-    struct Instruction_ArrayInit : Instruction{
+    struct Instruction_ArrayInit : Instruction {
       Arg* dst;
       std::vector<Arg*> src; 
     };

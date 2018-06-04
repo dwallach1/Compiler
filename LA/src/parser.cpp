@@ -619,7 +619,7 @@ namespace LA {
   template<> struct action < type > {
     template< typename Input >
     static void apply( const Input & in, Program & p){
-      if(DEBUGGING) cout << "Found a type: " << in.string() << endl;
+      if(DEBUGGING || DEBUG_S) cout << "Found a type: " << in.string() << endl;
 
       
       if (in.string().find("code") != std::string::npos) {
@@ -634,7 +634,13 @@ namespace LA {
       else if (in.string().find("[") != std::string::npos){
         Array* array = new Array();
         if(DEBUGGING) cout << "This is an array \n";
-        int dims = index_holder.size();
+        int dims = 0;
+        size_t pos = 0;
+        while ((pos = in.string().find("[", pos)) != std::string::npos) {
+          ++dims;
+          ++pos;
+        }
+        if (DEBUG_S) cout << "setting dims to be " << dims << endl;
         array->dims = dims;
 
         type_declarations.push_back(array);

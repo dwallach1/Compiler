@@ -224,7 +224,7 @@ namespace LA {
 			}
 		}
 		// otherwise its a store
-		else {
+		else if (i_store) {
 
 			// check if array is 0
 			Instruction_brCmp* i_brcmp3 = new Instruction_brCmp();
@@ -281,6 +281,7 @@ namespace LA {
 				i++;
 			}
 		}
+		else { return; }
 	}
 
 	void parse_instruction(Function* f, Instruction* I, vector<Instruction *>* newInsts) {
@@ -393,7 +394,7 @@ namespace LA {
         } 
         else if (Instruction_ArrayInit* i_array = dynamic_cast<Instruction_ArrayInit*>(I)) {
         	i_array->instruction = i_array->dst->name + " <- new Array(";
-        	for (Arg* idx : i_array->src) { i_array->instruction.append(idx->name + ","); }
+        	for (Arg* idx : i_array->src) { i_array->instruction.append(encodeArg(f, idx, newInsts) + ","); }
         	i_array->instruction.append(")"); 
         	newInsts->push_back(i_array);
         }
@@ -405,8 +406,13 @@ namespace LA {
         	if(PA* isPA = dynamic_cast<PA*>(i_call->callee)){
         		i_call->instruction = "call " + i_call->callee->name + "(";
         		for(int i = 0; i < i_call->parameters.size(); i++){
-        			
-        			i_call->instruction.append(encodeArg(f, i_call->parameters[i], newInsts) + ", ");
+        			Int64* int64 = dynamic_cast<Int64*>(i_call->parameters[i]->type);
+        			Number* num = dynamic_cast<Number*>(i_call->parameters[i]);
+        			if (int64 || num) {  
+        				i_call->instruction.append(encodeArg(f, i_call->parameters[i], newInsts) + ", ");
+        			} else {
+        				i_call->instruction.append(i_call->parameters[i]->name + ", ");
+        			}
         		}
         		i_call->instruction.append(")");
         		newInsts->push_back(i_call);
@@ -458,13 +464,14 @@ namespace LA {
 			bool terminator = i_brr || i_brcmp || i_ret || i_retVal;
 			
 			if (terminator) {
-     
+     			if (DEBUGGING) cout << "found a terminator -- setting startBB flag to true" << endl;
 				startBB = true;
 			}
 
 			i++;
       
 			if (i > f->instructions.size() - 1) { inst = NULL; }
+			//if (DEBUGGING) cout << " i is " << i << " and inst size is " << f->instructions.size() << endl;
 		    else { inst = f->instructions[i]; }
         }
 	}
@@ -539,6 +546,7 @@ namespace LA {
         }
         
         fs.close();
+        if (DEBUGGING) cout << "file closed, LA code generator completed" << endl;
       }        
 }
 
