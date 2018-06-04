@@ -183,6 +183,7 @@ namespace LA {
   };
 
   struct Function{
+    std::string declaration;
     Arg*  name;
     int64_t arguments;
     int64_t locals;

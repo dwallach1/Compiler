@@ -16,7 +16,7 @@
 #include <code_generator.h>
 #include <map>
 #define DEBUGGING 0
-#define DEBUG_S 1
+#define DEBUG_S 0
 
 
 
@@ -566,7 +566,12 @@ namespace LA {
         		newInsts->push_back(i_call);
         	}
         	else{
-				newInsts->push_back(I);
+				i_call->instruction = "call :" + i_call->callee->name + "(";
+        		for(int i = 0; i < i_call->parameters.size(); i++){
+        			i_call->instruction.append(i_call->parameters[i]->name + ", ");
+        		}
+        		i_call->instruction.append(")");
+        		newInsts->push_back(i_call);
         	}
         }
 		else {
@@ -646,25 +651,10 @@ namespace LA {
         	
         	number_instructions(f);
         
-            fs << "define" << " ";
+            fs << "define " << f->returnType->name << " :" << f->declaration;
 
-            // handle indexes for arrays of returnType i.e. int64[][][]
-        	if (Array* array = dynamic_cast<Array*>(f->returnType)) {
-        		fs << f->returnType->name;
-        		for (int k = 0; k < array->dims; k++) { fs << "[]"; }
-        	}
-        	else { fs << f->returnType->name; }
-
-
-        	fs << " " << ":" << f->name->name << "(";
             
-            for(Arg* param : f->parameters){
-                fs << param->name;
-                if(param != f->parameters[f->parameters.size()-1]){
-                    fs << ", ";
-                }
-            }
-            fs << "){\n";
+            fs << "{\n";
             vector<Instruction *> newInsts = {};
         	
            

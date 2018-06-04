@@ -546,7 +546,6 @@ namespace LA {
       if(DEBUGGING || DEBUG_S) cout << "Found a new function " <<  in.string() << endl;
       
       Function *newF = new Function();
-
       while(parsed_registers.size() && newFunctionArgs.size()) {
 
         Arg* parameter = parsed_registers.back();
@@ -572,6 +571,12 @@ namespace LA {
       // names.clear();
       
       newF->returnType = type_declarations.back();
+
+      newF->declaration = in.string();
+      newF->declaration.erase(0, newF->returnType->name.size()+1);
+      while(newF->declaration[0] == ' '){
+        newF->declaration = newF->declaration.substr(1);
+      }
       type_declarations.pop_back();
      
       parsed_registers.clear();
@@ -778,7 +783,7 @@ namespace LA {
       }
       else if(in.string() == "int64") {
         Int64* int64 = new Int64();
-        int64->name = "Int64";
+        int64->name = "int64";
         type_declarations.push_back(int64);
       }
       else if (in.string() == "code") {
@@ -795,7 +800,7 @@ namespace LA {
       else {
         if(DEBUGGING) cout << "Making a new array\n";
         Array* array = new Array();
-        array->name = "Int64";
+        array->name = "int64";
         int dims = index_holder.size();
         array->dims = dims;
 
