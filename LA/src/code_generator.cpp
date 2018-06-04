@@ -219,6 +219,7 @@ namespace LA {
 			newInsts->push_back(i_lbl2);			
 
 			if (DEBUG_S) cout << "length of i_store indexes are " << i_load->indexes.size() << endl;
+			int indexNum = 0;
 
 			for (Arg* idx : i_load->indexes) {
 
@@ -231,7 +232,8 @@ namespace LA {
 				if(DEBUG_S) cout << "Begin handling index\n";
 				Instruction_Length* i_length = new Instruction_Length();
 				if(DEBUG_S) cout << "Arg* idx name is: " << idx->name << endl;
-				i_length->instruction = newLength->name + " <- length " + i_load->src->name + " " + idx->name;
+				i_length->instruction = newLength->name + " <- length " + i_load->src->name + " " + to_string(indexNum);
+				indexNum++;
 				if(DEBUG_S) cout << "Attempting to push back instruction to newInsts\n";
 				newInsts->push_back(i_length);
 
@@ -260,6 +262,8 @@ namespace LA {
 				newInsts->push_back(i_opAssign);
 				if(DEBUG_S) cout << "Added a opAssign instruction\n";
 
+				encodeArg(f, lengthResult, newInsts);
+
 
 				Instruction_brCmp* i_brcmp = new Instruction_brCmp();
 				i_brcmp->instruction = "br " + decodeArg(f,lengthResult, newInsts) + " :" + lengthResult->name.substr(1) + "trueLabel" + " " + ":" + lengthResult->name.substr(1) + "falseLabel";
@@ -273,7 +277,7 @@ namespace LA {
 				if(DEBUG_S) cout << "Added a false label instruction\n";
 
 				Instruction_Call* i_call = new Instruction_Call();
-				i_call->instruction = "call array-error(" + i_load->src->name + "," + idx->name + ")";
+				i_call->instruction = "call array-error(" + i_load->src->name + "," + decodeArg(f, idx, newInsts) + ")";
 				newInsts->push_back(i_call);
 				if(DEBUG_S) cout << "Added a call array error instruction\n";
 
@@ -343,7 +347,7 @@ namespace LA {
 			newInsts->push_back(i_lbl2);			
 
 			if (DEBUG_S) cout << "length of i_store indexes are " << i_store->indexes.size() << endl;
-
+			int indexNum = 0;
 			for (Arg* idx : i_store->indexes) {
 
 				if (DEBUG_S) cout << "iterating over i_store index: " << idx->name << endl;
@@ -355,7 +359,8 @@ namespace LA {
 				if(DEBUG_S) cout << "Begin handling index\n";
 				Instruction_Length* i_length = new Instruction_Length();
 				if(DEBUG_S) cout << "Arg* idx name is: " << idx->name << endl;
-				i_length->instruction = newLength->name + " <- length " + i_store->dst->name + " " + idx->name;
+				i_length->instruction = newLength->name + " <- length " + i_store->dst->name + " " + to_string(indexNum);
+				indexNum++;
 				if(DEBUG_S) cout << "Attempting to push back instruction to newInsts\n";
 				newInsts->push_back(i_length);
 
@@ -384,7 +389,7 @@ namespace LA {
 				newInsts->push_back(i_opAssign);
 				if(DEBUG_S) cout << "Added a opAssign instruction\n";
 
-
+				encodeArg(f, lengthResult, newInsts);
 				Instruction_brCmp* i_brcmp = new Instruction_brCmp();
 				i_brcmp->instruction = "br " + decodeArg(f,lengthResult, newInsts) + " :" + lengthResult->name.substr(1) + "trueLabel" + " " + ":" + lengthResult->name.substr(1) + "falseLabel";
 				newInsts->push_back(i_brcmp);
@@ -397,7 +402,7 @@ namespace LA {
 				if(DEBUG_S) cout << "Added a false label instruction\n";
 
 				Instruction_Call* i_call = new Instruction_Call();
-				i_call->instruction = "call array-error(" + i_store->dst->name + "," + idx->name + ")";
+				i_call->instruction = "call array-error(" + i_store->dst->name + "," + decodeArg(f, idx, newInsts) + ")";
 				newInsts->push_back(i_call);
 				if(DEBUG_S) cout << "Added a call array error instruction\n";
 
@@ -492,7 +497,13 @@ namespace LA {
 			i->instruction = i->dst->name + " <- " + i->src->name;
 
 			for (Arg* idx : i->indexes) {
-				i->instruction.append('[' + decodeArg(f, idx, newInsts) + ']');
+				if(dynamic_cast<Number*>(idx)){
+					i->instruction.append('[' + idx->name + ']');
+				}
+				else{
+					i->instruction.append('[' + decodeArg(f, idx, newInsts) + ']');
+
+				}
 			}
 		    newInsts->push_back(i);
         }
@@ -505,7 +516,13 @@ namespace LA {
 			i->instruction = i->dst->name;
 
 			for (Arg* idx : i->indexes) {
-				i->instruction.append('[' + decodeArg(f, idx, newInsts) + ']');
+				if(dynamic_cast<Number*>(idx)){
+					i->instruction.append('[' + idx->name + ']');
+				}
+				else{
+					i->instruction.append('[' + decodeArg(f, idx, newInsts) + ']');
+
+				}
 			}
 
 			i->instruction.append(" <- " + i->src->name);
