@@ -16,6 +16,7 @@
 
 #define DEBUGGING 0
 #define DEBUG_S 0
+#define DEBUG_SS 0
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
 using namespace pegtl;
@@ -593,6 +594,26 @@ namespace IR {
       if(DEBUGGING) cout << "returning from label: " <<  in.string() << endl;
 
 
+    }
+  };
+
+
+  template<> struct action < label_inst > {
+    template< typename Input >
+    static void apply( const Input & in, Program & p){
+      if(DEBUGGING || DEBUG_S) cout << "found a label_inst " <<  in.string() << endl;
+
+      Function* currentF = p.functions.back();
+
+      Arg* arg = parsed_labels.back();
+
+
+
+      Instruction_Label* instruction = new Instruction_Label();
+      instruction->instruction = arg->name;
+      instruction->label = arg;
+      basicBlockInsts.push_back(instruction);
+      if (DEBUG_S) cout << "successfully added new label instruction" << endl;
     }
   };
 
@@ -1277,7 +1298,7 @@ namespace IR {
   template<> struct action < bb > {
     template< typename Input >
     static void apply( const Input & in, Program & p){
-        if(DEBUGGING) cout << "found the beginning of a new basic block " <<  in.string() << endl;
+        if(DEBUGGING || DEBUG_SS) cout << "found the beginning of a new basic block " <<  in.string() << endl;
         
         Function* currentF = p.functions.back();
         if(DEBUGGING) cout << "p.functions.back() suceeded\n";
@@ -1285,7 +1306,7 @@ namespace IR {
         if(DEBUGGING) cout << "Created a new bb\n";
         
         bb->label = parsed_labels[0];
-        if(DEBUGGING) cout << "BB label is: " << bb->label->name << endl;
+        if(DEBUGGING || DEBUG_SS) cout << "BB label is: " << bb->label->name << endl;
         parsed_labels = {};
         Instruction* te = basicBlockInsts.back();
         basicBlockInsts.pop_back();
@@ -1293,7 +1314,7 @@ namespace IR {
         basicBlockInsts = {};
         bb->te = te;
         currentF->basicBlocks.push_back(bb);
-        if(DEBUGGING) cout << "Setting terminating inst to be: " << bb->te->instruction << " \n";
+        if(DEBUGGING || DEBUG_SS) cout << "Setting terminating inst to be: " << bb->te->instruction << " \n";
 
     }
   };

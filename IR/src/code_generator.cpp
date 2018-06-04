@@ -176,6 +176,9 @@ namespace IR {
 
             I->instruction = lengthLine;
         }
+        else if(Instruction_Label* i = dynamic_cast<Instruction_Label *> (I)) {
+            I->instruction = i->label->name;
+        }
         else{
             //This is an instruction that is already a valid L3 inst
             //Op_Assignment
@@ -233,6 +236,7 @@ namespace IR {
             }
         }
     }
+
 
     void IR_generate_code(Program p) {
         

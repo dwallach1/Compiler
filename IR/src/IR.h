@@ -90,6 +90,10 @@ namespace IR {
     Instruction* nextInst;
   };
 
+   struct Instruction_Label : Instruction {
+      Arg* label;
+    };
+
     struct Instruction_Length : Instruction{
       Arg* dimension;
       Arg* array;
