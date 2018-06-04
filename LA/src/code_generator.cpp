@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <code_generator.h>
 #include <map>
-#define DEBUGGING 1
+#define DEBUGGING 0
 #define DEBUG_S 0
 
 
@@ -27,7 +27,14 @@ namespace LA {
 	string UE = "%uniqueEncodedDavidBrian";
 	string UD = "%uniqueDecodedDavidBrian";
 
-	string decodeArg(Arg* arg, vector<Instruction *>* newInsts) {
+	Arg* var_exists(Function* f, Arg* var) {
+		for (Arg* arg :  f->declared_variables) {
+			if (arg->name == var->name ) { return arg; }
+		}
+		return var;
+	}
+
+	string decodeArg(Function* f, Arg* arg, vector<Instruction *>* newInsts) {
 
 		Instruction_Declaration* i_dec = new Instruction_Declaration();
 
@@ -46,7 +53,16 @@ namespace LA {
 
 		i_dec->instruction = i64->name + " " + var->name;
 
-		newInsts->push_back(i_dec);
+
+		// we do not want to redeclare the same variables 
+		Arg* var_checker = var_exists(f, var);
+
+		if (var == var_checker) { 
+			newInsts->push_back(i_dec); 
+			f->declared_variables.insert(var);
+		}
+
+		
 
 		Instruction_opAssignment* i_opAssign = new Instruction_opAssignment();
 		i_opAssign->dst = var;
@@ -71,7 +87,7 @@ namespace LA {
 		return var->name;
 	}
 
-	string encodeArg(Arg* arg, vector<Instruction *>* newInsts) {
+	string encodeArg(Function* f, Arg* arg, vector<Instruction *>* newInsts) {
 
 		Instruction_Declaration* i_dec = new Instruction_Declaration();
 
@@ -81,18 +97,27 @@ namespace LA {
         i_dec->type->name = "int64";
 
 		Arg* var = new Arg();
+		var->name = arg->name;
 
 		if(Number* num = dynamic_cast<Number*> (arg)){
 			var->name = UE + arg->name;
 		}
 		else{
-			var->name = UE + arg->name.substr(1);
+			//var->name = UE + arg->name.substr(1);
+			var->name = arg->name;
 		}
+
 		var->type = i64;
 
 		i_dec->instruction = i64->name + " " + var->name;
 
-		newInsts->push_back(i_dec);
+		// we do not want to redeclare the same variables 
+		Arg* var_checker = var_exists(f, var);
+
+		if (var == var_checker) { 
+			newInsts->push_back(i_dec); 
+			f->declared_variables.insert(var);
+		}
 
 		Instruction_opAssignment* i_opAssign = new Instruction_opAssignment();
 		i_opAssign->dst = var;
@@ -258,7 +283,7 @@ namespace LA {
 		}
 	}
 
-	void parse_instruction(Instruction* I, vector<Instruction *>* newInsts) {
+	void parse_instruction(Function* f, Instruction* I, vector<Instruction *>* newInsts) {
 
 		if (Instruction_Declaration* i = dynamic_cast<Instruction_Declaration*>(I)) {
             
@@ -317,12 +342,12 @@ namespace LA {
 		else if (Instruction_brCmp* i = dynamic_cast<Instruction_brCmp*>(I)) {
 			// decode t 
 			
-			i->instruction = "br " + decodeArg(i->comparitor, newInsts) + " " + i->trueLabel->name + " " + i->falseLabel->name;
+			i->instruction = "br " + decodeArg(f, i->comparitor, newInsts) + " " + i->trueLabel->name + " " + i->falseLabel->name;
 		    newInsts->push_back(i);
         }
 		else if (Instruction_Length* i = dynamic_cast<Instruction_Length*>(I)) {
 			// decode var3 (dimension)
-			i->instruction = i->dst->name + " <- length " + i->array->name + " " + decodeArg(i->dimension, newInsts);
+			i->instruction = i->dst->name + " <- length " + i->array->name + " " + decodeArg(f, i->dimension, newInsts);
 		    newInsts->push_back(i);
         }
 		else if (Instruction_Load* i = dynamic_cast<Instruction_Load*>(I)) {
@@ -335,7 +360,7 @@ namespace LA {
 			i->instruction = i->dst->name + " <- " + i->src->name;
 
 			for (Arg* idx : i->indexes) {
-				i->instruction.append('[' + decodeArg(idx, newInsts) + ']');
+				i->instruction.append('[' + decodeArg(f, idx, newInsts) + ']');
 			}
 		    newInsts->push_back(i);
         }
@@ -348,7 +373,7 @@ namespace LA {
 			i->instruction = i->dst->name;
 
 			for (Arg* idx : i->indexes) {
-				i->instruction.append('[' + decodeArg(idx, newInsts) + ']');
+				i->instruction.append('[' + decodeArg(f, idx, newInsts) + ']');
 			}
 
 			i->instruction.append(" <- " + i->src->name);
@@ -358,9 +383,10 @@ namespace LA {
 			// decode arg1, arg2 (t1, t2)
 
 			i->instruction = "";
-			i->instruction = encodeArg(i->dst, newInsts) + " <- " + decodeArg(i->arg1, newInsts) + " " + i->operation->name + " " + decodeArg(i->arg2, newInsts);
+			i->instruction = i->dst->name + " <- " + decodeArg(f, i->arg1, newInsts) + " " + i->operation->name + " " + decodeArg(f, i->arg2, newInsts);
 		    newInsts->push_back(i);
-        }
+			encodeArg(f, i->dst, newInsts);
+		}    
         else if (Instruction_TupleInit* i_tuple = dynamic_cast<Instruction_TupleInit*>(I)) {
         	i_tuple->instruction = i_tuple->dst->name + " <- new Tuple(" + i_tuple->src[0]->name + ")";
         	newInsts->push_back(i_tuple);
@@ -380,7 +406,7 @@ namespace LA {
         		i_call->instruction = "call " + i_call->callee->name + "(";
         		for(int i = 0; i < i_call->parameters.size(); i++){
         			
-        			i_call->instruction.append(encodeArg(i_call->parameters[i], newInsts) + ", ");
+        			i_call->instruction.append(encodeArg(f, i_call->parameters[i], newInsts) + ", ");
         		}
         		i_call->instruction.append(")");
         		newInsts->push_back(i_call);
@@ -489,7 +515,7 @@ namespace LA {
            
             for (Instruction* I : f->instructions) {
             	if (DEBUGGING) cout << "parsing instruction: " << I->instruction << endl;
-        		parse_instruction(I, &newInsts);
+        		parse_instruction(f, I, &newInsts);
         	}
 
             f->instructions = newInsts;
