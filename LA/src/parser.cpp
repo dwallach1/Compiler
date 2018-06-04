@@ -1007,7 +1007,8 @@ namespace LA {
         instruction->src = src;
 
 
-
+        instruction->indexes = index_holder;
+        index_holder = {};
         currentF->instructions.push_back(instruction);
         names.clear();
     }
@@ -1058,7 +1059,8 @@ namespace LA {
         instruction->dst = dest;
         instruction->src = src;
         
-
+        instruction->indexes = index_holder;
+        index_holder = {};
         currentF->instructions.push_back(instruction);
         names.clear();
     }

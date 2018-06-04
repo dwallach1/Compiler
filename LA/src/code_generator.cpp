@@ -175,11 +175,25 @@ namespace LA {
 			Number* zero = new Number();
 			zero->name = "0";
 			zero->num = 0;
-			i_isZero->instruction = isZeroDest->name + " <- " + decodeArg(f, i_load->dst, newInsts) + " = " +  decodeArg(f, zero, newInsts);
+			i_isZero->instruction = isZeroDest->name + " <- " + i_load->src->name + " = " +  zero->name;
+			
+			Instruction_Declaration* i_dec = new Instruction_Declaration();
+	
+			i_dec->instruction =  "int64 " + isZeroDest->name;
+	
+			// we do not want to redeclare the same variables 
+			Arg* var_checker = var_exists(f, isZeroDest);
+	
+			if (isZeroDest == var_checker) { 
+				newInsts->push_back(i_dec); 
+				f->declared_variables.insert(isZeroDest);
+			}
+			
 			newInsts->push_back(i_isZero);
 			encodeArg(f, isZeroDest, newInsts);
 
 			if (DEBUG_S) cout << "successfully added isZero variable" << endl;
+
 
 			// check if array is 0
 			Instruction_brCmp* i_brcmp = new Instruction_brCmp();
@@ -204,49 +218,75 @@ namespace LA {
 			i_lbl2->instruction = falseLabel;
 			newInsts->push_back(i_lbl2);			
 
-
+			if (DEBUG_S) cout << "length of i_store indexes are " << i_load->indexes.size() << endl;
 
 			for (Arg* idx : i_load->indexes) {
 
+				if (DEBUG_S) cout << "iterating over i_store index: " << idx->name << endl;
+
 				// load the current dimensions length
+				Arg* newLength = new Arg();
+				newLength->name = "%" + legnthVar;
+
+				if(DEBUG_S) cout << "Begin handling index\n";
 				Instruction_Length* i_length = new Instruction_Length();
-				i_length->instruction = legnthVar + " <- length " + i_load->src->name + " " + idx->name;
+				if(DEBUG_S) cout << "Arg* idx name is: " << idx->name << endl;
+				i_length->instruction = newLength->name + " <- length " + i_load->src->name + " " + idx->name;
+				if(DEBUG_S) cout << "Attempting to push back instruction to newInsts\n";
 				newInsts->push_back(i_length);
+
+				if(DEBUG_S) cout << "Added a length instruction\n";
+
+				Arg* lengthResult = new Arg();
+				lengthResult->name = newLength->name + to_string(i);
+
+				Instruction_Declaration* i_dec = new Instruction_Declaration();
+	
+				i_dec->instruction =  "int64 " + lengthResult->name;
+		
+				// we do not want to redeclare the same variables 
+				Arg* var_checker = var_exists(f, lengthResult);
+		
+				if (lengthResult == var_checker) { 
+					newInsts->push_back(i_dec); 
+					f->declared_variables.insert(lengthResult);
+					if(DEBUG_S) cout << "Added a declare instruction\n";
+
+				}
 
 				// check if less than length 
 				Instruction_opAssignment* i_opAssign = new Instruction_opAssignment();
-				Arg* length_var = new Arg();
-				length_var->name = legnthVar;
-				i_opAssign->instruction = legnthVar + to_string(i) + " <- " + decodeArg(f, idx, newInsts) + " < " + decodeArg(f, length_var, newInsts);
+				i_opAssign->instruction = lengthResult->name + " <- " + decodeArg(f, idx, newInsts) + " < " + decodeArg(f, newLength, newInsts);
 				newInsts->push_back(i_opAssign);
-				encodeArg(f, length_var, newInsts);
+				if(DEBUG_S) cout << "Added a opAssign instruction\n";
 
-				Instruction_brCmp* i_brcmp2 = new Instruction_brCmp();
-				Arg* i_brcmpArg = new Arg();
-				i_brcmpArg->name = legnthVar + to_string(i);
-				i_brcmp2->instruction = "br " + decodeArg(f, i_brcmpArg, newInsts) + ":" + legnthVar + to_string(i) + "trueLabel" + " " + ":" + legnthVar + to_string(i) + "falseLabel";
-				newInsts->push_back(i_brcmp2);
-				
+
+				Instruction_brCmp* i_brcmp = new Instruction_brCmp();
+				i_brcmp->instruction = "br " + decodeArg(f,lengthResult, newInsts) + " :" + lengthResult->name.substr(1) + "trueLabel" + " " + ":" + lengthResult->name.substr(1) + "falseLabel";
+				newInsts->push_back(i_brcmp);
+				if(DEBUG_S) cout << "Added a branch instruction\n";
+					
 				// jump for array error
-				Instruction_Label* i_lbl3 = new Instruction_Label();
-				i_lbl3->instruction = ":" + legnthVar + to_string(i) + "falseLabel";
-				newInsts->push_back(i_lbl3);
+				Instruction_Label* i_lbl = new Instruction_Label();
+				i_lbl->instruction = ":" + lengthResult->name.substr(1) + "falseLabel";
+				newInsts->push_back(i_lbl);
+				if(DEBUG_S) cout << "Added a false label instruction\n";
 
-				Instruction_Call* i_call2 = new Instruction_Call();
-				i_call2->instruction = "call array-error(" + i_load->src->name + "," + idx->name + ")";
-				newInsts->push_back(i_call2);
+				Instruction_Call* i_call = new Instruction_Call();
+				i_call->instruction = "call array-error(" + i_load->src->name + "," + idx->name + ")";
+				newInsts->push_back(i_call);
+				if(DEBUG_S) cout << "Added a call array error instruction\n";
 
 				// jump for no error
-				Instruction_Label* i_lbl4 = new Instruction_Label();
-				i_lbl4->instruction = ":" + legnthVar + to_string(i) + "trueLabel";
-				newInsts->push_back(i_lbl4);
+				Instruction_Label* i_lbl8 = new Instruction_Label();
+				i_lbl8->instruction = ":" + lengthResult->name.substr(1) + "trueLabel\n";
+				newInsts->push_back(i_lbl8);
+				if(DEBUG_S) cout << "Added a true label instruction\n";
 
 				i++;
-
-				if (DEBUG_S) cout << "successfully iterated to check length dimension: " << i << endl;
 			}
 
-			if (DEBUG_S) cout << "done with i_load" << endl;
+			if (DEBUG_S) cout << "done with i_load" << endl;;
 		}
 		// otherwise its a store
 		else if (i_store) {
@@ -259,7 +299,20 @@ namespace LA {
 			Number* zero = new Number();
 			zero->name = "0";
 			zero->num = 0;
-			i_isZero->instruction = isZeroDest->name + " <- " + decodeArg(f, i_store->dst, newInsts) + " = " +  decodeArg(f, zero, newInsts);
+			i_isZero->instruction = isZeroDest->name + " <- " + i_store->dst->name + " = " +  zero->name;
+			
+			Instruction_Declaration* i_dec = new Instruction_Declaration();
+	
+			i_dec->instruction =  "int64 " + isZeroDest->name;
+	
+			// we do not want to redeclare the same variables 
+			Arg* var_checker = var_exists(f, isZeroDest);
+	
+			if (isZeroDest == var_checker) { 
+				newInsts->push_back(i_dec); 
+				f->declared_variables.insert(isZeroDest);
+			}
+			
 			newInsts->push_back(i_isZero);
 			encodeArg(f, isZeroDest, newInsts);
 
@@ -269,7 +322,7 @@ namespace LA {
 			// check if array is 0
 			Instruction_brCmp* i_brcmp = new Instruction_brCmp();
 			string trueLabel = ":" + legnthVar + "trueLabel" + to_string(i_store->num);
-			string falseLabel = ":" + legnthVar + "falseLabel" + to_string(i_store->num);
+			string falseLabel = ":" + legnthVar+ "falseLabel" + to_string(i_store->num);
 			i_brcmp->instruction = "br " + decodeArg(f, isZeroDest, newInsts) + " " + trueLabel + " " + falseLabel;
 			newInsts->push_back(i_brcmp);
 
@@ -296,32 +349,63 @@ namespace LA {
 				if (DEBUG_S) cout << "iterating over i_store index: " << idx->name << endl;
 
 				// load the current dimensions length
-				Instruction_Length* i_length2 = new Instruction_Length();
-				i_length2->instruction = legnthVar + " <- length " + i_load->dst->name + " " + idx->name;
-				newInsts->push_back(i_length2);
+				Arg* newLength = new Arg();
+				newLength->name = "%" + legnthVar;
+
+				if(DEBUG_S) cout << "Begin handling index\n";
+				Instruction_Length* i_length = new Instruction_Length();
+				if(DEBUG_S) cout << "Arg* idx name is: " << idx->name << endl;
+				i_length->instruction = newLength->name + " <- length " + i_store->dst->name + " " + idx->name;
+				if(DEBUG_S) cout << "Attempting to push back instruction to newInsts\n";
+				newInsts->push_back(i_length);
+
+				if(DEBUG_S) cout << "Added a length instruction\n";
+
+				Arg* lengthResult = new Arg();
+				lengthResult->name = newLength->name + to_string(i);
+
+				Instruction_Declaration* i_dec = new Instruction_Declaration();
+	
+				i_dec->instruction =  "int64 " + lengthResult->name;
+		
+				// we do not want to redeclare the same variables 
+				Arg* var_checker = var_exists(f, lengthResult);
+		
+				if (lengthResult == var_checker) { 
+					newInsts->push_back(i_dec); 
+					f->declared_variables.insert(lengthResult);
+					if(DEBUG_S) cout << "Added a declare instruction\n";
+
+				}
 
 				// check if less than length 
-				Instruction_opAssignment* i_opAssign3 = new Instruction_opAssignment();
-				i_opAssign3->instruction = legnthVar + to_string(i) + " <- " + idx->name + " < " + legnthVar;
-				newInsts->push_back(i_opAssign3);
+				Instruction_opAssignment* i_opAssign = new Instruction_opAssignment();
+				i_opAssign->instruction = lengthResult->name + " <- " + decodeArg(f, idx, newInsts) + " < " + decodeArg(f, newLength, newInsts);
+				newInsts->push_back(i_opAssign);
+				if(DEBUG_S) cout << "Added a opAssign instruction\n";
 
-				Instruction_brCmp* i_brcmp4 = new Instruction_brCmp();
-				i_brcmp4->instruction = "br " + legnthVar + to_string(i) + ":" + legnthVar + to_string(i) + "trueLabel" + " " + ":" + legnthVar + to_string(i) + "falseLabel";
-				newInsts->push_back(i_brcmp4);
-				
+
+				Instruction_brCmp* i_brcmp = new Instruction_brCmp();
+				i_brcmp->instruction = "br " + decodeArg(f,lengthResult, newInsts) + " :" + lengthResult->name.substr(1) + "trueLabel" + " " + ":" + lengthResult->name.substr(1) + "falseLabel";
+				newInsts->push_back(i_brcmp);
+				if(DEBUG_S) cout << "Added a branch instruction\n";
+					
 				// jump for array error
-				Instruction_Label* i_lbl7 = new Instruction_Label();
-				i_lbl7->instruction = ":" + legnthVar + to_string(i) + "falseLabel";
-				newInsts->push_back(i_lbl7);
+				Instruction_Label* i_lbl = new Instruction_Label();
+				i_lbl->instruction = ":" + lengthResult->name.substr(1) + "falseLabel";
+				newInsts->push_back(i_lbl);
+				if(DEBUG_S) cout << "Added a false label instruction\n";
 
-				Instruction_Call* i_call4 = new Instruction_Call();
-				i_call4->instruction = "call array-error(" + i_store->dst->name + "," + idx->name + ")";
-				newInsts->push_back(i_call4);
+				Instruction_Call* i_call = new Instruction_Call();
+				i_call->instruction = "call array-error(" + i_store->dst->name + "," + idx->name + ")";
+				newInsts->push_back(i_call);
+				if(DEBUG_S) cout << "Added a call array error instruction\n";
 
 				// jump for no error
 				Instruction_Label* i_lbl8 = new Instruction_Label();
-				i_lbl8->instruction = ":" + legnthVar + to_string(i) + "trueLabel\n";
+				i_lbl8->instruction = ":" + lengthResult->name.substr(1) + "trueLabel\n";
 				newInsts->push_back(i_lbl8);
+				if(DEBUG_S) cout << "Added a true label instruction\n";
 
 				i++;
 			}
