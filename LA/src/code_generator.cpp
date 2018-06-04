@@ -16,7 +16,7 @@
 #include <code_generator.h>
 #include <map>
 #define DEBUGGING 0
-#define DEBUG_S 0
+#define DEBUG_S 1
 
 
 
@@ -158,7 +158,7 @@ namespace LA {
 		return var->name;
 	}
 
-	void check_memory_access(Instruction_Assignment* I, vector<Instruction*>* newInsts) {
+	void check_memory_access(Function* f, Instruction_Assignment* I, vector<Instruction*>* newInsts) {
 		Instruction_Load* i_load = dynamic_cast<Instruction_Load*>(I);
 		Instruction_Store* i_store = dynamic_cast<Instruction_Store*>(I);
 		int i = 0;
@@ -167,16 +167,32 @@ namespace LA {
 		// check if load 
 		if (i_load) {
 			
+			if (DEBUG_S) cout << "checking memory access of load instruction" << endl;
+
+			Instruction_opAssignment* i_isZero = new Instruction_opAssignment();
+			Arg* isZeroDest = new Arg();
+			isZeroDest->name = "%" + legnthVar;
+			Number* zero = new Number();
+			zero->name = "0";
+			zero->num = 0;
+			i_isZero->instruction = isZeroDest->name + " <- " + decodeArg(f, i_load->dst, newInsts) + " = " +  decodeArg(f, zero, newInsts);
+			newInsts->push_back(i_isZero);
+			encodeArg(f, isZeroDest, newInsts);
+
+			if (DEBUG_S) cout << "successfully added isZero variable" << endl;
+
 			// check if array is 0
 			Instruction_brCmp* i_brcmp = new Instruction_brCmp();
 			string trueLabel = ":" + legnthVar + "trueLabel" + to_string(i_load->num);
 			string falseLabel = ":" + legnthVar + "falseLabel" + to_string(i_load->num);
-			i_brcmp->instruction = "br " + i_load->src->name + " " + trueLabel + " " + falseLabel;
+			i_brcmp->instruction = "br " + decodeArg(f, isZeroDest, newInsts) + " " + trueLabel + " " + falseLabel;
 			newInsts->push_back(i_brcmp);
+
+			if (DEBUG_S) cout << "created the conditional jump" << endl;
 			
 			// if it is zero, call array-error
 			Instruction_Label* i_lbl = new Instruction_Label();
-			i_lbl->instruction = falseLabel;
+			i_lbl->instruction = trueLabel;
 			newInsts->push_back(i_lbl);
 
 			Instruction_Call* i_call = new Instruction_Call();
@@ -185,7 +201,7 @@ namespace LA {
 			
 			// if it isnt zero, continue execution
 			Instruction_Label* i_lbl2 = new Instruction_Label();
-			i_lbl2->instruction = trueLabel;
+			i_lbl2->instruction = falseLabel;
 			newInsts->push_back(i_lbl2);			
 
 
@@ -199,11 +215,16 @@ namespace LA {
 
 				// check if less than length 
 				Instruction_opAssignment* i_opAssign = new Instruction_opAssignment();
-				i_opAssign->instruction = legnthVar + to_string(i) + " <- " + idx->name + " < " + legnthVar;
+				Arg* length_var = new Arg();
+				length_var->name = legnthVar;
+				i_opAssign->instruction = legnthVar + to_string(i) + " <- " + decodeArg(f, idx, newInsts) + " < " + decodeArg(f, length_var, newInsts);
 				newInsts->push_back(i_opAssign);
+				encodeArg(f, length_var, newInsts);
 
 				Instruction_brCmp* i_brcmp2 = new Instruction_brCmp();
-				i_brcmp2->instruction = "br " + legnthVar + to_string(i) + ":" + legnthVar + to_string(i) + "trueLabel" + " " + ":" + legnthVar + to_string(i) + "falseLabel";
+				Arg* i_brcmpArg = new Arg();
+				i_brcmpArg->name = legnthVar + to_string(i);
+				i_brcmp2->instruction = "br " + decodeArg(f, i_brcmpArg, newInsts) + ":" + legnthVar + to_string(i) + "trueLabel" + " " + ":" + legnthVar + to_string(i) + "falseLabel";
 				newInsts->push_back(i_brcmp2);
 				
 				// jump for array error
@@ -221,34 +242,58 @@ namespace LA {
 				newInsts->push_back(i_lbl4);
 
 				i++;
+
+				if (DEBUG_S) cout << "successfully iterated to check length dimension: " << i << endl;
 			}
+
+			if (DEBUG_S) cout << "done with i_load" << endl;
 		}
 		// otherwise its a store
 		else if (i_store) {
 
+			if (DEBUG_S) cout << "checking memory access of store instruction" << endl;
+
+			Instruction_opAssignment* i_isZero = new Instruction_opAssignment();
+			Arg* isZeroDest = new Arg();
+			isZeroDest->name = "%" + legnthVar;
+			Number* zero = new Number();
+			zero->name = "0";
+			zero->num = 0;
+			i_isZero->instruction = isZeroDest->name + " <- " + decodeArg(f, i_store->dst, newInsts) + " = " +  decodeArg(f, zero, newInsts);
+			newInsts->push_back(i_isZero);
+			encodeArg(f, isZeroDest, newInsts);
+
+			if (DEBUG_S) cout << "successfully added isZero variable" << endl;
+
+
 			// check if array is 0
-			Instruction_brCmp* i_brcmp3 = new Instruction_brCmp();
+			Instruction_brCmp* i_brcmp = new Instruction_brCmp();
 			string trueLabel = ":" + legnthVar + "trueLabel" + to_string(i_store->num);
 			string falseLabel = ":" + legnthVar + "falseLabel" + to_string(i_store->num);
-			i_brcmp3->instruction = "br " + i_store->dst->name + " " + trueLabel + " " + falseLabel;
-			newInsts->push_back(i_brcmp3);
+			i_brcmp->instruction = "br " + decodeArg(f, isZeroDest, newInsts) + " " + trueLabel + " " + falseLabel;
+			newInsts->push_back(i_brcmp);
+
+			if (DEBUG_S) cout << "created the conditional jump" << endl;
 			
 			// if it is zero, call array-error
-			Instruction_Label* i_lbl5 = new Instruction_Label();
-			i_lbl5->instruction = falseLabel;
-			newInsts->push_back(i_lbl5);
+			Instruction_Label* i_lbl = new Instruction_Label();
+			i_lbl->instruction = trueLabel;
+			newInsts->push_back(i_lbl);
 
-			Instruction_Call* i_call3 = new Instruction_Call();
-			i_call3->instruction = "call array-error(0,0)";
-			newInsts->push_back(i_call3);
+			Instruction_Call* i_call = new Instruction_Call();
+			i_call->instruction = "call array-error(0,0)";
+			newInsts->push_back(i_call);
 			
 			// if it isnt zero, continue execution
-			Instruction_Label* i_lbl6 = new Instruction_Label();
-			i_lbl6->instruction = trueLabel;
-			newInsts->push_back(i_lbl6);
+			Instruction_Label* i_lbl2 = new Instruction_Label();
+			i_lbl2->instruction = falseLabel;
+			newInsts->push_back(i_lbl2);			
 
+			if (DEBUG_S) cout << "length of i_store indexes are " << i_store->indexes.size() << endl;
 
 			for (Arg* idx : i_store->indexes) {
+
+				if (DEBUG_S) cout << "iterating over i_store index: " << idx->name << endl;
 
 				// load the current dimensions length
 				Instruction_Length* i_length2 = new Instruction_Length();
@@ -280,6 +325,8 @@ namespace LA {
 
 				i++;
 			}
+
+			if (DEBUG_S) cout << "done with i_store" << endl;
 		}
 		else { return; }
 	}
@@ -354,7 +401,7 @@ namespace LA {
 		else if (Instruction_Load* i = dynamic_cast<Instruction_Load*>(I)) {
 
 			// set the begining of the instruction to be the memory check
-			check_memory_access(i, newInsts);
+			check_memory_access(f, i, newInsts);
 
 
 			i->instruction = "";
@@ -368,7 +415,7 @@ namespace LA {
 		else if (Instruction_Store* i = dynamic_cast<Instruction_Store*>(I)) {
 			
 			// set the begining of the instruction to be the memory check
-			check_memory_access(i, newInsts);
+			check_memory_access(f, i, newInsts);
 
 			i->instruction = "";
 			i->instruction = i->dst->name;
