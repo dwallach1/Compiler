@@ -320,19 +320,16 @@ namespace LA {
 			}
 			
 			newInsts->push_back(i_isZero);
-			encodeArg(f, isZeroDest, newInsts);
-
-			if (DEBUG_S) cout << "successfully added isZero variable" << endl;
-
+			// encodeArg(f, isZeroDest, newInsts);
 
 			// check if array is 0
 			Instruction_brCmp* i_brcmp = new Instruction_brCmp();
 			string trueLabel = ":" + legnthVar + "trueLabel" + to_string(i_store->num);
 			string falseLabel = ":" + legnthVar+ "falseLabel" + to_string(i_store->num);
-			i_brcmp->instruction = "br " + decodeArg(f, isZeroDest, newInsts) + " " + trueLabel + " " + falseLabel;
+			// i_brcmp->instruction = "br " + decodeArg(f, isZeroDest, newInsts) + " " + trueLabel + " " + falseLabel;
+			i_brcmp->instruction = "br " +  isZeroDest->name + " " + trueLabel + " " + falseLabel;
 			newInsts->push_back(i_brcmp);
 
-			if (DEBUG_S) cout << "created the conditional jump" << endl;
 			
 			// if it is zero, call array-error
 			Instruction_Label* i_lbl = new Instruction_Label();
@@ -348,33 +345,28 @@ namespace LA {
 			i_lbl2->instruction = falseLabel;
 			newInsts->push_back(i_lbl2);			
 
-			if (DEBUG_S) cout << "length of i_store indexes are " << i_store->indexes.size() << endl;
 			int indexNum = 0;
 			for (Arg* idx : i_store->indexes) {
-
-				if (DEBUG_S) cout << "iterating over i_store index: " << idx->name << endl;
 
 				// load the current dimensions length
 				Arg* newLength = new Arg();
 				newLength->name = "%" + legnthVar;
 
-				if(DEBUG_S) cout << "Begin handling index\n";
 				Instruction_Length* i_length = new Instruction_Length();
-				if(DEBUG_S) cout << "Arg* idx name is: " << idx->name << endl;
 				i_length->instruction = newLength->name + " <- length " + i_store->dst->name + " " + to_string(indexNum);
 				indexNum++;
-				if(DEBUG_S) cout << "Attempting to push back instruction to newInsts\n";
 				newInsts->push_back(i_length);
 
-				encodeArg(f, newLength, newInsts);
+				Instruction_opAssignment* decode_length = new Instruction_opAssignment();
+				decode_length->instruction = newLength->name + " <- " + newLength->name + " >> 1";
+				newInsts->push_back(decode_length);
 
-				if(DEBUG_S) cout << "Added a length instruction\n";
+				//encodeArg(f, newLength, newInsts);
 
 				Arg* lengthResult = new Arg();
 				lengthResult->name = newLength->name + to_string(i);
 
 				Instruction_Declaration* i_dec = new Instruction_Declaration();
-	
 				i_dec->instruction =  "int64 " + lengthResult->name;
 		
 				// we do not want to redeclare the same variables 
@@ -383,38 +375,52 @@ namespace LA {
 				if (lengthResult == var_checker) { 
 					newInsts->push_back(i_dec); 
 					f->declared_variables.insert(lengthResult);
-					if(DEBUG_S) cout << "Added a declare instruction\n";
-
 				}
 
 				// check if less than length 
 				Instruction_opAssignment* i_opAssign = new Instruction_opAssignment();
-				i_opAssign->instruction = lengthResult->name + " <- " + decodeArg(f, idx, newInsts) + " < " + decodeArg(f, newLength, newInsts);
-				newInsts->push_back(i_opAssign);
-				if(DEBUG_S) cout << "Added a opAssign instruction\n";
 
-				encodeArg(f, lengthResult, newInsts);
+				// if (dynamic_cast<Number*>(idx)) {
+					// i_opAssign->instruction = lengthResult->name + " <- " + idx->name + " < " + decodeArg(f, newLength, newInsts);
+					i_opAssign->instruction = lengthResult->name + " <- " + idx->name + " < " + newLength->name;
+
+
+				// }
+				// else {
+					// i_opAssign->instruction = lengthResult->name + " <- " + decodeArg(f, idx, newInsts) + " < " + decodeArg(f, newLength, newInsts);
+				// }
+
+				newInsts->push_back(i_opAssign);
+
+				//encodeArg(f, lengthResult, newInsts);
 				Instruction_brCmp* i_brcmp = new Instruction_brCmp();
-				i_brcmp->instruction = "br " + decodeArg(f,lengthResult, newInsts) + " :" + lengthResult->name.substr(1) + "trueLabel" + " " + ":" + lengthResult->name.substr(1) + "falseLabel";
+				//i_brcmp->instruction = "br " + decodeArg(f,lengthResult, newInsts) + " :" + lengthResult->name.substr(1) + "trueLabel" + " " + ":" + lengthResult->name.substr(1) + "falseLabel";
+				i_brcmp->instruction = "br " + lengthResult->name + " :" + lengthResult->name.substr(1) + "trueLabel" + " " + ":" + lengthResult->name.substr(1) + "falseLabel";
+				
 				newInsts->push_back(i_brcmp);
-				if(DEBUG_S) cout << "Added a branch instruction\n";
 					
 				// jump for array error
 				Instruction_Label* i_lbl = new Instruction_Label();
 				i_lbl->instruction = ":" + lengthResult->name.substr(1) + "falseLabel";
 				newInsts->push_back(i_lbl);
-				if(DEBUG_S) cout << "Added a false label instruction\n";
 
 				Instruction_Call* i_call = new Instruction_Call();
-				i_call->instruction = "call array-error(" + i_store->dst->name + "," + decodeArg(f, idx, newInsts) + ")";
+				// if (dynamic_cast<Number*>(idx)) {
+				// 	i_call->instruction = "call array-error(" + i_store->dst->name + "," + encodeArg(f, idx, newInsts) + ")";
+				// }
+				// else {
+				// 	i_call->instruction = "call array-error(" + i_store->dst->name + "," + decodeArg(f, idx, newInsts) + ")";
+				// }
+				// i_call->instruction = "call array-error(0,0)";
+				int k = indexNum * 2 + 1;
+				i_call->instruction = "call print(" + to_string(k) + ")";
+
 				newInsts->push_back(i_call);
-				if(DEBUG_S) cout << "Added a call array error instruction\n";
 
 				// jump for no error
 				Instruction_Label* i_lbl8 = new Instruction_Label();
-				i_lbl8->instruction = ":" + lengthResult->name.substr(1) + "trueLabel\n";
+				i_lbl8->instruction = ":" + lengthResult->name.substr(1) + "trueLabel";
 				newInsts->push_back(i_lbl8);
-				if(DEBUG_S) cout << "Added a true label instruction\n";
 
 				i++;
 			}
@@ -494,7 +500,7 @@ namespace LA {
 		else if (Instruction_Load* i = dynamic_cast<Instruction_Load*>(I)) {
 
 			// set the begining of the instruction to be the memory check
-			//check_memory_access(f, i, newInsts);
+			check_memory_access(f, i, newInsts);
 
 
 			i->instruction = "";
@@ -514,7 +520,7 @@ namespace LA {
 		else if (Instruction_Store* i = dynamic_cast<Instruction_Store*>(I)) {
 			
 			// set the begining of the instruction to be the memory check
-			//check_memory_access(f, i, newInsts);
+			check_memory_access(f, i, newInsts);
 
 			i->instruction = "";
 			i->instruction = i->dst->name;
