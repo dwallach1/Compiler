@@ -638,8 +638,12 @@ namespace LA {
         	newInsts->push_back(i_ret);
         }
         else if (Instruction_CallAssign* i_callAssign = dynamic_cast<Instruction_CallAssign*>(I)) {
-
-        	i_callAssign->instruction = i_callAssign->dst->name + " <- call :" + i_callAssign->callee->name + "(";
+        	if(i_callAssign->callee->name[0] == '%'){
+        		i_callAssign->instruction = i_callAssign->dst->name + " <- call " + i_callAssign->callee->name + "(";
+        	}
+        	else{
+        		i_callAssign->instruction = i_callAssign->dst->name + " <- call :" + i_callAssign->callee->name + "(";
+        	}
     		for(int i = 0; i < i_callAssign->parameters.size(); i++){
     			Number* num = dynamic_cast<Number*>(i_callAssign->parameters[i]);
     			if (num) {  
@@ -656,7 +660,12 @@ namespace LA {
         		i_call->instruction = "call " + i_call->callee->name + "(";
         	}
         	else{
-        		i_call->instruction = "call :" + i_call->callee->name + "(";
+        		if(i_callAssign->callee->name[0] == '%'){
+        			i_callAssign->instruction = i_callAssign->dst->name + " <- call " + i_callAssign->callee->name + "(";
+        		}
+        		else{
+        			i_callAssign->instruction = i_callAssign->dst->name + " <- call :" + i_callAssign->callee->name + "(";
+        		}
         	}
         		for(int i = 0; i < i_call->parameters.size(); i++){
         			Int64* int64 = dynamic_cast<Int64*>(i_call->parameters[i]->type);
