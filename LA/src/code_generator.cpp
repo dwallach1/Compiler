@@ -161,8 +161,8 @@ namespace LA {
 	void check_memory_access(Function* f, Instruction_Assignment* I, vector<Instruction*>* newInsts) {
 		Instruction_Load* i_load = dynamic_cast<Instruction_Load*>(I);
 		Instruction_Store* i_store = dynamic_cast<Instruction_Store*>(I);
-		int i = 0;
 		string legnthVar = "uniqueLengthHolderBrianDavid" + to_string(I->num);
+		int i = 0;
 	
 		// check if load 
 		if (i_load) {
@@ -297,8 +297,6 @@ namespace LA {
 		// otherwise its a store
 		else if (i_store) {
 
-			if (DEBUG_S) cout << "checking memory access of store instruction" << endl;
-
 			Instruction_opAssignment* i_isZero = new Instruction_opAssignment();
 			Arg* isZeroDest = new Arg();
 			isZeroDest->name = "%" + legnthVar;
@@ -308,25 +306,21 @@ namespace LA {
 			i_isZero->instruction = isZeroDest->name + " <- " + i_store->dst->name + " = " +  zero->name;
 			
 			Instruction_Declaration* i_dec = new Instruction_Declaration();
-	
 			i_dec->instruction =  "int64 " + isZeroDest->name;
 	
 			// we do not want to redeclare the same variables 
 			Arg* var_checker = var_exists(f, isZeroDest);
-	
 			if (isZeroDest == var_checker) { 
 				newInsts->push_back(i_dec); 
 				f->declared_variables.insert(isZeroDest);
 			}
-			
 			newInsts->push_back(i_isZero);
-			// encodeArg(f, isZeroDest, newInsts);
 
 			// check if array is 0
 			Instruction_brCmp* i_brcmp = new Instruction_brCmp();
 			string trueLabel = ":" + legnthVar + "trueLabel" + to_string(i_store->num);
 			string falseLabel = ":" + legnthVar+ "falseLabel" + to_string(i_store->num);
-			// i_brcmp->instruction = "br " + decodeArg(f, isZeroDest, newInsts) + " " + trueLabel + " " + falseLabel;
+			
 			i_brcmp->instruction = "br " +  isZeroDest->name + " " + trueLabel + " " + falseLabel;
 			newInsts->push_back(i_brcmp);
 
@@ -345,24 +339,37 @@ namespace LA {
 			i_lbl2->instruction = falseLabel;
 			newInsts->push_back(i_lbl2);			
 
+
+			if (dynamic_cast<Tuple*>(i_store->dst->type)) { return; }
+
 			int indexNum = 0;
+			int k = 0;
 			for (Arg* idx : i_store->indexes) {
 
 				// load the current dimensions length
 				Arg* newLength = new Arg();
 				newLength->name = "%" + legnthVar;
 
+				// get the length of the current "indexNum" dimension
 				Instruction_Length* i_length = new Instruction_Length();
 				i_length->instruction = newLength->name + " <- length " + i_store->dst->name + " " + to_string(indexNum);
-				indexNum++;
 				newInsts->push_back(i_length);
 
+				/*
+				 *  this snippet is used for debugging, call array-error seems to be brokn
+				 *
+				 */
+				Instruction_Call* debug_print = new Instruction_Call();
+				debug_print->instruction = "call print(" + newLength->name + ")";
+				//newInsts->push_back(debug_print);
+				// end of debug snippet
+
+				// decode the length value (its encoded by default)
 				Instruction_opAssignment* decode_length = new Instruction_opAssignment();
 				decode_length->instruction = newLength->name + " <- " + newLength->name + " >> 1";
 				newInsts->push_back(decode_length);
 
-				//encodeArg(f, newLength, newInsts);
-
+				// create and declare instruction (if necessary) the result of if dimesnion < length 
 				Arg* lengthResult = new Arg();
 				lengthResult->name = newLength->name + to_string(i);
 
@@ -371,7 +378,6 @@ namespace LA {
 		
 				// we do not want to redeclare the same variables 
 				Arg* var_checker = var_exists(f, lengthResult);
-		
 				if (lengthResult == var_checker) { 
 					newInsts->push_back(i_dec); 
 					f->declared_variables.insert(lengthResult);
@@ -379,24 +385,17 @@ namespace LA {
 
 				// check if less than length 
 				Instruction_opAssignment* i_opAssign = new Instruction_opAssignment();
-
-				// if (dynamic_cast<Number*>(idx)) {
-					// i_opAssign->instruction = lengthResult->name + " <- " + idx->name + " < " + decodeArg(f, newLength, newInsts);
+				if (dynamic_cast<Number*>(idx)) {
 					i_opAssign->instruction = lengthResult->name + " <- " + idx->name + " < " + newLength->name;
-
-
-				// }
-				// else {
-					// i_opAssign->instruction = lengthResult->name + " <- " + decodeArg(f, idx, newInsts) + " < " + decodeArg(f, newLength, newInsts);
-				// }
-
+					// i_opAssign->instruction = lengthResult->name + " <- " + encodeArg(f, idx, newInsts) + " < " + newLength->name;
+				}
+				else {
+					i_opAssign->instruction = lengthResult->name + " <- " + idx->name + " < " + newLength->name;
+				}
 				newInsts->push_back(i_opAssign);
 
-				//encodeArg(f, lengthResult, newInsts);
 				Instruction_brCmp* i_brcmp = new Instruction_brCmp();
-				//i_brcmp->instruction = "br " + decodeArg(f,lengthResult, newInsts) + " :" + lengthResult->name.substr(1) + "trueLabel" + " " + ":" + lengthResult->name.substr(1) + "falseLabel";
 				i_brcmp->instruction = "br " + lengthResult->name + " :" + lengthResult->name.substr(1) + "trueLabel" + " " + ":" + lengthResult->name.substr(1) + "falseLabel";
-				
 				newInsts->push_back(i_brcmp);
 					
 				// jump for array error
@@ -412,9 +411,15 @@ namespace LA {
 				// 	i_call->instruction = "call array-error(" + i_store->dst->name + "," + decodeArg(f, idx, newInsts) + ")";
 				// }
 				// i_call->instruction = "call array-error(0,0)";
-				int k = indexNum * 2 + 1;
+				
+				/*
+				 *  this snippet is used for debugging, call array-error seems to be brokn
+				 *
+				 */
+				k = (indexNum * 2) + 1;
 				i_call->instruction = "call print(" + to_string(k) + ")";
-
+				// end of debug snippet
+				
 				newInsts->push_back(i_call);
 
 				// jump for no error
@@ -422,6 +427,7 @@ namespace LA {
 				i_lbl8->instruction = ":" + lengthResult->name.substr(1) + "trueLabel";
 				newInsts->push_back(i_lbl8);
 
+				indexNum++;
 				i++;
 			}
 
