@@ -5,7 +5,7 @@
 
 namespace L2{
 
-  void L2_generate_code(Program p);
+  void L2_generate_code(Program p, std::vector<std::vector<Instruction*>> v);
 
 
 }

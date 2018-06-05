@@ -17,7 +17,6 @@
 #include <spiller.h>
 #include <code_generator.h>
 
-
 #define DEBUGGING 0
 #define DEBUG_S 0
 
@@ -170,9 +169,11 @@ int main(
    * Generate the code.
    */
   if (enable_code_generator){
+    std::vector<std::vector<L2::Instruction*>> programPaas;
     for(auto f : p.functions){
       if (DEBUGGING) printf("Generating abstractions for function: %s\n", f->name.c_str());
-
+      // std::vector<L2::Instruction*> paas = L2::findPAA(f);
+      // programPaas.push_back(paas);
       bool done = false;
       while(!done){
         done = true;
@@ -201,7 +202,7 @@ int main(
     }
 
     
-    L2::L2_generate_code(p);
+    L2::L2_generate_code(p, programPaas);
   }
 
   return 0;

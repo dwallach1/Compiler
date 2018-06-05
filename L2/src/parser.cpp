@@ -870,8 +870,14 @@ namespace L2 {
          }
         }
 
+        if(callee->type == PAA){
+          //printf("Found this: %s\n", callee->name.c_str());
+          currentF->paaInsts.push_back("call " + callee->name + ' ' + args->name);
+          instruction->paa = 1337;
+        }
         parsed_registers.pop_back();
         instruction->instruction = "call " + callee->name + ' ' + args->name;
+        //printf("%s\n", instruction->instruction.c_str());
         instruction->arguments.push_back(callee);
         instruction->arguments.push_back(args);
 

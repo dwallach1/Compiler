@@ -404,20 +404,20 @@ namespace LA {
 				newInsts->push_back(i_lbl);
 
 				Instruction_Call* i_call = new Instruction_Call();
-				// if (dynamic_cast<Number*>(idx)) {
-				// 	i_call->instruction = "call array-error(" + i_store->dst->name + "," + encodeArg(f, idx, newInsts) + ")";
-				// }
-				// else {
-				// 	i_call->instruction = "call array-error(" + i_store->dst->name + "," + decodeArg(f, idx, newInsts) + ")";
-				// }
+				if (dynamic_cast<Number*>(idx)) {
+					i_call->instruction = "call array-error(" + i_store->dst->name + "," + encodeArg(f, idx, newInsts) + ")";
+				}
+				else {
+					i_call->instruction = "call array-error(" + i_store->dst->name + "," + decodeArg(f, idx, newInsts) + ")";
+				}
 				// i_call->instruction = "call array-error(0,0)";
 				
 				/*
 				 *  this snippet is used for debugging, call array-error seems to be brokn
 				 *
 				 */
-				k = (indexNum * 2) + 1;
-				i_call->instruction = "call print(" + to_string(k) + ")";
+				// k = (indexNum * 2) + 1;
+				// i_call->instruction = "call print(" + to_string(k) + ")";
 				// end of debug snippet
 				
 				newInsts->push_back(i_call);

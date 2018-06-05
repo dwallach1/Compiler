@@ -84,6 +84,7 @@ namespace L2 {
     // bool stackArg;
     Instruction* prevInst;
     Instruction* nextInst;
+    int paa;
     std::vector<L2::Arg *> arguments;
     std::vector<std::string> operation;
 
@@ -120,6 +121,7 @@ namespace L2 {
     L2::InterferenceGraph* interferenceGraph;
     std::string toSpill;
     std::string replaceSpill;
+    std::vector<std::string> paaInsts;
   };
 
   struct Program{

@@ -38,7 +38,21 @@ void insertStore(Function* f, std::string replacementString, std::vector<Instruc
 void removeIncDecSpaces(L2::Function* f);
 void printNewSpill(Function* f);
     
+    vector<Instruction*> findPAA(Function* f) {
+        vector<Instruction*> paas = {};
 
+        for (Instruction* I : f->instructions) {
+            if (I->type == CALL) {
+                if (I->arguments[0]->type == PAA) {
+                    Instruction* Inew = new Instruction();
+                    Inew->instruction = I->instruction;
+                    printf("Adding instruction to paa: %s\n", Inew->instruction.c_str());
+                    paas.push_back(Inew);
+                }
+            }
+        }
+        return paas;
+    }
 
     /*
      *
