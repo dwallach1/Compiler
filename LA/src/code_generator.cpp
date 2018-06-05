@@ -237,6 +237,8 @@ namespace LA {
 				if(DEBUG_S) cout << "Attempting to push back instruction to newInsts\n";
 				newInsts->push_back(i_length);
 
+				encodeArg(f, newLength, newInsts);
+
 				if(DEBUG_S) cout << "Added a length instruction\n";
 
 				Arg* lengthResult = new Arg();
@@ -364,6 +366,8 @@ namespace LA {
 				if(DEBUG_S) cout << "Attempting to push back instruction to newInsts\n";
 				newInsts->push_back(i_length);
 
+				encodeArg(f, newLength, newInsts);
+
 				if(DEBUG_S) cout << "Added a length instruction\n";
 
 				Arg* lengthResult = new Arg();
@@ -490,7 +494,7 @@ namespace LA {
 		else if (Instruction_Load* i = dynamic_cast<Instruction_Load*>(I)) {
 
 			// set the begining of the instruction to be the memory check
-			check_memory_access(f, i, newInsts);
+			//check_memory_access(f, i, newInsts);
 
 
 			i->instruction = "";
@@ -510,7 +514,7 @@ namespace LA {
 		else if (Instruction_Store* i = dynamic_cast<Instruction_Store*>(I)) {
 			
 			// set the begining of the instruction to be the memory check
-			check_memory_access(f, i, newInsts);
+			//check_memory_access(f, i, newInsts);
 
 			i->instruction = "";
 			i->instruction = i->dst->name;
@@ -525,7 +529,15 @@ namespace LA {
 				}
 			}
 
-			i->instruction.append(" <- " + i->src->name);
+			// size_t found = f->declaration.find(i->src->name);
+
+			// if (found == std::string::npos){
+			if (dynamic_cast<Number*>(i->src)) {
+				i->instruction.append(" <- " + encodeArg(f, i->src, newInsts));
+			}
+			else {
+		    	i->instruction.append(" <- " + i->src->name);
+			}
 		    newInsts->push_back(i);
         }
 		else if (Instruction_opAssignment* i = dynamic_cast<Instruction_opAssignment*>(I)) {
@@ -537,7 +549,7 @@ namespace LA {
 			encodeArg(f, i->dst, newInsts);
 		}    
         else if (Instruction_TupleInit* i_tuple = dynamic_cast<Instruction_TupleInit*>(I)) {
-        	i_tuple->instruction = i_tuple->dst->name + " <- new Tuple(" + i_tuple->src[0]->name + ")";
+        	i_tuple->instruction = i_tuple->dst->name + " <- new Tuple(" + encodeArg(f, i_tuple->src[0], newInsts) + ")";
         	newInsts->push_back(i_tuple);
         } 
         else if (Instruction_ArrayInit* i_array = dynamic_cast<Instruction_ArrayInit*>(I)) {
@@ -550,13 +562,27 @@ namespace LA {
         	i_ret->instruction = "return";
         	newInsts->push_back(i_ret);
         }
+        else if (Instruction_CallAssign* i_callAssign = dynamic_cast<Instruction_CallAssign*>(I)) {
+
+        	i_callAssign->instruction = i_callAssign->dst->name + " <- call :" + i_callAssign->callee->name + "(";
+    		for(int i = 0; i < i_callAssign->parameters.size(); i++){
+    			Number* num = dynamic_cast<Number*>(i_callAssign->parameters[i]);
+    			if (num) {  
+    				i_callAssign->instruction.append(encodeArg(f, i_callAssign->parameters[i], newInsts) + ", ");
+    			} else {
+    				i_callAssign->instruction.append(i_callAssign->parameters[i]->name + ", ");
+    			}
+    		}
+    		i_callAssign->instruction.append(")");
+    		newInsts->push_back(i_callAssign);
+        }
         else if (Instruction_Call* i_call = dynamic_cast<Instruction_Call*>(I)){
         	if(PA* isPA = dynamic_cast<PA*>(i_call->callee)){
         		i_call->instruction = "call " + i_call->callee->name + "(";
         		for(int i = 0; i < i_call->parameters.size(); i++){
         			Int64* int64 = dynamic_cast<Int64*>(i_call->parameters[i]->type);
         			Number* num = dynamic_cast<Number*>(i_call->parameters[i]);
-        			if (int64 || num) {  
+        			if (num) {  
         				i_call->instruction.append(encodeArg(f, i_call->parameters[i], newInsts) + ", ");
         			} else {
         				i_call->instruction.append(i_call->parameters[i]->name + ", ");
@@ -573,6 +599,10 @@ namespace LA {
         		i_call->instruction.append(")");
         		newInsts->push_back(i_call);
         	}
+        }
+        else if (Instruction_Assignment* i_assign = dynamic_cast<Instruction_Assignment*>(I)) {
+        	newInsts->push_back(i_assign);
+        	encodeArg(f, i_assign->dst, newInsts);
         }
 		else {
 			// instruction remains the same
