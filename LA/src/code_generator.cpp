@@ -638,7 +638,8 @@ namespace LA {
         	newInsts->push_back(i_ret);
         }
         else if (Instruction_CallAssign* i_callAssign = dynamic_cast<Instruction_CallAssign*>(I)) {
-        	if(i_callAssign->callee->name[0] == '%'){
+        	
+        	if(i_callAssign->callee->name.size() > 0 && i_callAssign->callee->name[0] == '%'){
         		i_callAssign->instruction = i_callAssign->dst->name + " <- call " + i_callAssign->callee->name + "(";
         	}
         	else{
@@ -660,32 +661,19 @@ namespace LA {
         		i_call->instruction = "call " + i_call->callee->name + "(";
         	}
         	else{
-        		if(i_callAssign->callee->name[0] == '%'){
-        			i_callAssign->instruction = i_callAssign->dst->name + " <- call " + i_callAssign->callee->name + "(";
-        		}
-        		else{
-        			i_callAssign->instruction = i_callAssign->dst->name + " <- call :" + i_callAssign->callee->name + "(";
-        		}
+        		i_call->instruction = "call :" + i_call->callee->name + "(";
         	}
-        		for(int i = 0; i < i_call->parameters.size(); i++){
-        			Int64* int64 = dynamic_cast<Int64*>(i_call->parameters[i]->type);
-        			Number* num = dynamic_cast<Number*>(i_call->parameters[i]);
-        			if (num) {  
-        				i_call->instruction.append(encodeArg(f, i_call->parameters[i], newInsts) + ", ");
-        			} else {
-        				i_call->instruction.append(i_call->parameters[i]->name + ", ");
-        			}
-        		}
-        		i_call->instruction.append(")");
-        		newInsts->push_back(i_call);
-    //     	else{
-				// i_call->instruction = "call :" + i_call->callee->name + "(";
-    //     		for(int i = 0; i < i_call->parameters.size(); i++){
-    //     			i_call->instruction.append(i_call->parameters[i]->name + ", ");
-    //     		}
-    //     		i_call->instruction.append(")");
-    //     		newInsts->push_back(i_call);
-    //     	}
+    		for(int i = 0; i < i_call->parameters.size(); i++){
+    			Int64* int64 = dynamic_cast<Int64*>(i_call->parameters[i]->type);
+    			Number* num = dynamic_cast<Number*>(i_call->parameters[i]);
+    			if (num) {  
+    				i_call->instruction.append(encodeArg(f, i_call->parameters[i], newInsts) + ", ");
+    			} else {
+    				i_call->instruction.append(i_call->parameters[i]->name + ", ");
+    			}
+    		}
+    		i_call->instruction.append(")");
+    		newInsts->push_back(i_call);
         }
         else if (Instruction_Assignment* i_assign = dynamic_cast<Instruction_Assignment*>(I)) {
         	newInsts->push_back(i_assign);
