@@ -647,6 +647,7 @@ namespace LA {
         	}
     		for(int i = 0; i < i_callAssign->parameters.size(); i++){
     			Number* num = dynamic_cast<Number*>(i_callAssign->parameters[i]);
+    			
     			if (num) {  
     				i_callAssign->instruction.append(encodeArg(f, i_callAssign->parameters[i], newInsts) + ", ");
     			} else {
@@ -655,6 +656,7 @@ namespace LA {
     		}
     		i_callAssign->instruction.append(")");
     		newInsts->push_back(i_callAssign);
+    		
         }
         else if (Instruction_Call* i_call = dynamic_cast<Instruction_Call*>(I)){
         	if(PA* isPA = dynamic_cast<PA*>(i_call->callee)){
@@ -678,6 +680,18 @@ namespace LA {
         else if (Instruction_Assignment* i_assign = dynamic_cast<Instruction_Assignment*>(I)) {
         	newInsts->push_back(i_assign);
         	encodeArg(f, i_assign->dst, newInsts);
+        }
+        else if (Instruction_ReturnVal* i_retVal = dynamic_cast<Instruction_ReturnVal*>(I)) {
+        	if (dynamic_cast<Number*>(i_retVal->retVal)) {
+        		
+        		i_retVal->instruction = "return " + encodeArg(f, i_retVal->retVal, newInsts);
+
+        	}
+        	else {
+        		i_retVal->instruction = "return " + i_retVal->retVal->name;
+        	}
+
+        	newInsts->push_back(I);
         }
 		else {
 			// instruction remains the same
